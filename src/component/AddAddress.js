@@ -74,7 +74,7 @@ const AddAddress = props => {
     setNameMsg('');
 
     if (house_no == '') {
-      setHousNoMsg('Please Enter Hous Number');
+      setHousNoMsg('Please Enter House Number');
       return;
     }
     setHousNoMsg('');

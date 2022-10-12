@@ -20,6 +20,7 @@ import Fonts from '../constants/Fonts';
 import {connect} from 'react-redux';
 import Config from '../constants/Config';
 import Loader from '../common/Loader';
+import axios from 'axios';
 
 import {startCounter, stopCounter} from 'react-native-accurate-step-counter';
 
@@ -30,10 +31,7 @@ import {
   getHomeRequested,
 } from '../modules/Home/actions';
 
-// LogBox.ignoreAllLogs();
-
 function TabOneScreen(props) {
-  // console.log('TabOneScreen:::: ', props.loginData.token);
   const navigation = useNavigation();
   const colorList = [
     {offset: '0%', color: '#5D6AFC', opacity: '1'},
@@ -50,12 +48,6 @@ function TabOneScreen(props) {
   const [stepsTarget, setStepsTarget] = useState(0);
   const [stepsPercent, setStepsPercent] = useState(0);
   const [isLoading, setIsLoading] = useState(false);
-
-  // useEffect(() => {
-  //   setInterval(() => {
-  //     sD(d);
-  //   }, 10000);
-  // }, []);
 
   useEffect(() => {
     props.getHomeRequested(props.loginData.token);
@@ -103,12 +95,7 @@ function TabOneScreen(props) {
 
   useEffect(() => {
     onGetHomeData();
-    // {
-    //   water && console.error('water ::::::::::::::', water);
-    // }
   }, []);
-
-  // console.log('onGetHomeData::::: ', props.state);
   const onGetHomeData = () => {
     var myHeaders = new Headers();
     myHeaders.append('Authorization', 'Bearer ' + props.loginData.token);
@@ -147,11 +134,7 @@ function TabOneScreen(props) {
         <View style={styles.container}>
           <Row>
             <Col size={47}>
-              <View
-                onStartShouldSetResponder={() =>
-                  navigation.navigate('StartRunning')
-                }
-                style={[styles.boxgradient, {marginBottom: 7}]}>
+              <View style={[styles.boxgradient, {marginBottom: 7}]}>
                 <View style={styles.relative}>
                   <View style={styles.headflex}>
                     <Image
@@ -346,38 +329,7 @@ function TabOneScreen(props) {
               </View>
             </Col>
           </Row>
-          {/* <Button
-            title="ABC"
-            onPress={() => {
-              var myHeaders = new Headers();
-              myHeaders.append(
-                'authorization',
-                'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VyX2lkIjoiNjMzM2U4MjkyZDQ3ZjkxZDUyYWQ1YTI2IiwiaWF0IjoxNjY0MzQ2MTUzLCJleHAiOjE2OTU4ODIxNTN9.0GCqiQ73qwlN1OPFIEDCUjTDHZxRAgD5hvOOpoKX254',
-              );
 
-              var formdata = new FormData();
-              formdata.append(
-                'uploadFile',
-                fileInput.files[0],
-                'Screenshot (2).png',
-              );
-              formdata.append('postType', 'Post1');
-              formdata.append('description', '1st_post');
-              formdata.append('comressedPath', 'CompressedPosts');
-
-              var requestOptions = {
-                method: 'POST',
-                headers: myHeaders,
-                body: formdata,
-                redirect: 'follow',
-              };
-
-              fetch('http://54.236.111.132:4000/addPost/Posts', requestOptions)
-                .then(response => response.text())
-                .then(result => console.log(result))
-                .catch(error => console.log('error', error));
-            }}
-          /> */}
           <View style={styles.boxgradient1}>
             <View style={styles.relative}>
               <View style={[styles.headflex, {paddingTop: 25}]}>

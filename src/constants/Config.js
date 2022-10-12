@@ -8,7 +8,7 @@ const Config = {
 
   BASE_URL: 'https://dev.indiit.solutions/pace/public/api',
   IMAGE_BASE_URL: 'https://dev.indiit.solutions/pace/public/assets/images/',
-  VIDEO_BASE_URL: 'https://dev.indiit.solutions/pace/public/assets/images/',
+  VIDEO_BASE_URL: 'https://dev.indiit.solutions/pace/public/assets/videos/',
 
   do_login: '/do_login',
   do_signup: '/do_signup',
@@ -57,6 +57,8 @@ const Config = {
   update_profile_image: '/update-profile-image',
   viewed_workouts_video: '/viewed-workouts-video',
   completed_steps: '/completed-steps',
+  get_step_process: '/get-step-process',
+  step_process: '/step-process',
   logout: '/logout',
 };
 

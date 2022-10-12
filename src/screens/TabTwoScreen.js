@@ -10,6 +10,7 @@ import {
   Image,
   FlatList,
   Pressable,
+  TextInput,
 } from 'react-native';
 import AntDesign from 'react-native-vector-icons/AntDesign';
 import Modal from 'react-native-modal';
@@ -24,7 +25,9 @@ import {
 const TabTwoScreen = props => {
   const navigation = useNavigation();
   const [isModalVisible, setModalVisible] = useState(false);
-
+  const [searchModalVisible, setSearchModalVisible] = useState(true);
+  const [searchTxt, setSearchTxt] = useState('');
+  // console.log(props.loginData.token);
   const toggleModal = () => {
     setModalVisible(!isModalVisible);
   };
@@ -35,7 +38,7 @@ const TabTwoScreen = props => {
   ];
 
   useEffect(() => {
-    props.workoutListRequest(props.loginData);
+    props.workoutListRequest({token: props.loginData.token, search: ''});
   }, []);
 
   const renderItem = data => {
@@ -48,6 +51,7 @@ const TabTwoScreen = props => {
           } else {
             navigation.navigate('WorkoutDetails');
           }
+          // navigation.navigate('WorkoutDetails');
         }}
         style={styles.blogitem}>
         <Image
@@ -64,10 +68,19 @@ const TabTwoScreen = props => {
         />
 
         <View style={styles.blogbody}>
-          <Text style={styles.title}>{data.item.title}</Text>
-          <Text style={styles.subtitle}>
-            {data.item.exercise} {'Exercise'} {'| '} {data.item.time_duration}{' '}
-            {'mins'}
+          <Text style={styles.title}>{data?.item?.title}</Text>
+          <Text>
+            {Boolean(data?.item?.exercise) && (
+              <Text style={styles.subtitle}>
+                {data?.item?.exercise} {'Exercise'}{' '}
+              </Text>
+            )}
+
+            {Boolean(data?.item?.time_duration) && (
+              <Text>
+                {'| '} {data?.item?.time_duration} {'mins'}
+              </Text>
+            )}
           </Text>
         </View>
         {data.item.premium_feature == 1 && (
@@ -75,8 +88,7 @@ const TabTwoScreen = props => {
             style={{
               position: 'absolute',
               right: -1,
-              backgroundColor: '#fff',
-              opacity: 0.6,
+              backgroundColor: 'rgba(244,172,62,0.2)',
               padding: 5,
               bottom: 103,
               paddingHorizontal: 10,
@@ -100,10 +112,89 @@ const TabTwoScreen = props => {
 
   return (
     <SafeAreaView style={styles.mainbg}>
+      <View>
+        {searchModalVisible ? (
+          <View
+            style={{
+              flexDirection: 'row',
+              justifyContent: 'space-between',
+              paddingHorizontal: 15,
+              paddingTop: 20,
+              paddingBottom: 10,
+              backgroundColor: '#FFF',
+            }}>
+            <Text
+              style={{
+                fontFamily: Fonts.Poppins_Bold,
+                fontSize: 16,
+                color: '#3B2645',
+                bottom: 5,
+              }}>
+              Workouts
+            </Text>
+
+            <TouchableOpacity
+              onPress={() => setSearchModalVisible(!searchModalVisible)}>
+              <Image
+                resizeMode="contain"
+                source={require('../../assets/images/search.png')}
+                style={{
+                  width: 17,
+                  height: 17,
+                }}
+              />
+            </TouchableOpacity>
+          </View>
+        ) : (
+          <View style={styles.inputconatiner}>
+            <TextInput
+              placeholder="Search Workout..."
+              style={styles.input}
+              onBlur={() => {
+                props.workoutListRequest({
+                  token: props.loginData.token,
+                  search: searchTxt,
+                });
+              }}
+              underlineColor={'transparent'}
+              returnKeyType={'search'}
+              selectionColor="#3B2645"
+              onChangeText={e => {
+                console.log(e);
+                setSearchTxt(e);
+              }}
+              theme={{
+                colors: {
+                  primary: '#F7F8F8',
+                  text: '#3B2645',
+                },
+                fonts: {
+                  regular: {
+                    fontFamily: Fonts.Poppins_Regular,
+                  },
+                },
+              }}
+            />
+            <TouchableOpacity
+              style={styles.icon}
+              onPress={() => setSearchModalVisible(!searchModalVisible)}>
+              <Image
+                resizeMode="contain"
+                source={require('../../assets/images/mcross.png')}
+                style={{
+                  width: 20,
+                  height: 20,
+                }}
+              />
+            </TouchableOpacity>
+          </View>
+        )}
+      </View>
       <View style={styles.mainbg}>
         <View style={styles.container}>
           <FlatList data={props.workoutList} renderItem={renderItem} />
         </View>
+
         <Modal
           isVisible={isModalVisible}
           onBackdropPress={() => {
@@ -210,6 +301,29 @@ const styles = StyleSheet.create({
     padding: 15,
     paddingTop: 0,
   },
+  // Search
+  inputconatiner: {
+    position: 'relative',
+    borderRadius: 15,
+    overflow: 'hidden',
+    margin: 10,
+  },
+  icon: {
+    position: 'absolute',
+    top: 10,
+    right: 15,
+    alignSelf: 'flex-end',
+    width: 16,
+    height: 16,
+  },
+  input: {
+    height: 40,
+    backgroundColor: '#F7F8F8',
+    paddingLeft: 40,
+    fontSize: 14,
+    color: '#3B2645',
+  },
+  // Search
   blogitem: {
     flex: 1,
     display: 'flex',

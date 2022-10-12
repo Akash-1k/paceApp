@@ -1,44 +1,55 @@
-import { put, takeLatest } from 'redux-saga/effects';
+import {put, takeLatest} from 'redux-saga/effects';
 import Config from '../../constants/Config';
-import { hideLoader, showLoader, showLogoutAlert } from '../../utils/CommonFunctions';
-import { workoutDetailsFail, workoutDetailsSuccess, workoutListFail, workoutListSuccess } from './actions';
-import { GET_WORKOUT_LIST_REQUESTED, WORKOUT_DETAILS_REQUESTED } from './types';
+import {
+  hideLoader,
+  showAlert,
+  showLoader,
+  showLogoutAlert,
+} from '../../utils/CommonFunctions';
+import {
+  workoutDetailsFail,
+  workoutDetailsSuccess,
+  workoutListFail,
+  workoutListSuccess,
+} from './actions';
+import {GET_WORKOUT_LIST_REQUESTED, WORKOUT_DETAILS_REQUESTED} from './types';
 
-
-function* onGetWorkout({ data }) {
+function* onGetWorkout({data}) {
   yield* showLoader(false);
   try {
-
     var myHeaders = new Headers();
-    myHeaders.append("Authorization", "Bearer " + data.token);
+    myHeaders.append('Authorization', 'Bearer ' + data.token);
 
     var requestOptions = {
       method: 'GET',
       headers: myHeaders,
-      redirect: 'follow'
+      redirect: 'follow',
     };
 
-    let res = yield fetch(Config.BASE_URL + Config.workouts, requestOptions)
+    let res = yield fetch(
+      Config.BASE_URL + Config.workouts + '?search=' + data.search,
+      requestOptions,
+    )
       .then(response => response.json())
       .then(result => {
-        return result
+        return result;
       })
       .catch(error => console.log('error', error));
 
     if (res.status == 'Token is Expired') {
-      yield showLogoutAlert(data.logout)
+      yield showLogoutAlert(data.logout);
       yield* hideLoader(false, '');
-      return
+      return;
     }
 
     if (res.status == 1) {
-      yield put(workoutListSuccess(res.data))
+      yield put(workoutListSuccess(res.data));
       yield* hideLoader(false, '');
     } else {
       yield put(workoutListFail());
       yield* hideLoader(false, '');
-      // console.log(res);
-      setTimeout(() => { alert(res.msg) }, 400);
+      console.log(res);
+      showAlert(res.data);
     }
   } catch (error) {
     // console.log(JSON.stringify(error));
@@ -47,43 +58,45 @@ function* onGetWorkout({ data }) {
   }
 }
 
-
-
-function* onWorkoutDetails({ data }) {
+function* onWorkoutDetails({data}) {
   yield* showLoader(false);
   try {
-
     var myHeaders = new Headers();
-    myHeaders.append("Authorization", "Bearer " + data.token);
+    myHeaders.append('Authorization', 'Bearer ' + data.token);
 
     var requestOptions = {
       method: 'GET',
       headers: myHeaders,
-      redirect: 'follow'
+      redirect: 'follow',
     };
 
-    let res = yield fetch(Config.BASE_URL + Config.single_workout_detail + '?id=' + data.id, requestOptions)
+    let res = yield fetch(
+      Config.BASE_URL + Config.single_workout_detail + '?id=' + data.id,
+      requestOptions,
+    )
       .then(response => response.json())
       .then(result => {
-        return result
+        console.log(result);
+        return result;
       })
       .catch(error => console.log('error', error));
 
     if (res.status == 'Token is Expired') {
-      yield showLogoutAlert(data.logout)
+      yield showLogoutAlert(data.logout);
       yield* hideLoader(false, '');
-      return
+      return;
     }
 
     if (res.status == 1) {
-      yield put(workoutDetailsSuccess(res))
+      yield put(workoutDetailsSuccess(res));
       yield* hideLoader(false, '');
-
     } else {
       yield put(workoutDetailsFail());
       yield* hideLoader(false, '');
       // console.log(res);
-      setTimeout(() => { alert(res.msg) }, 400);
+      setTimeout(() => {
+        alert(res.msg);
+      }, 400);
     }
   } catch (error) {
     // console.log(JSON.stringify(error));
@@ -92,11 +105,8 @@ function* onWorkoutDetails({ data }) {
   }
 }
 
-
-
 function* sagaWorkout() {
   yield takeLatest(GET_WORKOUT_LIST_REQUESTED, onGetWorkout);
   yield takeLatest(WORKOUT_DETAILS_REQUESTED, onWorkoutDetails);
-
 }
 export default sagaWorkout;

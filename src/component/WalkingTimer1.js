@@ -10,6 +10,7 @@ import {
   TouchableHighlight,
   Pressable,
 } from 'react-native';
+import Config from '../constants/Config';
 import {LinearGradient} from 'react-native-gradients';
 import RunningTimerWalking from './RunningTimerWalking';
 import {Row, Column as Col, Grid} from 'react-native-responsive-grid';
@@ -40,10 +41,7 @@ const WalkingTimer1 = props => {
       redirect: 'follow',
     };
     setIsLoading(true);
-    fetch(
-      'https://dev.indiit.solutions/pace/public/api/get-step-process',
-      requestOptions,
-    )
+    fetch(Config.BASE_URL + Config.get_step_process, requestOptions)
       .then(response => response.json())
       .then(result => {
         if (result.status == 1) {
@@ -51,9 +49,10 @@ const WalkingTimer1 = props => {
         }
         setIsLoading(false);
       })
-      .catch(error =>
-        console.log('get-step-process error WalkingTimer1', error),
-      );
+      .catch(error => {
+        console.log('get-step-process error WalkingTimer1', error);
+        setIsLoading(false);
+      });
   }, []);
 
   const colorList = [

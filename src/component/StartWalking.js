@@ -16,6 +16,7 @@ import {Row, Column as Col, Grid} from 'react-native-responsive-grid';
 import Ionicons from 'react-native-vector-icons/Ionicons';
 import Loader from '../common/Loader';
 import {connect} from 'react-redux';
+import Config from '../constants/Config';
 import {
   WheelPicker,
   TimePicker,
@@ -82,6 +83,47 @@ const StartWalking = props => {
     {offset: '0%', color: '#5D6AFC', opacity: '1'},
     {offset: '100%', color: '#C069E5', opacity: '1'},
   ];
+
+  const setTarget = () => {
+    console.log(
+      `distance - ${distance} distanceUnit - ${
+        distanceUnit == 'Km' ? '1' : '2'
+      } steps - ${steps}, today - ${today}`,
+    );
+    var myHeaders = new Headers();
+    myHeaders.append('Authorization', `Bearer ${props.loginData.token}`);
+
+    var formdata = new FormData();
+    formdata.append('distance', String(distance));
+    formdata.append('distance_in', distanceUnit == 'Km' ? '1' : '2');
+    formdata.append('steps', String(steps));
+    formdata.append('created_at', String(today));
+
+    var requestOptions = {
+      method: 'POST',
+      headers: myHeaders,
+      body: formdata,
+      redirect: 'follow',
+    };
+    setIsLoading(true);
+    fetch(Config.BASE_URL + Config.step_process, requestOptions)
+      .then(response => response.json())
+      .then(result => {
+        console.log(result);
+        if (result.status == 1) {
+          navigation.navigate('BeReadyCountDownWalking', {
+            id: result.id,
+          });
+        }
+        setIsLoading(false);
+      })
+      .catch(error => {
+        console.log('error', error);
+        alert('Something went wrong StartWalking setTraget');
+        setIsLoading(false);
+      });
+  };
+
   return (
     <>
       <SafeAreaView style={styles.relative}>
@@ -100,13 +142,13 @@ const StartWalking = props => {
             <View style={styles.box}>
               <View style={styles.boxFlex}>
                 {/* <Image
-                    resizeMode="contain"
-                    source={require('../../assets/images/walk1.png')}
-                    style={{
-                      width: 200,
-                      height: 200,
-                    }}
-                  /> */}
+                  resizeMode="contain"
+                  source={require('../../assets/images/walk1.png')}
+                  style={{
+                    width: 200,
+                    height: 200,
+                  }}
+                /> */}
                 <View
                   style={{
                     width: 200,
@@ -181,11 +223,6 @@ const StartWalking = props => {
                     </View>
                   </View>
                 </View>
-                {/* <WheelPicker
-                  selectedItem={selectedItem}
-                  data={wheelPickerData}
-                  onItemSelected={onItemSelected}
-                /> */}
                 <Text
                   style={{
                     fontFamily: Fonts.Poppins_Regular,
@@ -644,53 +681,8 @@ const StartWalking = props => {
                 }}
               />
             </View>
-            <TouchableOpacity
-              onPress={() => {
-                // toggleModal();
-                console.log(
-                  `distance - ${distance} distanceUnit - ${
-                    distanceUnit == 'Km' ? '1' : '2'
-                  } steps - ${steps}, today - ${today}`,
-                );
-                var myHeaders = new Headers();
-                myHeaders.append(
-                  'Authorization',
-                  `Bearer ${props.loginData.token}`,
-                );
 
-                var formdata = new FormData();
-                formdata.append('distance', String(distance));
-                formdata.append(
-                  'distance_in',
-                  distanceUnit == 'Km' ? '1' : '2',
-                );
-                formdata.append('steps', String(steps));
-                formdata.append('created_at', String(today));
-
-                var requestOptions = {
-                  method: 'POST',
-                  headers: myHeaders,
-                  body: formdata,
-                  redirect: 'follow',
-                };
-                setIsLoading(true);
-                fetch(
-                  'https://dev.indiit.solutions/pace/public/api/step-process',
-                  requestOptions,
-                )
-                  .then(response => response.json())
-                  .then(result => {
-                    console.log(result);
-                    if (result.status == 1) {
-                      navigation.navigate('BeReadyCountDownWalking', {
-                        id: result.id,
-                      });
-                    }
-                    setIsLoading(false);
-                  })
-                  .catch(error => console.log('error', error));
-              }}
-              style={styles.button}>
+            <TouchableOpacity onPress={setTarget} style={styles.button}>
               <LinearGradient
                 style={styles.granew}
                 colorList={colorList1}

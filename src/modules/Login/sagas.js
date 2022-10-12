@@ -2,7 +2,7 @@ import axios from 'axios';
 import {put, takeLatest} from 'redux-saga/effects';
 import Config, {SUCCESS} from '../../constants/Config';
 import {BASE_URL} from '../../env';
-import {hideLoader, showLoader} from '../../utils/CommonFunctions';
+import {hideLoader, showLoader, showAlert} from '../../utils/CommonFunctions';
 import {
   contactSupportFail,
   contactSupportSuccess,
@@ -53,9 +53,10 @@ function* onLoginRequest({data, navigation}) {
       yield put(loginFail());
       yield* hideLoader(false, '');
       // console.log(res);
-      setTimeout(() => {
-        alert(res.message);
-      }, 400);
+      showAlert(res.message);
+      // setTimeout(() => {
+      //   alert(res.message);
+      // }, 400);
     }
   } catch (error) {
     // console.log(JSON.stringify(error));
@@ -116,6 +117,7 @@ function* onForgotPass({data, navigation}) {
     let res = yield fetch(BASE_URL + Config.forget_password, requestOptions)
       .then(response => response.json())
       .then(result => {
+        console.log(result);
         return result;
       })
       .catch(error => console.log('error', error));
@@ -128,9 +130,10 @@ function* onForgotPass({data, navigation}) {
     } else {
       yield put(forgotPassFail());
       yield* hideLoader(false, '');
-      setTimeout(() => {
-        alert(res.msg);
-      }, 400);
+      // setTimeout(() => {
+      //   alert(res.msg);
+      // }, 400);
+      showAlert(res.msg);
     }
   } catch (error) {
     // console.log(JSON.stringify(error));
@@ -163,9 +166,10 @@ function* onOtpVerification({data, navigation}) {
     } else {
       yield put(otpVerificationFail());
       yield* hideLoader(false, '');
-      setTimeout(() => {
-        alert(res.msg);
-      }, 400);
+      // setTimeout(() => {
+      //   alert(res.msg);
+      // }, 400);
+      showAlert(res.msg);
     }
   } catch (error) {
     // console.log(JSON.stringify(error));
@@ -191,9 +195,10 @@ function* onResetPassword({data, navigation}) {
       .catch(error => console.error('error', error));
 
     if (res.status == 1) {
-      // console.log('OTP res:: ', res);
+      console.log('OTP res:: ', res);
       yield put(resetPasswordSuccess(res.data));
       yield* hideLoader(false, '');
+      showAlert('Password Changed');
       navigation.callback();
     } else {
       yield put(resetPasswordFail());

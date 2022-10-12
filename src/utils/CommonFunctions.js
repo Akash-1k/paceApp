@@ -1,9 +1,9 @@
-import { put } from 'redux-saga/effects';
-import { Alert } from 'react-native';
+import {put} from 'redux-saga/effects';
+import {Alert, ToastAndroid} from 'react-native';
 import Config from '../constants/Config';
 
-import { getConfiguration, setConfiguration } from '../utils/configuration';
-import { hideLoading, showLoading } from '../common/CLoader/action';
+import {getConfiguration, setConfiguration} from '../utils/configuration';
+import {hideLoading, showLoading} from '../common/CLoader/action';
 
 export function* hideLoader(isError, errorMessage) {
   yield put(hideLoading(isError, errorMessage));
@@ -54,10 +54,10 @@ export function* showAlertWithDelay(msg) {
     alert(msg);
   }, 600);
 }
-export const showAlert = (msg) => {
+export const showAlert = msg => {
   setTimeout(() => {
-    alert(msg);
-  }, 600);
+    ToastAndroid.show(msg, ToastAndroid.SHORT);
+  }, 100);
 };
 export function isEmpty(obj) {
   for (var key in obj) {
@@ -68,7 +68,7 @@ export function isEmpty(obj) {
 
 export const resetTo = (route, navigation) => {
   navigation.reset({
-    routes: [{ name: route }],
+    routes: [{name: route}],
   });
   // const actionToDispatch = StackActions.reset({
   //   index: 0,
@@ -90,7 +90,7 @@ export const formatBytes = (bytes, decimals = 2) => {
 };
 
 export function* SessionExpired() {
-  let respons = yield new Promise((resolve) => {
+  let respons = yield new Promise(resolve => {
     setTimeout(() => {
       Alert.alert(
         'Alert',
@@ -103,7 +103,7 @@ export function* SessionExpired() {
             },
           },
         ],
-        { cancelable: false },
+        {cancelable: false},
       );
     }, 400);
   });
@@ -115,17 +115,16 @@ export function* SessionExpired() {
   console.log('Pressed');
 }
 
-
-export const showLogoutAlert = (screen) =>
+export const showLogoutAlert = screen =>
   Alert.alert(
-    "PaceApp",
-    "Login session expired please logout and login again!",
+    'PaceApp',
+    'Login session expired please logout and login again!',
     [
       {
-        text: "Cancel",
-        onPress: () => console.log("Cancel Pressed"),
-        style: "cancel"
+        text: 'Cancel',
+        onPress: () => console.log('Cancel Pressed'),
+        style: 'cancel',
       },
-      { text: "Logout", onPress: () => screen() }
-    ]
+      {text: 'Logout', onPress: () => screen()},
+    ],
   );

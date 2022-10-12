@@ -1,5 +1,5 @@
 import {useNavigation} from '@react-navigation/native';
-import React, {useState} from 'react';
+import React, {useEffect, useState} from 'react';
 import {
   Image,
   SafeAreaView,
@@ -17,7 +17,6 @@ import Fonts from '../constants/Fonts';
 import {loginRequest} from '../modules/Login/actions';
 
 const Login = props => {
-  console.log('Login::::::', props);
   const navigation = useNavigation();
 
   const colorList = [
@@ -35,14 +34,32 @@ const Login = props => {
   const [hidePass, setHidePass] = useState(true);
   const [isValidEmail, setIsValidEmail] = useState(false);
   const [isValidPass, setIsValidPass] = useState(false);
+  const [emailValidText, setEmailValidText] = useState('');
+  const [passwordMsg, setVerifiedPasswordMsg] = useState(false);
+
+  useEffect(() => {
+    const unsubscribe = navigation.addListener('focus', () => {
+      setUserItd('');
+      setPass('');
+    });
+    return unsubscribe;
+  }, [navigation]);
 
   const onPressLogin = () => {
+    if (userId == '' && pass == '') {
+      setEmailValidText('Govt ID or Email is required *');
+      setVerifiedPasswordMsg('Please Enter Password *');
+      setIsValidEmail(true);
+      setIsValidPass(true);
+    }
     if (userId == '') {
+      setEmailValidText('Govt ID or Email is required *');
       setIsValidEmail(true);
       return;
     }
 
     if (pass == '') {
+      setVerifiedPasswordMsg('Please Enter Password *');
       setIsValidEmail(false);
       setIsValidPass(true);
       return;
@@ -59,6 +76,38 @@ const Login = props => {
       navigation: () => navigation.navigate('Root', {screen: 'TabOne'}),
     };
     props.loginRequest(data, params);
+  };
+
+  const passValidation = txt => {
+    if (txt == '') {
+      setVerifiedPasswordMsg('Please Enter Password *');
+      setIsValidPass(true);
+    } else {
+      setVerifiedPasswordMsg('');
+      setIsValidPass(false);
+    }
+  };
+
+  const emailValidation = text => {
+    if (text == '') {
+      setEmailValidText('Govt ID or Email is required *');
+      setIsValidEmail(true);
+    } else {
+      setEmailValidText('');
+      setIsValidEmail(false);
+    }
+
+    if (text.includes('@')) {
+      let reg = /^\w+([\.-]?\w+)*@\w+([\.-]?\w+)*(\.\w\w+)+$/;
+      if (reg.test(text) === false) {
+        setEmailValidText('Please provide an valid Email *');
+        setIsValidEmail(true);
+        return false;
+      } else {
+        setEmailValidText('');
+        setIsValidEmail(false);
+      }
+    }
   };
 
   return (
@@ -105,12 +154,6 @@ const Login = props => {
               Login To Your Account
             </Text>
 
-            {isValidEmail ? (
-              <Text style={[styles.subtitle, {color: 'red'}]}>
-                {'Govt ID or Email is required *'}
-              </Text>
-            ) : null}
-
             <View style={styles.inputconatiner}>
               <TextInput
                 placeholder="Govt ID or Email"
@@ -118,7 +161,10 @@ const Login = props => {
                 underlineColor={'transparent'}
                 selectionColor="#3B2645"
                 value={userId}
-                onChangeText={setUserItd}
+                onChangeText={e => {
+                  setUserItd(e);
+                  emailValidation(e);
+                }}
                 theme={{
                   colors: {
                     primary: '#F7F8F8',
@@ -136,13 +182,13 @@ const Login = props => {
                 source={require('../../assets/images/email.png')}
                 style={styles.icon}
               />
+              {isValidEmail ? (
+                <Text style={[styles.subtitle, {color: 'red'}]}>
+                  {emailValidText}
+                </Text>
+              ) : null}
             </View>
 
-            {isValidPass ? (
-              <Text style={[styles.subtitle, {color: 'red'}]}>
-                {'Please enter password *'}
-              </Text>
-            ) : null}
             <View style={styles.inputconatiner}>
               <TextInput
                 placeholder="Password"
@@ -151,7 +197,10 @@ const Login = props => {
                 underlineColor={'transparent'}
                 selectionColor="#3B2645"
                 value={pass}
-                onChangeText={setPass}
+                onChangeText={txt => {
+                  setPass(txt);
+                  passValidation(txt);
+                }}
                 right={
                   <TextInput.Icon
                     onPress={() => setHidePass(!hidePass)}
@@ -181,6 +230,11 @@ const Login = props => {
                 source={require('../../assets/images/lock.png')}
                 style={styles.icon1}
               />
+              {isValidPass ? (
+                <Text style={[styles.subtitle, {color: 'red'}]}>
+                  {passwordMsg}
+                </Text>
+              ) : null}
             </View>
 
             <TouchableOpacity

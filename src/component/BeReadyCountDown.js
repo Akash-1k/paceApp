@@ -7,17 +7,44 @@ import {
   TouchableOpacity,
   Image,
   StyleSheet,
+  BackHandler,
 } from 'react-native';
-import {useNavigation} from '@react-navigation/native';
+import {useNavigation, useRoute} from '@react-navigation/native';
 const BeReadyCountDown = () => {
   const navigation = useNavigation();
+  const route = useRoute();
   const [timeLeft, setTimeLeft] = useState(3);
+  const [type, setType] = useState('');
   const {width, height} = Dimensions.get('window');
+
+  useEffect(() => {
+    const backHandler = BackHandler.addEventListener(
+      'hardwareBackPress',
+      () => true,
+    );
+    return () => backHandler.remove();
+  }, []);
+
+  useEffect(() => {
+    if (route.params.nextScreen == 'StartWorkout') {
+      setType('Workout');
+    } else if (route.params.nextScreen == 'WalkingTimer') {
+      setType('Running Timer');
+    }
+  }, []);
 
   useEffect(() => {
     // exit early when we reach 0
     if (!timeLeft) {
-      navigation.navigate('WalkingTimer');
+      console.log(
+        'route.params.nextScreen ::::::::::',
+        route.params.nextScreen,
+      );
+      if (route.params.nextScreen == 'StartWorkout') {
+        navigation.navigate(route.params.nextScreen);
+      } else if (route.params.nextScreen == 'WalkingTimer') {
+        navigation.navigate(route.params.nextScreen);
+      }
       return;
     }
     // save intervalId to clear the interval when the
@@ -30,6 +57,7 @@ const BeReadyCountDown = () => {
     // add timeLeft as a dependency to re-rerun the effect
     // when we update it
   }, [timeLeft]);
+
   return (
     <View style={styles.container}>
       <TouchableOpacity
@@ -52,7 +80,7 @@ const BeReadyCountDown = () => {
 
       <View style={styles.box}>
         <Text style={styles.title}>Be Ready</Text>
-        <Text style={styles.subtitle}>Running Timer Starts in</Text>
+        <Text style={styles.subtitle}>{type} Starts in</Text>
         <Text style={styles.btitle}>{timeLeft}</Text>
       </View>
 

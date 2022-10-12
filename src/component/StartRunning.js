@@ -640,28 +640,19 @@ const StartRunning = () => {
 
             <TouchableOpacity
               onPress={() => {
-                navigation.navigate('BeReadyCountDown');
+                navigation.navigate('BeReadyCountDown', {
+                  nextScreen: 'WalkingTimer',
+                });
               }}
               style={styles.button}>
               <LinearGradient
                 style={styles.granew}
                 colorList={colorList1}
-                angle={200}></LinearGradient>
+                angle={200}
+              />
               <Text style={styles.text}>Start Running</Text>
             </TouchableOpacity>
           </View>
-          {/* <TouchableOpacity
-            style={styles.modalview}
-            onPress={() => navigation.navigate('BeReadyCountDown')}>
-            <Image
-              resizeMode="contain"
-              source={require('../../assets/images/chose.png')}
-              style={{
-                width: '100%',
-                height: 550,
-              }}
-            />
-          </TouchableOpacity> */}
         </View>
       </Modal>
     </>

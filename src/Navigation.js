@@ -26,12 +26,14 @@ import {
   Text,
   TouchableOpacity,
   View,
+  TextInput,
 } from 'react-native';
 import 'react-native-gesture-handler';
 import 'react-native-reanimated';
 // MY CODE
 import CustomDrawer from './CustomDrawer';
 import {connect} from 'react-redux';
+import Rest from './component/Rest';
 // MY CODE
 import Ionicons from 'react-native-vector-icons/Ionicons';
 import MaterialIcons from 'react-native-vector-icons/MaterialIcons';
@@ -244,6 +246,11 @@ function MainDrawerNavigation() {
       <Stack.Screen
         name="BeReadyCountDown"
         component={BeReadyCountDown}
+        options={{headerShown: false}}
+      />
+      <Stack.Screen
+        name="Rest"
+        component={Rest}
         options={{headerShown: false}}
       />
       <Stack.Screen
@@ -1505,28 +1512,60 @@ function MyTabs() {
         component={TabTwoScreen}
         options={{
           title: '',
-          headerLeft: () => (
-            <Text
-              style={{
-                fontFamily: Fonts.Poppins_Bold,
-                fontSize: 16,
-                color: '#3B2645',
-              }}>
-              Workouts
-            </Text>
-          ),
-          headerRight: () => (
-            <TouchableOpacity>
-              <Image
-                resizeMode="contain"
-                source={require('./../assets/images/search.png')}
-                style={{
-                  width: 17,
-                  height: 17,
-                }}
-              />
-            </TouchableOpacity>
-          ),
+          headerShown: false,
+          // headerLeft: () => (
+          //   <Text
+          //     style={{
+          //       fontFamily: Fonts.Poppins_Bold,
+          //       fontSize: 16,
+          //       color: '#3B2645',
+          //     }}>
+          //     Workouts
+          //   </Text>
+          // ),
+          // headerRight: () => {
+          //   return (
+          //     <View>
+          //       <TouchableOpacity>
+          //         <Image
+          //           resizeMode="contain"
+          //           source={require('./../assets/images/search.png')}
+          //           style={{
+          //             width: 17,
+          //             height: 17,
+          //           }}
+          //         />
+          //       </TouchableOpacity>
+          //       {/* <View style={styles.inputconatiner}>
+          //         <TextInput
+          //           placeholder="Search Workout..."
+          //           style={styles.input}
+          //           underlineColor={'transparent'}
+          //           selectionColor="#3B2645"
+          //           onChangeText={e => {
+          //             console.log(e);
+          //           }}
+          //           theme={{
+          //             colors: {
+          //               primary: '#F7F8F8',
+          //               text: '#3B2645',
+          //             },
+          //             fonts: {
+          //               regular: {
+          //                 fontFamily: Fonts.Poppins_Regular,
+          //               },
+          //             },
+          //           }}
+          //         />
+          //         <Image
+          //           resizeMode="contain"
+          //           source={require('./../assets/images/back-navs.png')}
+          //           style={styles.icon}
+          //         />
+          //       </View> */}
+          //     </View>
+          //   );
+          // },
           tabBarIcon: ({focused}) => (
             <>
               <Image
@@ -1734,6 +1773,7 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     backgroundColor: '#F6F6FF',
   },
+
   delivered: {
     backgroundColor: '#EFF9E6',
     padding: 10,
