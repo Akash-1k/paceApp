@@ -23,6 +23,8 @@ import {
 } from '../modules/Workout/actions';
 
 const TabTwoScreen = props => {
+  console.log('props.workoutList :::::::::::::::::', props.workoutList);
+  console.log('props.listItem ::::::::::', props.listItem);
   const navigation = useNavigation();
   const [isModalVisible, setModalVisible] = useState(false);
   const [searchModalVisible, setSearchModalVisible] = useState(true);
@@ -38,6 +40,7 @@ const TabTwoScreen = props => {
   ];
 
   useEffect(() => {
+    props.setWorkoutListItem(null);
     props.workoutListRequest({token: props.loginData.token, search: ''});
   }, []);
 
@@ -51,7 +54,6 @@ const TabTwoScreen = props => {
           } else {
             navigation.navigate('WorkoutDetails');
           }
-          // navigation.navigate('WorkoutDetails');
         }}
         style={styles.blogitem}>
         <Image

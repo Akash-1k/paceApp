@@ -8,15 +8,17 @@ import {
   Image,
   StyleSheet,
   BackHandler,
-  ScrollView,
 } from 'react-native';
 import {LinearGradient} from 'react-native-gradients';
 import {useNavigation, useRoute} from '@react-navigation/native';
+import {connect} from 'react-redux';
+import Config from '../constants/Config';
+import {startWorkoutRequest} from '../modules/Workout/actions';
 
-const Rest = () => {
+const Rest = props => {
   const navigation = useNavigation();
   const route = useRoute();
-  const [timeLeft, setTimeLeft] = useState(30);
+  const [timeLeft, setTimeLeft] = useState(3);
   const [type, setType] = useState('set');
   const {width, height} = Dimensions.get('window');
 
@@ -33,17 +35,69 @@ const Rest = () => {
     return () => backHandler.remove();
   }, []);
 
-  //   useEffect(() => {
-  //     if (route.params.nextScreen == 'StartWorkout') {
-  //       setType('Workout');
-  //     } else if (route.params.nextScreen == 'WalkingTimer') {
-  //       setType('Running Timer');
-  //     }
-  //   }, []);
+  // console.log(
+  //   'Rest next workout props :::::::::::::',
+  //   props.nextWorkoutDetails,
+  // );
+  useEffect(() => {
+    if (route.params.nav == '30') {
+      setTimeLeft(3);
+    } else if (route.params.nav == '60') {
+      console.log(
+        'props.nextWorkoutDetails REst::::',
+        props.nextWorkoutDetails,
+      );
+      const data = {
+        token: props.loginData.token,
+        exersiseId: props.nextWorkoutDetails.id,
+        workout_id: props.nextWorkoutDetails.workout_id,
+      };
+      props.startWorkoutRequest(data);
+      setTimeLeft(6);
+    }
+  }, []);
+
+  const hitApiAfterVideoEnd = () => {
+    var myHeaders = new Headers();
+    myHeaders.append('Authorization', 'Bearer ' + props.loginData.token);
+
+    var formdata = new FormData();
+    formdata.append('workout_id', props.playVideoDetails.workout_id);
+    formdata.append('workout_video_id', props.playVideoDetails.id);
+
+    var requestOptions = {
+      method: 'POST',
+      headers: myHeaders,
+      body: formdata,
+      redirect: 'follow',
+    };
+
+    fetch(Config.BASE_URL + Config.viewed_workouts_video, requestOptions)
+      .then(response => response.json())
+      .then(result => {
+        if (result.status == 1) {
+          props.navigation.navigate('CongratulationsWorkout');
+        }
+        console.log('viewed_workouts_video:: ', result);
+      })
+      .catch(error => console.log('error', error));
+  };
 
   useEffect(() => {
     // exit early when we reach 0
     if (!timeLeft) {
+      if (route.params.nav == '30') {
+        props.navigation.navigate('VideoPlayer', {
+          count: route.params.count,
+        });
+      } else if (route.params.nav == '60') {
+        if (props.nextWorkoutDetails == null) {
+          hitApiAfterVideoEnd();
+        } else {
+          props.navigation.navigate('StartWorkout', {screen: 'Rest60'});
+        }
+      }
+
       //   console.log(
       //     'route.params.nextScreen ::::::::::',
       //     route.params.nextScreen,
@@ -69,31 +123,35 @@ const Rest = () => {
   return (
     <>
       <View style={styles.container}>
-        <TouchableOpacity
-          style={{
-            position: 'absolute',
-            right: 20,
-            top: 15,
-          }}
-          onPress={() => navigation.goBack()}>
-          <Image
-            resizeMode="contain"
-            source={require('../../assets/images/mcross.png')}
-            style={{
-              width: 20,
-              height: 20,
-            }}
-          />
-        </TouchableOpacity>
-
         <View style={styles.box}>
           <Text style={styles.title}>Rest</Text>
-          <Text style={styles.subtitle}> Next {type} starts in</Text>
+          {/* <Text style={styles.subtitle}> Next {type} starts in</Text> */}
           <Text style={styles.btitle}>{timeLeft}</Text>
         </View>
-        <TouchableOpacity style={{flex: 0.1}}>
-          <Text style={styles.title}>{'Skip >>'}</Text>
-        </TouchableOpacity>
+        {route?.params?.nav == '30' && (
+          <TouchableOpacity style={{flex: 0.16, alignItems: 'center'}}>
+            <Text style={styles.title}>{'Next >>'}</Text>
+
+            {props?.playVideoDetails?.title && (
+              <Text style={styles.subtitle}>
+                {props.playVideoDetails.title}
+              </Text>
+            )}
+            <Text>{`SET ${route.params.count + 1} OF 3`}</Text>
+          </TouchableOpacity>
+        )}
+        {route?.params?.nav == '60' && (
+          <TouchableOpacity style={{flex: 0.16, alignItems: 'center'}}>
+            <Text style={styles.title}>{'Next >>'}</Text>
+
+            {props?.nextWorkoutDetails?.title && (
+              <Text style={styles.subtitle}>
+                {props.nextWorkoutDetails.title}
+              </Text>
+            )}
+            {/* <Text>{`SET ${route.params.count + 1} OF 3`}</Text> */}
+          </TouchableOpacity>
+        )}
       </View>
       <View style={styles.gradient}>
         <LinearGradient colorList={colorList1} angle={360} />
@@ -102,7 +160,21 @@ const Rest = () => {
   );
 };
 
-export default Rest;
+const mapStateToProps = state => ({
+  loginData: state.loginReducer.loginData,
+  userDetails: state.profileReducer.userDetails,
+  playVideoDetails: state.workoutReducer.playVideoDetails,
+  nextWorkoutDetails: state.workoutReducer.nextWorkoutDetails,
+  isStatusBar: state.workoutReducer.isStatusBar,
+});
+
+const mapDispatchToProps = dispatch => ({
+  // setPlayVideoDetails: data => dispatch(setPlayVideoDetails(data)),
+  // setIsStatusBar: data => dispatch(setIsStatusBar(data)),
+  startWorkoutRequest: data => dispatch(startWorkoutRequest(data)),
+});
+
+export default connect(mapStateToProps, mapDispatchToProps)(Rest);
 
 const styles = StyleSheet.create({
   container: {

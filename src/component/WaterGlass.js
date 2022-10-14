@@ -16,6 +16,7 @@ import {useNavigation} from '@react-navigation/native';
 import {connect} from 'react-redux';
 import Config from '../constants/Config';
 import Loader from '../common/Loader';
+import {showAlert} from '../utils/CommonFunctions';
 
 import {
   getWaterGlassRequested,
@@ -82,7 +83,7 @@ const WaterGlass = props => {
       headers: myHeaders,
       redirect: 'follow',
     };
-    setIsLoading(true);
+    // setIsLoading(true);
 
     fetch(Config.BASE_URL + Config.add_water_glass, requestOptions)
       .then(response => response.json())
@@ -90,18 +91,18 @@ const WaterGlass = props => {
         console.log(result);
         props.getWaterGlassRequested(props.loginData.token);
         props.getHomeRequested(props.loginData.token);
-        setIsLoading(false);
+        // setIsLoading(false);
       })
       .catch(error => console.log('error add glass', error));
   };
 
   const removeGlass = () => {
     if (props.glassInfo.default_glass == 7) {
-      alert("Glass can't be removed");
+      showAlert("Glass can't be removed");
       return;
     }
     if (props.glassInfo.default_glass <= props.glassInfo.fill_glass) {
-      alert("Filled Glass can't be removed");
+      showAlert("Filled Glass can't be removed");
       return;
     }
     var myHeaders = new Headers();
@@ -112,7 +113,7 @@ const WaterGlass = props => {
       headers: myHeaders,
       redirect: 'follow',
     };
-    setIsLoading(true);
+    // setIsLoading(true);
 
     fetch(Config.BASE_URL + Config.remove_water_glass, requestOptions)
       .then(response => response.json())
@@ -120,7 +121,7 @@ const WaterGlass = props => {
         console.log('remove_api_response', result);
         props.getWaterGlassRequested(props.loginData.token);
         props.getHomeRequested(props.loginData.token);
-        setIsLoading(false);
+        // setIsLoading(false);
       })
       .catch(error => console.log('error', error));
   };

@@ -1450,7 +1450,7 @@ function MyTabs() {
                 <Text style={styles.innertitle}>Hey</Text>{' '}
                 {props.userDetails?.first_name
                   ? props.userDetails?.first_name
-                  : 'Stefani'}
+                  : 'Omega'}
                 !
               </Text>
               <Pressable

@@ -18,7 +18,11 @@ import EquipmentsSlider from './EquipmentsSlider';
 import {List} from 'react-native-paper';
 import {useNavigation} from '@react-navigation/native';
 import {connect} from 'react-redux';
-import {setExerciseID, workoutDetailsRequest} from '../modules/Workout/actions';
+import {
+  setExerciseID,
+  workoutDetailsRequest,
+  startWorkoutRequest,
+} from '../modules/Workout/actions';
 import Config from '../constants/Config';
 import {toUpperCaseFirst} from '../common/Functions/Func';
 
@@ -31,7 +35,7 @@ const WorkoutDetails = props => {
       () => true,
     );
     return () => backHandler.remove();
-  }, []);
+  }, [navigation]);
 
   const colorList1 = [
     {offset: '0%', color: '#C068E5', opacity: '1'},
@@ -64,9 +68,7 @@ const WorkoutDetails = props => {
     return unsubscribe;
   }, [navigation]);
 
-  {
-    workoutData && console.log(workoutData);
-  }
+  // console.log('props.workoutDetails::::::::::::::', props.workoutDetails);
   useEffect(() => {
     setData(props.workoutDetails);
     setWorkoutExcersices(props.workoutDetails?.workout_excersices);
@@ -86,15 +88,32 @@ const WorkoutDetails = props => {
 
   const onStartWorkout = () => {
     props.setExerciseID(workout_excersices[0].set_list[0]);
+    console.log(
+      workout_excersices[0].set_list[0].id,
+      workout_excersices[0].set_list[0].workout_id,
+    );
+    const data = {
+      token: props.loginData.token,
+      exersiseId: workout_excersices[0].set_list[0].id,
+      workout_id: workout_excersices[0].set_list[0].workout_id,
+    };
+    props.startWorkoutRequest(data);
     navigation.navigate('BeReadyCountDown', {nextScreen: 'StartWorkout'});
     // navigation.navigate('StartWorkout');
   };
 
   const onPressExersise = item => {
+    // console.log('item :::::', item);
     props.setExerciseID(item);
     // navigation.navigate('StartWorkout');
+    const data = {
+      token: props.loginData.token,
+      exersiseId: item.id,
+      workout_id: item.workout_id,
+    };
+    props.startWorkoutRequest(data);
     navigation.navigate('BeReadyCountDown', {nextScreen: 'StartWorkout'});
-    // navigation.navigate('Rest');
+    // navigation.navigate('Rest', item);
   };
 
   const renderExcersices = data => {
@@ -107,16 +126,6 @@ const WorkoutDetails = props => {
             alignItems: 'center',
             marginBottom: 12,
           }}>
-          {/* <Text
-            style={{
-              fontFamily: Fonts.Poppins_Medium,
-              fontSize: 12,
-              marginBottom: 0,
-              color: '#C068E5',
-              marginRight: '5%',
-            }}>
-            {data.item.set}
-          </Text> */}
           {!(data.index == 0) && (
             <View style={{width: '100%', height: 1}}>
               <LinearGradient colorList={colorList1} angle={200} />
@@ -368,15 +377,6 @@ const WorkoutDetails = props => {
                         <Text style={[styles.sText, {fontSize: 16}]}>
                           Exercises
                         </Text>
-                        {/* <TouchableOpacity>
-                          <Text
-                            style={[
-                              styles.sGoal,
-                              {fontSize: 12, color: '#B4B4B4'},
-                            ]}>
-                            {workout_excersices?.length} Sets
-                          </Text>
-                        </TouchableOpacity> */}
                       </View>
 
                       <FlatList
@@ -415,6 +415,7 @@ const mapStateToProps = state => ({
 const mapDispatchToProps = dispatch => ({
   workoutDetailsRequest: data => dispatch(workoutDetailsRequest(data)),
   setExerciseID: data => dispatch(setExerciseID(data)),
+  startWorkoutRequest: data => dispatch(startWorkoutRequest(data)),
 });
 
 export default connect(mapStateToProps, mapDispatchToProps)(WorkoutDetails);

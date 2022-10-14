@@ -109,7 +109,7 @@ const WalkingTimer1 = props => {
               <Col size={32}>
                 <View style={styles.items}>
                   <ProgressCircle
-                    percent={80}
+                    percent={0}
                     radius={25}
                     borderWidth={4}
                     color="#C068E5"
@@ -133,7 +133,7 @@ const WalkingTimer1 = props => {
                       color: '#C068E5',
                       paddingTop: 4,
                     }}>
-                    <Text>1.6km</Text>
+                    <Text>0.0km</Text>
                   </Text>
 
                   <Text
@@ -155,7 +155,7 @@ const WalkingTimer1 = props => {
               <Col size={32} offset={2}>
                 <View style={styles.items}>
                   <ProgressCircle
-                    percent={10}
+                    percent={0}
                     radius={25}
                     borderWidth={4}
                     color="#C068E5"
@@ -179,7 +179,7 @@ const WalkingTimer1 = props => {
                       color: '#C068E5',
                       paddingTop: 4,
                     }}>
-                    <Text>110kcal</Text>
+                    <Text>0kcal</Text>
                   </Text>
 
                   <Text
@@ -201,7 +201,7 @@ const WalkingTimer1 = props => {
               <Col size={32} offset={2}>
                 <View style={styles.items}>
                   <ProgressCircle
-                    percent={70}
+                    percent={0}
                     radius={25}
                     borderWidth={4}
                     color="#C068E5"

@@ -162,10 +162,10 @@ function TabFourScreen(props) {
                 <TouchableOpacity
                   // onPress={onOpenCamera}
                   onPress={() => {
-                    if (Platform.OS == 'android') {
-                      requestCameraPermission();
-                    }
+                    requestCameraPermission();
                     setModalVisible(true);
+                    // if (Platform.OS == 'android') {
+                    // }
                   }}
                   style={{
                     position: 'absolute',

@@ -6,9 +6,13 @@ import {
   SET_EXERSISE_ID,
   SET_EXERSISE_PLAY_VIDEO,
   SET_WORKOUT_LIST_ITEM,
+  SET_NEXT_WORKOUT_DETAILS,
   WORKOUT_DETAILS_FAIL,
   WORKOUT_DETAILS_REQUESTED,
   WORKOUT_DETAILS_SUCCESS,
+  START_WORKOUT_REQUESTED,
+  START_WORKOUT_SUCCESS,
+  START_WORKOUT_FAIL,
 } from './types';
 
 export const workoutListRequest = data => ({
@@ -40,6 +44,21 @@ export const workoutDetailsFail = () => ({
   type: WORKOUT_DETAILS_FAIL,
 });
 
+// START WORKOUT DETAILS
+export const startWorkoutRequest = data => ({
+  type: START_WORKOUT_REQUESTED,
+  data,
+});
+
+export const startWorkoutSuccess = data => ({
+  type: START_WORKOUT_SUCCESS,
+  data,
+});
+
+export const startWorkoutFail = () => ({
+  type: START_WORKOUT_FAIL,
+});
+
 // SET VALUES
 export const setWorkoutListItem = data => ({
   type: SET_WORKOUT_LIST_ITEM,
@@ -58,5 +77,10 @@ export const setPlayVideoDetails = data => ({
 
 export const setIsStatusBar = data => ({
   type: IS_STATUS_BAR,
+  data,
+});
+
+export const setNextWorkoutDetails = data => ({
+  type: SET_NEXT_WORKOUT_DETAILS,
   data,
 });
