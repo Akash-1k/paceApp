@@ -23,8 +23,8 @@ import {
 } from '../modules/Workout/actions';
 
 const TabTwoScreen = props => {
-  console.log('props.workoutList :::::::::::::::::', props.workoutList);
-  console.log('props.listItem ::::::::::', props.listItem);
+  // console.log('props.workoutList :::::::::::::::::', props.workoutList);
+  // console.log('props.listItem ::::::::::', props.listItem);
   const navigation = useNavigation();
   const [isModalVisible, setModalVisible] = useState(false);
   const [searchModalVisible, setSearchModalVisible] = useState(true);
@@ -152,7 +152,7 @@ const TabTwoScreen = props => {
             <TextInput
               placeholder="Search Workout..."
               style={styles.input}
-              onBlur={() => {
+              onSubmitEditing={() => {
                 props.workoutListRequest({
                   token: props.loginData.token,
                   search: searchTxt,

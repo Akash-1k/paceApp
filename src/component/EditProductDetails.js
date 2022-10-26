@@ -8,6 +8,7 @@ import {
   FlatList,
   TouchableOpacity,
   ScrollView,
+  ImageBackground,
 } from 'react-native';
 import {Column as Col, Row} from 'react-native-responsive-grid';
 import {LinearGradient} from 'react-native-gradients';
@@ -18,6 +19,7 @@ import {connect} from 'react-redux';
 import {addToCartRequest, getCartRequest} from '../modules/Shop/actions';
 import Loader from '../common/Loader';
 import Config from '../constants/Config';
+import Ionicons from 'react-native-vector-icons/Ionicons';
 
 const EditProductDetails = props => {
   // console.log('EditProductDetails STATE props ::::::::', props.cartItemData);
@@ -114,10 +116,7 @@ const EditProductDetails = props => {
     };
     setLoader(true);
 
-    fetch(
-      `https://dev.indiit.solutions/pace/public/api/edit-product-cart`,
-      requestOptions,
-    )
+    fetch(Config.BASE_URL + Config.edit_product_cart, requestOptions)
       .then(response => response.json())
       .then(result => {
         setLoader(false);
@@ -159,25 +158,19 @@ const EditProductDetails = props => {
     };
     setLoader(true);
 
-    fetch(
-      `https://dev.indiit.solutions/pace/public/api/update-product-cart`,
-      requestOptions,
-    )
+    fetch(Config.BASE_URL + Config.update_product_cart, requestOptions)
       .then(response => response.json())
       .then(result => {
         console.log(result);
+        setLoader(false);
       })
       .catch(error => {
         setLoader(false);
         console.log('error', error);
       });
 
-    setLoader(false);
-
-    setTimeout(() => {
-      props.getCartRequest(props.loginData.token);
-      navigation.navigate('Root', {screen: 'TabThree'});
-    }, 1000);
+    props.getCartRequest(props.loginData.token);
+    navigation.navigate('Root', {screen: 'TabThree'});
   };
 
   return (
@@ -185,7 +178,7 @@ const EditProductDetails = props => {
       <ScrollView style={styles.relative}>
         <View style={styles.container}>
           <View style={styles.startimg}>
-            <Image
+            <ImageBackground
               resizeMode="cover"
               source={{
                 uri: selectedProductImage
@@ -195,8 +188,36 @@ const EditProductDetails = props => {
               style={{
                 width: '100%',
                 height: 369,
-              }}
-            />
+              }}>
+              <TouchableOpacity
+                style={{
+                  backgroundColor: 'transparent',
+                  zIndex: 5,
+                  flexDirection: 'row',
+                  padding: 14,
+                  alignItems: 'center',
+                }}
+                onPress={() => navigation.goBack()}>
+                <Ionicons
+                  name="chevron-back"
+                  size={18}
+                  color="#fff"
+                  style={{
+                    position: 'relative',
+                    marginRight: 6,
+                  }}
+                />
+                <Text
+                  style={{
+                    fontFamily: Fonts.Poppins_Bold,
+                    color: '#fff',
+                    fontSize: 16,
+                    // alignSelf: 'center',
+                  }}>
+                  {data.name != undefined ? data.name : ''}
+                </Text>
+              </TouchableOpacity>
+            </ImageBackground>
             {/* Shadow */}
             <Image
               resizeMode="cover"

@@ -1,4 +1,4 @@
-import React from 'react';
+import React, {useState, useEffect} from 'react';
 import Fonts from '../constants/Fonts';
 import {
   StyleSheet,
@@ -13,9 +13,50 @@ import {
 import {SceneMap, TabBar, TabView} from 'react-native-tab-view';
 import MaterialIcons from 'react-native-vector-icons/MaterialIcons';
 import ProgressCircle from 'react-native-progress-circle';
+import {startCounter, stopCounter} from 'react-native-accurate-step-counter';
 
-const RunningTimer = () => {
+const RunningTimer = ({isStopwatchStart}) => {
   const [index, setIndex] = React.useState(0);
+
+  const [currentStep, setCurrentStep] = useState(0);
+  const [stepsPercent, setStepsPercent] = useState(0);
+
+  let count = 0;
+
+  const config = {
+    default_threshold: 50.0,
+    default_delay: 550000,
+    cheatInterval: 3000,
+    onStepCountChange: stepCount => {
+      setCurrentStep(currentStep + stepCount);
+    },
+    onCheat: () => {
+      console.log('User is Cheating');
+    },
+  };
+
+  useEffect(() => {
+    count = currentStep;
+    if (!isStopwatchStart) {
+      setCurrentStep(count);
+    }
+
+    if (isStopwatchStart) {
+      startCounter(config);
+    }
+    return () => {
+      stopCounter();
+    };
+  }, [isStopwatchStart]);
+
+  useEffect(() => {
+    onStepPercent(currentStep);
+  }, [currentStep]);
+
+  const onStepPercent = stepCount => {
+    var percent = Math.ceil((stepCount / 50) * 100);
+    setStepsPercent(percent);
+  };
 
   const FirstRoute = () => (
     <SafeAreaView style={{paddingTop: 40, flex: 1}}>
@@ -26,7 +67,7 @@ const RunningTimer = () => {
         }}>
         <View style={styles.items}>
           <ProgressCircle
-            percent={20}
+            percent={stepsPercent}
             radius={140}
             borderWidth={4}
             shadowColor="#BB68E6"

@@ -57,7 +57,7 @@ function* onSendSteps({data}) {
     } else {
       yield put(stepsFailed());
       // yield* hideLoader(false, '');
-      console.log('asaas', res);
+      // console.log('asaas', res);
       setTimeout(() => {
         console.log('Home Saga onSendSteps :::::::::::', res.msg);
       }, 400);
@@ -135,6 +135,7 @@ function* onHome({data}) {
   try {
     var myHeaders = new Headers();
     myHeaders.append('Authorization', 'Bearer ' + data);
+    console.log('Token SAgA Home onHome Function', data);
 
     var requestOptions = {
       method: 'GET',
@@ -144,7 +145,7 @@ function* onHome({data}) {
     let res = yield fetch(Config.BASE_URL + Config.home, requestOptions)
       .then(response => response.json())
       .then(result => {
-        console.log('Token SAGA 1', result);
+        console.log('Token SAGA Home onHome 1', result);
         return result;
       })
       .catch(error => console.log('error', error));
@@ -156,12 +157,12 @@ function* onHome({data}) {
     // }
 
     if (res.status == 0) {
-      console.log('Token SAGA2', data);
+      console.log('Token SAGA2 Home onHome', data);
       yield put(getHomeFail());
       yield* hideLoader(false, '');
       console.log(res);
       setTimeout(() => {
-        alert(res.msg);
+        // alert(res.msg);
       }, 400);
     } else {
       yield put(getHomeSuccess(res));

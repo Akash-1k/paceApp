@@ -477,14 +477,14 @@ const StartRunning = () => {
         animationIn="fadeIn"
         animationOut="fadeOut"
         style={{
-          top: 258,
-          left: 127,
+          top: 150,
+          right: 25,
         }}>
         <View
           style={{
             backgroundColor: 'rgb(0, 0, 0)',
             alignItems: 'center',
-            alignSelf: 'center',
+            alignSelf: 'flex-end',
             justifyContent: 'center',
             width: '17%',
             height: 75,
@@ -640,6 +640,7 @@ const StartRunning = () => {
 
             <TouchableOpacity
               onPress={() => {
+                setModalVisible(false);
                 navigation.navigate('BeReadyCountDown', {
                   nextScreen: 'WalkingTimer',
                 });

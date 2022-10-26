@@ -10,6 +10,8 @@ const Config = {
   IMAGE_BASE_URL: 'https://dev.indiit.solutions/pace/public/assets/images/',
   VIDEO_BASE_URL: 'https://dev.indiit.solutions/pace/public/assets/videos/',
 
+  PLACEHOLDER_IMAGE: 'https://picsum.photos/id/237/200/300',
+
   do_login: '/do_login',
   do_signup: '/do_signup',
   verify_id: '/verify_id',
@@ -59,6 +61,8 @@ const Config = {
   completed_steps: '/completed-steps',
   get_step_process: '/get-step-process',
   step_process: '/step-process',
+  update_product_cart: '/update-product-cart',
+  fetch_products: '/fetch-products',
   logout: '/logout',
 };
 

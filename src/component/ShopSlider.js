@@ -14,7 +14,10 @@ import {TabBar, TabView} from 'react-native-tab-view';
 import {connect} from 'react-redux';
 import Config from '../constants/Config';
 import Fonts from '../constants/Fonts';
-import {setProductDetailsToAddInCart} from '../modules/Shop/actions';
+import {
+  setProductDetailsToAddInCart,
+  getCartRequest,
+} from '../modules/Shop/actions';
 
 const ShopSlider = props => {
   const navigation = useNavigation();
@@ -66,6 +69,9 @@ const ShopSlider = props => {
         <FlatList
           initialNumToRender={0}
           renderItem={reanderItemShop}
+          // keyExtractor={index => {
+          //   return index;
+          // }}
           data={shopList}
           horizontal
           showsHorizontalScrollIndicator={false}
@@ -132,10 +138,12 @@ const styles = StyleSheet.create({
 const mapStateToProps = state => ({
   loginData: state.loginReducer.loginData,
   userDetails: state.profileReducer.userDetails,
+  cartItemData: state.shopReducer.cartItemData,
 });
 
 const mapDispatchToProps = dispatch => ({
   setProductDetailsToAddInCart: data =>
     dispatch(setProductDetailsToAddInCart(data)),
+  getCartRequest: data => dispatch(getCartRequest(data)),
 });
 export default connect(mapStateToProps, mapDispatchToProps)(ShopSlider);

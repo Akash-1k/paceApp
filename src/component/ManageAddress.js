@@ -59,11 +59,14 @@ const ManageAddress = props => {
     fetch(Config.BASE_URL + Config.delete_address, requestOptions)
       .then(response => response.json())
       .then(result => {
+        setIsLoading(false);
         props.getAddressListRequest(props.loginData.token);
         setIsIndex(!isIndex);
-        setIsLoading(false);
       })
-      .catch(error => console.log('error', error));
+      .catch(error => {
+        setIsLoading(false);
+        console.log('error', error);
+      });
   };
 
   const setDefaultAddress = item => {
@@ -80,17 +83,19 @@ const ManageAddress = props => {
       redirect: 'follow',
     };
     setIsLoading(true);
-
     fetch(Config.BASE_URL + Config.set_default_address, requestOptions)
       .then(response => response.json())
       .then(result => {
         console.log('result2', result);
+        setIsLoading(false);
         setIndex(null);
         setIsIndex(!isIndex);
         props.getAddressListRequest(props.loginData.token);
-        setIsLoading(false);
       })
-      .catch(error => console.log('error', error));
+      .catch(error => {
+        setIsLoading(false);
+        console.log('error', error);
+      });
   };
 
   const renderItem = data => {
@@ -129,43 +134,44 @@ const ManageAddress = props => {
               }}>
               <Text style={styles.droptitle}>Edit</Text>
             </TouchableOpacity>
-            <TouchableOpacity
-              onPress={() => setDefaultAddress(data.item)}
-              style={{
-                paddingVertical: 11,
-              }}>
-              <Text style={styles.droptitle}>Set Default</Text>
-            </TouchableOpacity>
+            {data.item.set_default != 1 && (
+              <TouchableOpacity
+                onPress={() => setDefaultAddress(data.item)}
+                style={{
+                  paddingVertical: 11,
+                }}>
+                <Text style={styles.droptitle}>Set Default</Text>
+              </TouchableOpacity>
+            )}
             <TouchableOpacity onPress={() => deleteAddress(data.item.id)}>
               <Text style={[styles.droptitle, {color: '#DF0707'}]}>Delete</Text>
             </TouchableOpacity>
           </View>
         ) : null}
-
-        <TouchableOpacity
-          onPress={() => setDefaultAddress(data.item)}
-          style={{
-            position: 'absolute',
-            right: 0,
-            bottom: 0,
-            backgroundColor: data.item.set_default == 1 ? '#6759FF' : '#FEF7EC',
-            // opacity: 0.6,
-            padding: 5,
-            paddingHorizontal: 10,
-            borderTopStartRadius: 13,
-            borderBottomRightRadius: 13,
-          }}>
-          <Text
-            style={[
-              styles.title1,
-              {
-                fontSize: 12,
-                color: data.item.set_default == 1 ? 'white' : '#F4AC3E',
-              },
-            ]}>
-            {'Default'}
-          </Text>
-        </TouchableOpacity>
+        {data.item.set_default == 1 && (
+          <View
+            style={{
+              position: 'absolute',
+              right: 0,
+              bottom: 0,
+              backgroundColor: 'rgba(244,172,62,.1)',
+              padding: 5,
+              paddingHorizontal: 10,
+              borderTopStartRadius: 13,
+              borderBottomRightRadius: 13,
+            }}>
+            <Text
+              style={[
+                styles.title1,
+                {
+                  fontSize: 12,
+                  color: '#F4AC3E',
+                },
+              ]}>
+              {'Default'}
+            </Text>
+          </View>
+        )}
       </View>
     );
   };

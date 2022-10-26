@@ -21,6 +21,12 @@ const WalkingTimer = () => {
 
   const [isStopwatchStart, setIsStopwatchStart] = useState(false);
   const [resetStopwatch, setResetStopwatch] = useState(false);
+  const [mintues, setMintues] = useState('00');
+  const [timeUnit, setTimeUnit] = useState('sec');
+
+  let hour = 0;
+  let min = 0;
+  let sec = 0;
 
   const options = {
     container: {
@@ -178,7 +184,10 @@ const WalkingTimer = () => {
                       color: '#C068E5',
                       paddingTop: 4,
                     }}>
-                    <Text>03min</Text>
+                    <Text>
+                      {mintues}
+                      {timeUnit}
+                    </Text>
                   </Text>
 
                   <Text
@@ -207,38 +216,38 @@ const WalkingTimer = () => {
               }}>
               <Stopwatch
                 start={isStopwatchStart}
-                // To start
-                // msecs
                 reset={resetStopwatch}
-                // To reset
-                // getTime={time => {
-                //   console.log(time);
-                // }}
+                getTime={time => {
+                  let currTimeArray = time.split(':').map(v => {
+                    return parseInt(v);
+                  });
+
+                  if (currTimeArray[0] > 0) {
+                    if (hour < currTimeArray[0]) {
+                      hour = currTimeArray[0];
+                      console.log('hour ::::::::', hour);
+                      setMintues(hour);
+                      setTimeUnit('hour');
+                    }
+                  } else if (currTimeArray[1] > 0) {
+                    // console.log('min,', min);
+
+                    if (min < currTimeArray[1]) {
+                      min = currTimeArray[1];
+                      console.log('min 1111,', currTimeArray[2], min);
+                      setMintues(min);
+                      setTimeUnit('min');
+                    }
+                    // min
+                  } else if (sec < currTimeArray[2]) {
+                    sec = currTimeArray[2];
+                    console.log('sec,', sec);
+                    setMintues(sec);
+                    setTimeUnit('sec');
+                  }
+                }}
                 options={options}
               />
-              {/* <Text
-                style={[
-                  styles.titlemins,
-                  {
-                    color: 'rgba(59, 38, 69, 0.3)',
-                    fontSize: 40,
-                    fontFamily: Fonts.Poppins_Bold,
-                  },
-                ]}>
-                {' '}
-                00:
-              </Text>
-              <Text
-                style={{
-                  fontFamily: Fonts.Poppins_Bold,
-                  fontSize: 40,
-                }}
-                locations={[0, 1]}
-                colors={['#BD68E6', '#5D6AFC']}
-                start={{x: 0, y: 0}}
-                end={{x: 0, y: 1}}>
-                <Text>03:19</Text>
-              </Text> */}
             </View>
 
             <View

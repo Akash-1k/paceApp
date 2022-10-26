@@ -35,6 +35,7 @@ export default (state = INITIAL_STATE, action) => {
       };
 
     case LOGIN_SUCCESS:
+      console.log(action.data);
       return {
         ...state,
         loginData: action.data,

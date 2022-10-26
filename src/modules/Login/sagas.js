@@ -28,11 +28,14 @@ import {
 
 function* onLoginRequest({data, navigation}) {
   // console.log('sags:::: ', navigation);
+
   yield* showLoader(false);
   try {
+    var myHeaders = new Headers();
     var requestOptions = {
       method: 'POST',
       body: data,
+      headers: myHeaders,
       redirect: 'follow',
     };
 
@@ -43,8 +46,15 @@ function* onLoginRequest({data, navigation}) {
       })
       .catch(error => console.error('error', error));
 
+    if (res.status == 0) {
+      yield put(loginFail());
+      yield* hideLoader(false, '');
+      // console.log(res);
+      showAlert(res.msg);
+    }
+
     // console.log('resresresres', res);
-    if (res.success == true) {
+    else if (res.success == true) {
       // console.log('login res:: ', res);
       yield put(loginSuccess(res));
       yield* hideLoader(false, '');
@@ -67,12 +77,14 @@ function* onLoginRequest({data, navigation}) {
 
 // MY CODE
 function* onLogoutRequest({data, navigation}) {
-  console.log('Logout request ::::', navigation);
+  // console.log('Logout request ::::', data);
   yield* showLoader(false);
   try {
+    var myHeaders = new Headers();
     var requestOptions = {
       method: 'POST',
       body: data,
+      headers: myHeaders,
       redirect: 'follow',
     };
     // alert('hello');

@@ -14,16 +14,16 @@ const requestCameraPermission = async () => {
         },
       );
       if (granted === PermissionsAndroid.RESULTS.GRANTED) {
-        console.log('Camera permission given');
+        // console.log('Camera permission given');
         data = {isGraned: true, Message: 'Camera permission given'};
         return data;
       } else {
         data = {isGraned: false, Message: 'Camera permission denied'};
-        console.log('Camera permission denied');
+        // console.log('Camera permission denied');
         return data;
       }
     } catch (err) {
-      console.warn(err);
+      // console.warn(err);
       data = {isGraned: false, Message: 'Error with camera'};
 
       return data;

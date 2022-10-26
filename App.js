@@ -4,7 +4,6 @@ import {PersistGate} from 'redux-persist/integration/react';
 import LoadingView from './src/common/CLoader';
 
 import {StripeProvider} from '@stripe/stripe-react-native';
-import {StatusBar} from 'react-native';
 import Config from './src/constants/Config';
 import Navigation from './src/Navigation';
 import configureStore from './src/redux/configureStore';

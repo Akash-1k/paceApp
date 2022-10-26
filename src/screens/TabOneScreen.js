@@ -49,10 +49,11 @@ function TabOneScreen(props) {
   const [stepsPercent, setStepsPercent] = useState(0);
   const [isLoading, setIsLoading] = useState(false);
 
-  useEffect(() => {
-    props.getHomeRequested(props.loginData.token);
-  }, []);
-
+  // useEffect(() => {
+  //   onGetHomeData();
+  //   props.getHomeRequested(props.loginData.token);
+  // }, []);
+  // console.log('Tabonescreen.js props.loginData', props.loginData);
   const onHitSteps = () => {
     let params = {
       token: props.loginData.token,
@@ -62,6 +63,20 @@ function TabOneScreen(props) {
       props.stepsRequest(params);
     }
   };
+
+  // useEffect(() => {
+  //   const unsubscribe = navigation.addListener('focus', () => {
+  //     // The screen is focused
+  //     // Call any action
+  //     setTimeout(() => {
+  //       props.getHomeRequested(props.loginData.token);
+  //     }, 1000);
+  //     onGetHomeData();
+  //   });
+
+  // Return the function to unsubscribe from the event so it gets removed on unmount
+  //   return unsubscribe;
+  // }, [navigation]);
 
   useEffect(() => {
     const config = {
@@ -93,9 +108,6 @@ function TabOneScreen(props) {
     onHitSteps();
   };
 
-  useEffect(() => {
-    onGetHomeData();
-  }, []);
   const onGetHomeData = () => {
     var myHeaders = new Headers();
     myHeaders.append('Authorization', 'Bearer ' + props.loginData.token);
@@ -329,7 +341,6 @@ function TabOneScreen(props) {
               </View>
             </Col>
           </Row>
-
           <View style={styles.boxgradient1}>
             <View style={styles.relative}>
               <View style={[styles.headflex, {paddingTop: 25}]}>

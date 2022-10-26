@@ -20,7 +20,7 @@ const SimilarProduct = props => {
     props.setProductDetailsToAddInCart(item);
     navigation.navigate('ProductDetails');
   };
-  console.log('HELKEJEBIBI ::::::::::', props.data);
+  // console.log('HELKEJEBIBI ::::::::::', props.data);
   const renderItem = item => {
     return (
       <TouchableOpacity

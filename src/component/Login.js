@@ -18,7 +18,7 @@ import {loginRequest} from '../modules/Login/actions';
 
 const Login = props => {
   const navigation = useNavigation();
-
+  // console.log('logout state', props.state);
   const colorList = [
     {offset: '0%', color: '#C068E5', opacity: '0.9'},
     {offset: '100%', color: '#5D6AFC', opacity: '0.9'},
@@ -44,6 +44,8 @@ const Login = props => {
     });
     return unsubscribe;
   }, [navigation]);
+
+  // console.log('props.loginData Login.js :::', props.loginData);
 
   const onPressLogin = () => {
     if (userId == '' && pass == '') {
@@ -308,6 +310,7 @@ const Login = props => {
 const mapStateToProps = state => ({
   loginData: state.loginReducer.loginData,
   otpVerificationData: state.loginReducer.otpVerificationData,
+  state: state,
 });
 
 const mapDispatchToProps = dispatch => ({

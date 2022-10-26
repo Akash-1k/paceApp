@@ -80,7 +80,7 @@ const VideoPlayer = props => {
     return () => backHandler.remove();
   }, []);
 
-  // console.log(' Video PLayer, props.playVideoDetails ', props.playVideoDetails);
+  console.log(' Video PLayer, props.playVideoDetails ', props.playVideoDetails);
   useEffect(() => {
     // Orientation.lockToLandscape();
     props.setIsStatusBar(true);

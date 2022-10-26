@@ -85,11 +85,6 @@ const StartWalking = props => {
   ];
 
   const setTarget = () => {
-    console.log(
-      `distance - ${distance} distanceUnit - ${
-        distanceUnit == 'Km' ? '1' : '2'
-      } steps - ${steps}, today - ${today}`,
-    );
     var myHeaders = new Headers();
     myHeaders.append('Authorization', `Bearer ${props.loginData.token}`);
 
@@ -105,7 +100,7 @@ const StartWalking = props => {
       body: formdata,
       redirect: 'follow',
     };
-    setIsLoading(true);
+    // setIsLoading(true);
     fetch(Config.BASE_URL + Config.step_process, requestOptions)
       .then(response => response.json())
       .then(result => {
@@ -115,12 +110,12 @@ const StartWalking = props => {
             id: result.id,
           });
         }
-        setIsLoading(false);
+        // setIsLoading(false);
       })
       .catch(error => {
         console.log('error', error);
         alert('Something went wrong StartWalking setTraget');
-        setIsLoading(false);
+        // setIsLoading(false);
       });
   };
 
@@ -682,7 +677,12 @@ const StartWalking = props => {
               />
             </View>
 
-            <TouchableOpacity onPress={setTarget} style={styles.button}>
+            <TouchableOpacity
+              onPress={() => {
+                toggleModal();
+                setTarget();
+              }}
+              style={styles.button}>
               <LinearGradient
                 style={styles.granew}
                 colorList={colorList1}

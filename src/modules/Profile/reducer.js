@@ -1,7 +1,22 @@
-import { ACCOUNT_FAIL, ACCOUNT_REQUESTED, ACCOUNT_SUCCESS, GET_ADDRESS_LIST_FAIL, GET_ADDRESS_LIST_REQUESTED, GET_ADDRESS_LIST_SUCCESS, GET_CARD_LIST_FAIL, GET_CARD_LIST_REQUESTED, GET_CARD_LIST_SUCCESS, PERSONAL_DATA_FAIL, PERSONAL_DATA_REQUESTED, PERSONAL_DATA_SUCCESS, USER_DETAILS_FAIL, USER_DETAILS_REQUESTED, USER_DETAILS_SUCCESS } from './types';
+import {
+  ACCOUNT_FAIL,
+  ACCOUNT_REQUESTED,
+  ACCOUNT_SUCCESS,
+  GET_ADDRESS_LIST_FAIL,
+  GET_ADDRESS_LIST_REQUESTED,
+  GET_ADDRESS_LIST_SUCCESS,
+  GET_CARD_LIST_FAIL,
+  GET_CARD_LIST_REQUESTED,
+  GET_CARD_LIST_SUCCESS,
+  PERSONAL_DATA_FAIL,
+  PERSONAL_DATA_REQUESTED,
+  PERSONAL_DATA_SUCCESS,
+  USER_DETAILS_FAIL,
+  USER_DETAILS_REQUESTED,
+  USER_DETAILS_SUCCESS,
+} from './types';
 
 const INITIAL_STATE = {
-
   userDetails: [],
   accountDeta: [],
   personalData: null,
@@ -11,13 +26,13 @@ const INITIAL_STATE = {
 
 export default (state = INITIAL_STATE, action) => {
   switch (action.type) {
-
     case USER_DETAILS_REQUESTED:
       return {
         ...state,
       };
 
     case USER_DETAILS_SUCCESS:
+      console.log(action.data);
       return {
         ...state,
         userDetails: action.data,
@@ -44,8 +59,6 @@ export default (state = INITIAL_STATE, action) => {
       return {
         ...state,
       };
-
-
 
     // ACCOUNT
     case PERSONAL_DATA_REQUESTED:
@@ -97,8 +110,6 @@ export default (state = INITIAL_STATE, action) => {
       return {
         ...state,
       };
-
-
 
     default:
       return state;

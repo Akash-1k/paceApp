@@ -266,31 +266,7 @@ function MainDrawerNavigation() {
       <Stack.Screen
         name="WalkingTimer1"
         component={WalkingTimer1}
-        options={({navigation}) => ({
-          title: '',
-          headerTitleStyle: {
-            fontFamily: Fonts.Poppins_Bold,
-            color: '#fff',
-            fontSize: 16,
-          },
-          headerTransparent: true,
-          headerLeft: () => (
-            <TouchableOpacity
-              onPress={() => navigation.navigate('StartWalking')}>
-              <Ionicons
-                name="chevron-back"
-                size={18}
-                color="#fff"
-                style={{
-                  paddingRight: 6,
-                  position: 'relative',
-                  top: -1.5,
-                }}
-              />
-            </TouchableOpacity>
-          ),
-          headerShadowVisible: false,
-        })}
+        options={{headerShown: false}}
       />
       <Stack.Screen
         name="WalkingTimerMilestone"
@@ -464,6 +440,7 @@ function MainDrawerNavigation() {
             color: '#fff',
             fontSize: 16,
           },
+          headerShown: false,
           headerTransparent: true,
           headerLeft: () => (
             <TouchableOpacity onPress={() => navigation.goBack()}>
@@ -493,6 +470,7 @@ function MainDrawerNavigation() {
             fontSize: 16,
           },
           headerTransparent: true,
+          headerShown: false,
           headerLeft: () => (
             <TouchableOpacity onPress={() => navigation.goBack()}>
               <Ionicons

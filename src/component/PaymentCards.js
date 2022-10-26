@@ -1,11 +1,12 @@
 import {useNavigation} from '@react-navigation/native';
 import React, {useEffect, useState} from 'react';
 import Fonts from '../constants/Fonts';
-
+import {PaymentIcon} from 'react-native-payment-icons';
 import {
   FlatList,
   Image,
   ImageBackground,
+  Pressable,
   SafeAreaView,
   StyleSheet,
   Text,
@@ -52,6 +53,7 @@ const PaymentCards = props => {
       .then(response => response.json())
       .then(result => {
         setIsLoading(false);
+        props.getCardListRequest(props.loginData.token);
         setIndex('');
         // console.log(result)
       })
@@ -81,15 +83,17 @@ const PaymentCards = props => {
 
   const renderItem = item => {
     return (
-      <TouchableOpacity
-        activeOpacity={7}
+      <Pressable
         onPress={() => {
           setIndex(null);
         }}
         style={styles.cardbox}>
         <ImageBackground
+          // source={{uri: 'https://picsum.photos/id/237/200/300'}}
           source={require('../../assets/images/card.png')}
           style={{flex: 1}}
+          // style={{flex: 1, transform: [{scale: 1.03}]}}
+          resizeMode="cover"
           imageStyle={{}}>
           <View style={styles.maincontainer}>
             <View
@@ -147,14 +151,16 @@ const PaymentCards = props => {
                 marginTop: 'auto',
               }}>
               <Text style={styles.username}>{item.item.type}</Text>
-              <Image
+              <PaymentIcon type={item.item.brand.toLowerCase()} width={37} />
+
+              {/* <Image
                 resizeMode="contain"
                 source={require('../../assets/images/cardr.png')}
                 style={{
                   width: 37,
                   height: 22,
                 }}
-              />
+              /> */}
             </View>
           </View>
           {selectedIndex == item.index ? (
@@ -166,15 +172,17 @@ const PaymentCards = props => {
                 <Text style={styles.droptitle}>Edit</Text>
               </TouchableOpacity>
 
-              <TouchableOpacity
-                onPress={() => {
-                  onSetDefault();
-                }}
-                style={{
-                  paddingVertical: 10,
-                }}>
-                <Text style={styles.droptitle}>Set Default</Text>
-              </TouchableOpacity>
+              {item.item.set_default != 1 && (
+                <TouchableOpacity
+                  onPress={() => {
+                    onSetDefault();
+                  }}
+                  style={{
+                    paddingVertical: 10,
+                  }}>
+                  <Text style={styles.droptitle}>Set Default</Text>
+                </TouchableOpacity>
+              )}
 
               <TouchableOpacity
                 onPress={() => {
@@ -187,28 +195,29 @@ const PaymentCards = props => {
             </View>
           ) : null}
 
-          {item.item.set_default == item.index ? (
+          {item.item.set_default == 1 && (
             <Text
               style={[
                 styles.cardtext,
                 {
                   alignSelf: 'flex-end',
-                  backgroundColor: '#9F71F0',
-                  fontSize: 14,
-                  paddingHorizontal: 10,
-                  borderTopLeftRadius: 10,
-                  marginRight: 1,
+                  backgroundColor: 'rgba(255,255,255,0.2)',
+                  fontFamily: Fonts.Poppins_SemiBold,
+                  fontSize: 12,
+                  paddingVertical: 4,
+                  paddingHorizontal: 12,
+                  borderTopLeftRadius: 15,
+                  marginRight: -1,
                 },
               ]}>
-              {'Default'}{' '}
+              {'Default'}
             </Text>
-          ) : null}
+          )}
         </ImageBackground>
         <Loader loading={isLoading} />
-      </TouchableOpacity>
+      </Pressable>
     );
   };
-
   return (
     <SafeAreaView style={styles.relative}>
       <View style={styles.container}>
@@ -237,7 +246,7 @@ export default connect(mapStateToProps, mapDispatchToProps)(PaymentCards);
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    margin: 10,
+    padding: 10,
   },
   relative: {
     flex: 1,
@@ -271,6 +280,7 @@ const styles = StyleSheet.create({
   },
   cardbox: {
     overflow: 'hidden',
+    height: 200,
     borderRadius: 20,
     marginBottom: 10,
   },

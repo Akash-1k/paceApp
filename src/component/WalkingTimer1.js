@@ -7,7 +7,6 @@ import {
   Image,
   StyleSheet,
   TouchableOpacity,
-  TouchableHighlight,
   Pressable,
 } from 'react-native';
 import Config from '../constants/Config';
@@ -17,15 +16,20 @@ import {Row, Column as Col, Grid} from 'react-native-responsive-grid';
 import ProgressCircle from 'react-native-progress-circle';
 import {useNavigation, useRoute} from '@react-navigation/native';
 import {Stopwatch, Timer} from 'react-native-stopwatch-timer';
+import Ionicons from 'react-native-vector-icons/Ionicons';
 import {connect} from 'react-redux';
 import Loader from '../common/Loader';
 
 const WalkingTimer1 = props => {
   const navigation = useNavigation();
   const route = useRoute();
-  console.log(route.params.id, props.loginData.token);
   const [targetData, setTargetData] = useState();
   const [isLoading, setIsLoading] = useState(false);
+
+  const [isStopwatchStart, setIsStopwatchStart] = useState(false);
+  const [resetStopwatch, setResetStopwatch] = useState(false);
+  const [mintues, setMintues] = useState('00');
+  const [timeUnit, setTimeUnit] = useState('sec');
 
   useEffect(() => {
     var myHeaders = new Headers();
@@ -65,11 +69,6 @@ const WalkingTimer1 = props => {
     {offset: '100%', color: '#5D6AFC', opacity: '1'},
   ];
 
-  const [isStopwatchStart, setIsStopwatchStart] = useState(false);
-  const [resetStopwatch, setResetStopwatch] = useState(false);
-  const [mintues, setMintues] = useState('00');
-  const [timeUnit, setTimeUnit] = useState('sec');
-
   let hour = 0;
   let min = 0;
   let sec = 0;
@@ -91,6 +90,23 @@ const WalkingTimer1 = props => {
   return (
     <View style={styles.container}>
       <View style={styles.box}>
+        {/* <TouchableOpacity
+          onPress={() => {
+            alert('aaaa');
+            // navigation.navigate('StartWalking');
+          }}>
+          <Ionicons
+            name="chevron-back"
+            size={18}
+            color="#fff"
+            style={{
+              margin: 16,
+              position: 'absolute',
+              top: 30,
+              zIndex: 30,
+            }}
+          />
+        </TouchableOpacity> */}
         <View
           style={{
             flex: 1,
@@ -257,7 +273,6 @@ const WalkingTimer1 = props => {
               <Stopwatch
                 start={isStopwatchStart}
                 reset={resetStopwatch}
-                // startTime={215989000}
                 getTime={time => {
                   let currTimeArray = time.split(':').map(v => {
                     return parseInt(v);
@@ -287,32 +302,8 @@ const WalkingTimer1 = props => {
                     setTimeUnit('sec');
                   }
                 }}
-                // To reset
                 options={options}
               />
-              {/* <Text
-                style={[
-                  styles.titlemins,
-                  {
-                    color: 'rgba(59, 38, 69, 0.3)',
-                    fontSize: 40,
-                    fontFamily: Fonts.Poppins_Bold,
-                  },
-                ]}>
-                {' '}
-                00:
-              </Text>
-              <Text
-                style={{
-                  fontFamily: Fonts.Poppins_Bold,
-                  fontSize: 40,
-                }}
-                locations={[0, 1]}
-                colors={['#BD68E6', '#5D6AFC']}
-                start={{x: 0, y: 0}}
-                end={{x: 0, y: 1}}>
-                <Text>03:19</Text>
-              </Text> */}
             </View>
 
             <View

@@ -5,6 +5,7 @@ import {
   ScrollView,
   StyleSheet,
   Text,
+  FlatList,
   View,
 } from 'react-native';
 import {connect} from 'react-redux';
@@ -33,7 +34,7 @@ const PrivacyPolicy = props => {
     fetch(Config.BASE_URL + '/privacy-policy?id=3', requestOptions)
       .then(response => response.json())
       .then(result => {
-        console.log('PrivacyPolicy ::::', result);
+        // console.log('PrivacyPolicy ::::', result);
         if (result.status == 'Token is Expired') {
           showLogoutAlert();
         } else {
@@ -66,19 +67,19 @@ const PrivacyPolicy = props => {
     <SafeAreaView style={styles.relative}>
       <ScrollView style={styles.relative}>
         <View style={styles.container}>
-          <Text style={styles.title}>
-            {data.length > 0 ? data[0].title : ''}{' '}
-          </Text>
-          <Text style={styles.subtitle}>
-            {data.length > 0 ? data[0].description : ''}
-          </Text>
-
-          <Text style={styles.title}>
-            {data.length > 0 ? data[1].title : ''}{' '}
-          </Text>
-          <Text style={styles.subtitle}>
-            {data.length > 0 ? data[1].description : ''}
-          </Text>
+          {data && (
+            <FlatList
+              data={data}
+              renderItem={({item}) => {
+                return (
+                  <>
+                    <Text style={styles.title}>{item.title}</Text>
+                    <Text style={styles.subtitle}>{item.description}</Text>
+                  </>
+                );
+              }}
+            />
+          )}
         </View>
       </ScrollView>
       <Loader loading={isLoading} />

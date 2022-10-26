@@ -13,13 +13,14 @@ import {
   Image,
   FlatList,
 } from 'react-native';
-import {TextInput, Provider} from 'react-native-paper';
+import {TextInput, Provider, Checkbox} from 'react-native-paper';
 import {LinearGradient} from 'react-native-gradients';
 import {Dropdown} from 'react-native-element-dropdown';
 import {connect} from 'react-redux';
 import Loader from '../common/Loader';
 import Config from '../constants/Config';
 import {getAddressListRequest} from '../modules/Profile/actions';
+import {showAlert} from '../utils/CommonFunctions';
 
 const AddAddress = props => {
   const colorList1 = [
@@ -36,9 +37,11 @@ const AddAddress = props => {
   const [name, setName] = useState('');
   const [house_no, setHousNo] = useState('');
   const [city, setCity] = useState('');
-  const [country, setCountry] = useState('Select');
+  const [country, setCountry] = useState('');
   const [zip_code, setZipCode] = useState('');
   const [address_type, setAddressType] = useState('');
+
+  const [defaultAddress, setDefaultAddress] = useState(false);
 
   const [nameMsg, setNameMsg] = useState('');
   const [house_noMsg, setHousNoMsg] = useState('');
@@ -55,53 +58,77 @@ const AddAddress = props => {
   }, []);
 
   const onAddAddress = () => {
-    if (
-      name == '' &&
-      house_no == '' &&
-      city == '' &&
-      country == '' &&
-      zip_code == '' &&
-      address_type == ''
-    ) {
-      showAlert('All field must be filled out');
-      return;
-    }
+    var nameValid = false;
+    var houseValid = false;
+    var cityValid = false;
+    var zipValid = false;
+    var countryValid = false;
+    var addressTypeValid = false;
 
     if (name == '') {
-      setNameMsg('Please Enter name');
-      return;
+      nameValid = true;
     }
-    setNameMsg('');
-
     if (house_no == '') {
-      setHousNoMsg('Please Enter House Number');
-      return;
+      houseValid = true;
     }
-    setHousNoMsg('');
-
     if (city == '') {
-      setCityMsg('Please Enter City');
-      return;
+      cityValid = true;
     }
-    setCityMsg('');
+    if (zip_code == '') {
+      zipValid = true;
+    }
+
+    if (nameValid) {
+      setNameMsg('Please Enter name');
+      nameValid = true;
+    } else {
+      setNameMsg('');
+    }
+
+    if (houseValid) {
+      setHousNoMsg('Please Enter House Number');
+      houseValid = true;
+    } else {
+      setHousNoMsg('');
+    }
+
+    if (cityValid) {
+      setCityMsg('Please Enter City');
+      cityValid = false;
+    } else {
+      setCityMsg('');
+    }
+
+    if (zipValid) {
+      setZipCodeMsg('Please Enter Zip Code');
+      zipValid = true;
+    } else {
+      setZipCodeMsg('');
+    }
 
     if (country == '') {
       setCountryMsg('Please Enter Country');
-      return;
+      countryValid = true;
+    } else {
+      setCountryMsg('');
     }
-    setCountryMsg('');
-
-    if (zip_code == '') {
-      setZipCodeMsg('Please Enter Zip Code');
-      return;
-    }
-    setZipCodeMsg('');
 
     if (address_type == '') {
       setAddressTypeMsg('Please Select Address Type');
+      addressTypeValid = true;
+    } else {
+      setAddressTypeMsg('');
+    }
+    if (
+      zipValid ||
+      cityValid ||
+      houseValid ||
+      nameValid ||
+      countryValid ||
+      addressTypeValid
+    ) {
       return;
     }
-
     var myHeaders = new Headers();
     myHeaders.append('Authorization', 'Bearer ' + props.loginData.token);
 
@@ -112,6 +139,7 @@ const AddAddress = props => {
     formdata.append('country', country);
     formdata.append('zip_code', zip_code);
     formdata.append('address_type', address_type);
+    formdata.append('set_default', defaultAddress ? 1 : 0);
 
     var requestOptions = {
       method: 'POST',
@@ -124,25 +152,30 @@ const AddAddress = props => {
     fetch(Config.BASE_URL + Config.add_address, requestOptions)
       .then(response => response.json())
       .then(result => {
-        setIsLoading(false);
         if (result.status == 1) {
           showAlert('Address added successfully!');
-        }
-      })
-      .catch(error => console.log('error', error));
-  };
-
-  const showAlert = msg => {
-    Alert.alert('Add address', msg, [
-      {
-        text: 'OK',
-        onPress: () => {
           props.getAddressListRequest(props.loginData.token);
           props.navigation.goBack();
-        },
-      },
-    ]);
+        }
+        setIsLoading(false);
+      })
+      .catch(error => {
+        console.log('error', error);
+        setIsLoading(false);
+      });
   };
+
+  // const showAlert = msg => {
+  //   Alert.alert('Add address', msg, [
+  //     {
+  //       text: 'OK',
+  //       onPress: () => {
+  //         props.getAddressListRequest(props.loginData.token);
+  //         props.navigation.goBack();
+  //       },
+  //     },
+  //   ]);
+  // };
 
   const getCountryList = () => {
     var myHeaders = new Headers();
@@ -160,7 +193,7 @@ const AddAddress = props => {
     )
       .then(response => response.json())
       .then(result => {
-        console.log('country_list_api_response', result);
+        // console.log('country_list_api_response', result);
         setCountryList(result.data);
       })
       .catch(error => console.log('error', error));
@@ -179,7 +212,9 @@ const AddAddress = props => {
           height: 45,
         }}
         onPress={() => {
-          setCountry(dataItem.item.name), setIsCountryPopup(false);
+          setCountry(dataItem.item.name);
+          setCountryMsg('');
+          setIsCountryPopup(false);
         }}>
         <Text style={styles.selectedTextStyle}>{dataItem.item.name}</Text>
       </TouchableOpacity>
@@ -191,14 +226,17 @@ const AddAddress = props => {
       <SafeAreaView style={styles.relative}>
         <ScrollView style={styles.relative}>
           <View style={styles.container}>
-            {nameMsg != '' ? (
-              <Text style={styles.onAlert}>{nameMsg}</Text>
-            ) : null}
-
             <View style={styles.inputconatiner}>
               <Text style={styles.labelname}>Name</Text>
               <TextInput
-                onChangeText={txt => setName(txt)}
+                onChangeText={txt => {
+                  setName(txt);
+                  if (txt == '') {
+                    setNameMsg('Please Enter name');
+                  } else {
+                    setNameMsg('');
+                  }
+                }}
                 style={[styles.input, {}]}
                 underlineColor={'transparent'}
                 selectionColor="#3B2645"
@@ -217,14 +255,22 @@ const AddAddress = props => {
                 }}
               />
             </View>
-
-            {house_noMsg != '' ? (
-              <Text style={styles.onAlert}>{house_noMsg}</Text>
+            {nameMsg != '' ? (
+              <Text style={styles.onAlert}>{nameMsg}</Text>
             ) : null}
+
             <View style={styles.inputconatiner}>
               <Text style={styles.labelname}>House no.</Text>
               <TextInput
-                onChangeText={txt => setHousNo(txt)}
+                keyboardType="number-pad"
+                onChangeText={txt => {
+                  setHousNo(txt);
+                  if (txt != '') {
+                    setHousNoMsg('');
+                  } else {
+                    setHousNoMsg('Please Enter House Number');
+                  }
+                }}
                 style={[styles.input, {paddingLeft: 100}]}
                 underlineColor={'transparent'}
                 selectionColor="#3B2645"
@@ -242,14 +288,21 @@ const AddAddress = props => {
                 }}
               />
             </View>
-
-            {cityMsg != '' ? (
-              <Text style={styles.onAlert}>{cityMsg}</Text>
+            {house_noMsg != '' ? (
+              <Text style={styles.onAlert}>{house_noMsg}</Text>
             ) : null}
+
             <View style={styles.inputconatiner}>
               <Text style={styles.labelname}>City</Text>
               <TextInput
-                onChangeText={txt => setCity(txt)}
+                onChangeText={txt => {
+                  setCity(txt);
+                  if (txt != '') {
+                    setCityMsg('');
+                  } else {
+                    setCityMsg('Please Enter City');
+                  }
+                }}
                 style={[styles.input, {paddingLeft: 90}]}
                 underlineColor={'transparent'}
                 selectionColor="#3B2645"
@@ -267,9 +320,8 @@ const AddAddress = props => {
                 }}
               />
             </View>
-
-            {countryMsg != '' ? (
-              <Text style={styles.onAlert}>{countryMsg}</Text>
+            {cityMsg != '' ? (
+              <Text style={styles.onAlert}>{cityMsg}</Text>
             ) : null}
 
             <TouchableOpacity
@@ -305,14 +357,22 @@ const AddAddress = props => {
                 {country}{' '}
               </Text>
             </TouchableOpacity>
-
-            {zip_codeMsg != '' ? (
-              <Text style={styles.onAlert}>{zip_codeMsg}</Text>
+            {countryMsg != '' ? (
+              <Text style={styles.onAlert}>{countryMsg}</Text>
             ) : null}
+
             <View style={styles.inputconatiner}>
               <Text style={styles.labelname}>Zip Code</Text>
               <TextInput
-                onChangeText={txt => setZipCode(txt)}
+                keyboardType="number-pad"
+                onChangeText={txt => {
+                  setZipCode(txt);
+                  if (txt != '') {
+                    setZipCodeMsg('');
+                  } else {
+                    setZipCodeMsg('Please Enter Zip Code');
+                  }
+                }}
                 style={[styles.input, {paddingLeft: 80}]}
                 underlineColor={'transparent'}
                 selectionColor="#3B2645"
@@ -330,10 +390,10 @@ const AddAddress = props => {
                 }}
               />
             </View>
-
-            {address_typeMsg != '' ? (
-              <Text style={styles.onAlert}>{address_typeMsg}</Text>
+            {zip_codeMsg != '' ? (
+              <Text style={styles.onAlert}>{zip_codeMsg}</Text>
             ) : null}
+
             <View style={styles.inputconatiner12}>
               <Text style={[styles.labelname, styles.labelname1]}>
                 Address Type
@@ -345,7 +405,7 @@ const AddAddress = props => {
                 selectedTextStyle={styles.selectedTextStyle}
                 inputSearchStyle={styles.inputSearchStyle}
                 data={data}
-                search
+                // search
                 maxHeight={200}
                 labelField="label"
                 valueField="value"
@@ -355,10 +415,30 @@ const AddAddress = props => {
                 onFocus={() => setIsFocus(true)}
                 onBlur={() => setIsFocus(false)}
                 onChange={item => {
+                  setAddressTypeMsg('');
                   setAddressType(item.value);
                   setIsFocus(false);
                 }}
               />
+            </View>
+            {address_typeMsg != '' ? (
+              <Text style={[styles.onAlert, {top: 0}]}>{address_typeMsg}</Text>
+            ) : null}
+            <View
+              style={{
+                marginTop: 10,
+                flexDirection: 'row',
+                // justifyContent: 'flex-end',
+                alignItems: 'center',
+              }}>
+              <Checkbox
+                status={defaultAddress ? 'checked' : 'unchecked'}
+                color={'rgba(50,50,50,0.5)'}
+                onPress={() => {
+                  setDefaultAddress(!defaultAddress);
+                }}
+              />
+              <Text>Set Default Address</Text>
             </View>
           </View>
         </ScrollView>
@@ -447,9 +527,11 @@ const styles = StyleSheet.create({
   },
 
   onAlert: {
-    fontFamily: Fonts.Poppins_Medium,
+    opacity: 0.5,
+    fontSize: 14,
+    fontFamily: Fonts.Poppins_Regular,
     color: 'red',
-    fontSize: 12,
+    top: -10,
   },
 
   labelname1: {

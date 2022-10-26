@@ -25,7 +25,7 @@ const TabThreeScreen = props => {
 
   const [isLoading, setLoader] = useState(false);
 
-  console.log('TAB THREE SCREEN STATE PROPS ::::::::::', props.cartItemData);
+  // console.log('TAB THREE SCREEN STATE PROPS ::::::::::', props.cartItemData);
   useEffect(() => {
     props.getCartRequest(props.loginData.token);
   }, []);
@@ -50,7 +50,7 @@ const TabThreeScreen = props => {
         if (result.status == 'Token is Expired') {
           showLogoutAlert();
         } else {
-          console.log(result);
+          // console.log(result);
           setData(result);
           setTotal(result.data.length);
         }

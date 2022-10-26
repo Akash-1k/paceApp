@@ -8,21 +8,21 @@ import {
   FlatList,
   TouchableOpacity,
   ScrollView,
+  ImageBackground,
 } from 'react-native';
 import SimilarProduct from '../component/SimilarProduct';
 import {Column as Col, Row} from 'react-native-responsive-grid';
 import {LinearGradient} from 'react-native-gradients';
-import Counter from 'react-native-counters';
 import {useNavigation} from '@react-navigation/native';
 import Fonts from '../constants/Fonts';
 import {connect} from 'react-redux';
 import {addToCartRequest, getCartRequest} from '../modules/Shop/actions';
 import Loader from '../common/Loader';
-import CounterQuantity from '../common/CounterQuantity';
 import Config from '../constants/Config';
+import Ionicons from 'react-native-vector-icons/Ionicons';
+import Counter from './Counter';
 
 const ProductDetails = props => {
-  // console.log('ProductDetails STATE props ::::::::', props.cartItemData);
   const navigation = useNavigation();
   const colorList1 = [
     {offset: '0%', color: '#5D6AFC', opacity: '1'},
@@ -48,51 +48,9 @@ const ProductDetails = props => {
   const [featuredImages, setFeaturedImages] = useState([]);
   const [similar_products, setSimilarProducts] = useState([]);
 
-  const Item = ({item, onPress, backgroundColor, borderColor, textColor}) => (
-    <TouchableOpacity
-      onPress={onPress}
-      style={[styles.item, backgroundColor, borderColor]}>
-      <Text style={[styles.title, textColor]}>{item.name}</Text>
-    </TouchableOpacity>
-  );
-
-  const renderItemSize = ({item}) => {
-    const backgroundColor = item.id === selectedSize ? '#F9F6FE' : '#F9F6FE';
-    const borderColor = item.id === selectedSize ? '#B668E7' : '#EAE1FC';
-    const color = item.id === selectedSize ? '#3B2645' : '#3B2645';
-
-    return (
-      <Item
-        item={item}
-        onPress={() => {
-          console.log(item);
-          setSelectedSize(item.id);
-          setIsSizeSelected(false);
-        }}
-        backgroundColor={{backgroundColor}}
-        borderColor={{borderColor}}
-      />
-    );
-  };
-
-  const renderItemColor = ({item}) => {
-    const backgroundColor = item.id === selectedColor ? '#F9F6FE' : '#F9F6FE';
-    const borderColor = item.id === selectedColor ? '#B668E7' : '#EAE1FC';
-    const color = item.id === selectedColor ? '#3B2645' : '#3B2645';
-
-    return (
-      <Item
-        item={item}
-        onPress={() => {
-          console.log(item);
-          setSelectedColor(item.id);
-          setIsColorSelected(false);
-        }}
-        backgroundColor={{backgroundColor}}
-        borderColor={{borderColor}}
-      />
-    );
-  };
+  useEffect(() => {
+    props.getCartRequest(props.loginData.token);
+  }, []);
 
   const onPressMinus = () => {
     setCounter(counter - 1);
@@ -119,28 +77,34 @@ const ProductDetails = props => {
     };
     setLoader(true);
 
-    let size_id1 = '';
-    let color_id1 = '';
-    if (size_id != '') {
-      size_id1 = '?size_id=' + size_id;
-    }
-    if (color_id != '') {
-      color_id1 = '&color_id=' + color_id;
-    }
+    // let size_id1 = '';
+    // let color_id1 = '';
+    // if (size_id != '') {
+    //   size_id1 = '?size_id=' + size_id;
+    // }
+    // if (color_id != '') {
+    //   color_id1 = '&color_id=' + color_id;
+    // }
+
+    // fetch(
+    //   `${Config.BASE_URL + Config.single_product}/${
+    //     props.selectedProduct.id
+    //   }${size_id1}${color_id1}`,
+    //   requestOptions,
+    // )
 
     fetch(
-      `${Config.BASE_URL + Config.single_product}/${
-        props.selectedProduct.id
-      }${size_id1}${color_id1}`,
+      `${Config.BASE_URL + Config.single_product}/${props.selectedProduct.id}`,
       requestOptions,
     )
       .then(response => response.json())
       .then(result => {
+        console.log(result);
         setLoader(false);
         setData(result.data[0]);
+        setFeaturedImages(result.featured_images);
         setSizeList(result.filter.sizes);
         setColorList(result.filter.colors);
-        setFeaturedImages(result.featured_images);
         setSelectedProductImage(
           result.featured_images
             ? result?.featured_images[0]?.feature_image
@@ -197,20 +161,114 @@ const ProductDetails = props => {
       token: props.loginData.token,
       // callBack: () => navigation.navigate('Root', {screen: 'TabThree'}),
     };
-    props.addToCartRequest(productData);
-    setLoader(false);
+    let isInCart = false;
+    let itemToChange = false;
+    props.cartItemData.forEach(element => {
+      if (element.product_id == data.id) {
+        if (
+          element.variation_color == (selectedColor ? selectedColor : 0) &&
+          element.variation_size == (selectedSize ? selectedSize : 0)
+        ) {
+          itemToChange = element;
+          isInCart = true;
+        }
+      }
+    });
+
+    if (isInCart) {
+      console.log('Edit');
+      var myHeaders = new Headers();
+      myHeaders.append('Authorization', 'Bearer ' + props.loginData.token);
+
+      var formdata = new FormData();
+      formdata.append('cart_id', itemToChange.cart_id);
+      formdata.append('product_id', itemToChange.product_id);
+      formdata.append('size_variation_id', selectedSize ? selectedSize : 0);
+      formdata.append('color_variation_id', selectedColor ? selectedColor : 0);
+      formdata.append('quantity', counter + itemToChange.add_cart_stock);
+
+      var requestOptions = {
+        method: 'POST',
+        headers: myHeaders,
+        body: formdata,
+        redirect: 'follow',
+      };
+      setLoader(true);
+
+      fetch(Config.BASE_URL + Config.update_product_cart, requestOptions)
+        .then(response => response.json())
+        .then(result => {
+          console.log(result);
+          setLoader(false);
+        })
+        .catch(error => {
+          setLoader(false);
+          console.log('error', error);
+        });
+    } else {
+      console.log('Add');
+      props.addToCartRequest(productData);
+      setLoader(false);
+    }
 
     setTimeout(() => {
       props.getCartRequest(props.loginData.token);
       navigation.navigate('Root', {screen: 'TabThree'});
     }, 1000);
   };
+
+  const Item = ({item, onPress, backgroundColor, borderColor, textColor}) => (
+    <TouchableOpacity
+      onPress={onPress}
+      style={[styles.item, backgroundColor, borderColor]}>
+      <Text style={[styles.title, textColor]}>{item.name}</Text>
+    </TouchableOpacity>
+  );
+
+  const renderItemSize = ({item}) => {
+    const backgroundColor = item.id === selectedSize ? '#F9F6FE' : '#F9F6FE';
+    const borderColor = item.id === selectedSize ? '#B668E7' : '#EAE1FC';
+    const color = item.id === selectedSize ? '#3B2645' : '#3B2645';
+
+    return (
+      <Item
+        item={item}
+        onPress={() => {
+          console.log(item);
+          setSelectedSize(item.id);
+          setIsSizeSelected(false);
+        }}
+        backgroundColor={{backgroundColor}}
+        borderColor={{borderColor}}
+      />
+    );
+  };
+
+  const renderItemColor = ({item}) => {
+    const backgroundColor = item.id === selectedColor ? '#F9F6FE' : '#F9F6FE';
+    const borderColor = item.id === selectedColor ? '#B668E7' : '#EAE1FC';
+    const color = item.id === selectedColor ? '#3B2645' : '#3B2645';
+
+    return (
+      <Item
+        item={item}
+        onPress={() => {
+          // console.log(item);
+          setSelectedColor(item.id);
+          setIsColorSelected(false);
+        }}
+        backgroundColor={{backgroundColor}}
+        borderColor={{borderColor}}
+      />
+    );
+  };
+
   return (
     <SafeAreaView style={styles.relative}>
       <ScrollView style={styles.relative}>
         <View style={styles.container}>
           <View style={styles.startimg}>
-            <Image
+            <ImageBackground
               resizeMode="cover"
               source={{
                 uri: selectedProductImage
@@ -220,8 +278,36 @@ const ProductDetails = props => {
               style={{
                 width: '100%',
                 height: 369,
-              }}
-            />
+              }}>
+              <TouchableOpacity
+                style={{
+                  backgroundColor: 'transparent',
+                  zIndex: 5,
+                  flexDirection: 'row',
+                  padding: 14,
+                  alignItems: 'center',
+                }}
+                onPress={() => navigation.goBack()}>
+                <Ionicons
+                  name="chevron-back"
+                  size={18}
+                  color="#fff"
+                  style={{
+                    position: 'relative',
+                    marginRight: 6,
+                  }}
+                />
+                <Text
+                  style={{
+                    fontFamily: Fonts.Poppins_Bold,
+                    color: '#fff',
+                    fontSize: 16,
+                    // alignSelf: 'center',
+                  }}>
+                  {data.name != undefined ? data.name : ''}
+                </Text>
+              </TouchableOpacity>
+            </ImageBackground>
             {/* Shadow */}
             <Image
               resizeMode="cover"
@@ -342,49 +428,24 @@ const ProductDetails = props => {
             <Text style={[styles.modaltitle, {marginTop: 15, marginBottom: 8}]}>
               Quantity
             </Text>
-            <View style={styles.counterContainer}>
-              <TouchableOpacity
-                onPress={onPressMinus}
-                disabled={counter == 1}
-                style={[
-                  styles.touchable,
-                  styles.buttonStyle,
-                  {opacity: counter == 1 ? 0.2 : 1},
-                ]}>
-                <Text
-                  style={[
-                    styles.icon,
-                    {color: counter == 1 ? '#000' : '#3B2645'},
-                  ]}>
-                  -
-                </Text>
-              </TouchableOpacity>
-              <View style={styles.count}>
-                <Text style={styles.countTextStyle}>{counter}</Text>
-              </View>
-              <TouchableOpacity
-                onPress={onPressPlus}
-                disabled={counter >= data.quantity}
-                style={[
-                  styles.touchable,
-                  styles.buttonStyle,
-                  {opacity: counter >= data.quantity == 1 ? 0.2 : 1},
-                ]}>
-                <Text
-                  style={[
-                    styles.icon,
-                    {color: counter >= data.quantity == 1 ? '#000' : '#3B2645'},
-                  ]}>
-                  +
-                </Text>
-              </TouchableOpacity>
-            </View>
 
-            <Text style={[styles.modaltitle, {marginTop: 15, marginBottom: 8}]}>
-              Similar Products
-            </Text>
+            <Counter
+              counter={counter}
+              onPressMinus={onPressMinus}
+              onPressPlus={onPressPlus}
+              disabledPlus={counter == 1}
+              disabledMinus={counter >= data.quantity}
+            />
+            {similar_products.length > 0 && (
+              <>
+                <Text
+                  style={[styles.modaltitle, {marginTop: 15, marginBottom: 8}]}>
+                  Similar Products
+                </Text>
 
-            <SimilarProduct data={similar_products} />
+                <SimilarProduct data={similar_products} />
+              </>
+            )}
 
             <Row>
               <Col size={48}>

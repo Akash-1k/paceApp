@@ -25,21 +25,15 @@ import {launchCamera, launchImageLibrary} from 'react-native-image-picker';
 import {requestCameraPermission} from '../common/Functions/Permissions';
 import ThreeOptionAlert from '../common/ThreeOptionAlert';
 import Config from '../constants/Config';
+import {showAlert} from '../utils/CommonFunctions';
 
 function TabFourScreen(props) {
   const navigation = useNavigation();
   const [modalVisible, setModalVisible] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
-  console.log('TabFour props :::::::', props.userDetails);
-
-  // useEffect(() => {
-  //   if (Platform.OS == 'android') {
-  //     requestCameraPermission();
-  //   }
-  // }, []);
+  // console.log('TabFour props :::::::', props.userDetails);
 
   useEffect(() => {
-    console.log(props.userDetails);
     getUserDetails();
   }, []);
   // console.log('props ::::::::', props);
@@ -61,11 +55,11 @@ function TabFourScreen(props) {
       launchCamera({mediaType: 'photo', cameraType: 'back'}, response => {
         console.log(response);
         if (response.didCancel) {
-          // console.log('User cancelled image picker');
+          console.log('User cancelled image picker');
         } else if (response.errorCode) {
-          // console.log('ImagePicker Error: ', response.error);
+          console.log('ImagePicker Error: ', response.error);
         } else if (response.customButton) {
-          // console.log('User tapped custom button: ', response.customButton);
+          console.log('User tapped custom button: ', response.customButton);
         } else {
           onUpdateProfile(response.assets[0]);
         }
@@ -102,7 +96,8 @@ function TabFourScreen(props) {
     myHeaders.append('Authorization', 'Bearer ' + props.loginData.token);
 
     var formdata = new FormData();
-    // formdata.append("image", files, files.fileName);
+
+    console.log('image', files);
 
     formdata.append('image', {
       name: files.fileName,
@@ -119,18 +114,22 @@ function TabFourScreen(props) {
       body: formdata,
       redirect: 'follow',
     };
-
+    setModalVisible(false);
+    setIsLoading(true);
     fetch(Config.BASE_URL + Config.update_profile_image, requestOptions)
       .then(response => response.json())
       .then(result => {
-        console.log('TabFour Upload Image ::::::::: ', result);
         if (result.status == 1) {
-          reloadUserDetails();
-          setModalVisible(false);
+          // reloadUserDetails();
+          getUserDetails();
         }
+        setIsLoading(false);
         console.log(result);
       })
-      .catch(error => console.log('error', error));
+      .catch(error => {
+        console.log('error', error);
+        setIsLoading(false);
+      });
   };
 
   const reloadUserDetails = () => {
@@ -161,11 +160,14 @@ function TabFourScreen(props) {
               <View style={styles.userimg}>
                 <TouchableOpacity
                   // onPress={onOpenCamera}
-                  onPress={() => {
-                    requestCameraPermission();
-                    setModalVisible(true);
-                    // if (Platform.OS == 'android') {
-                    // }
+                  onPress={async () => {
+                    await requestCameraPermission().then(res => {
+                      if (res.isGraned) {
+                        setModalVisible(true);
+                      } else {
+                        showAlert('Permission Denied');
+                      }
+                    });
                   }}
                   style={{
                     position: 'absolute',
@@ -201,7 +203,7 @@ function TabFourScreen(props) {
                   }}
                 />
                 <Text style={styles.usertitle}>
-                  {props.userDetails?.user?.first_name}
+                  {props.userDetails?.user?.name}
                 </Text>
               </View>
 
@@ -213,11 +215,15 @@ function TabFourScreen(props) {
                       fontSize: 18,
                       color: '#C068E5',
                     }}>
-                    <Text>
-                      {props.userDetails?.user?.height}
-                      {/* {personalD.user.height} */}
-                      {' cm'}
-                    </Text>
+                    {props.userDetails?.user?.height == 'null' ? (
+                      <Text>{'NA'}</Text>
+                    ) : (
+                      <Text>
+                        {props.userDetails?.user?.height}
+                        {/* {personalD.user.height} */}
+                        {' cm'}
+                      </Text>
+                    )}
                   </Text>
                   <Paragraph style={styles.para}>Height</Paragraph>
                 </View>
@@ -228,11 +234,15 @@ function TabFourScreen(props) {
                       fontSize: 18,
                       color: '#C068E5',
                     }}>
-                    <Text>
-                      {props.userDetails?.user?.current_weight}
-                      {/* {personalD.user.current_weight} */}
-                      {' kg'}
-                    </Text>
+                    {props.userDetails?.user?.current_weight == 'null' ? (
+                      <Text>{'NA'}</Text>
+                    ) : (
+                      <Text>
+                        {props.userDetails?.user?.current_weight}
+                        {/* {personalD.user.current_weight} */}
+                        {' kg'}
+                      </Text>
+                    )}
                   </Text>
                   <Paragraph style={styles.para}>Weight</Paragraph>
                 </View>
@@ -247,9 +257,18 @@ function TabFourScreen(props) {
                       <Text>
                         {year -
                           parseInt(props.userDetails.user.dob.slice(0, 4))}
+                        {' Years'}
                       </Text>
                     )}
-                    {' Years'}
+                    {/* {props.userDetails?.user?.dob == 'null' ? (
+                      <Text>{'NA'}</Text>
+                    ) : (
+                      <Text>
+                        {year -
+                          parseInt(props.userDetails.user.dob.slice(0, 4))}
+                        {' Years'}
+                      </Text>
+                    )} */}
                   </Text>
                   <Paragraph style={styles.para}>Age</Paragraph>
                 </View>

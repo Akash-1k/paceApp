@@ -4,6 +4,7 @@ import {
   hideLoader,
   showLoader,
   showLogoutAlert,
+  showAlert,
 } from '../../utils/CommonFunctions';
 import {
   accountFail,
@@ -26,6 +27,7 @@ import {
 } from './types';
 
 function* onUserDetails({data}) {
+  // console.log('onUserDeatils::::::::::::::', data);
   yield* showLoader(false);
 
   try {
@@ -34,6 +36,7 @@ function* onUserDetails({data}) {
     )
       .then(response => response.json())
       .then(result => {
+        console.log('onUserDetails SAGA PROFILE :::', result);
         return result;
       })
       .catch(error => console.log('error', error));
@@ -45,6 +48,7 @@ function* onUserDetails({data}) {
       return;
     }
     if (res.user.status == 1) {
+      console.log('userDetailsSuccess SAGA');
       yield put(userDetailsSuccess(res));
       yield* hideLoader(false, '');
       // navigation.navigation()
@@ -65,7 +69,7 @@ function* onUserDetails({data}) {
 
 function* onAccount({data}) {
   yield* showLoader(false);
-
+  console.log('onAccount');
   try {
     var myHeaders = new Headers();
     myHeaders.append('Authorization', 'Bearer ' + data.token);
@@ -75,7 +79,6 @@ function* onAccount({data}) {
     formdata.append('first_name', data.first_name);
     formdata.append('password', data.password);
     formdata.append('old_password', data.old_password);
-    // formdata.append("image", data.image);
 
     var requestOptions = {
       method: 'POST',
@@ -91,7 +94,6 @@ function* onAccount({data}) {
         return result;
       })
       .catch(error => console.log('error', error));
-    // console.log('Account responseLLL::::', res);
 
     if (res.status == 'Token is Expired') {
       yield showLogoutAlert(data.logout);
@@ -99,10 +101,8 @@ function* onAccount({data}) {
       return;
     }
     if (res.status == 1) {
-      alert('Accout updated!');
-
+      showAlert(res.msg);
       yield put(accountSuccess(res));
-      onUserDetails(data);
       data.callback();
       // yield* hideLoader(false, '');
     } else {
@@ -110,7 +110,7 @@ function* onAccount({data}) {
       yield* hideLoader(false, '');
       // yield put(accountSuccess(res));
       // data.callback();
-      alert(res.msg);
+      showAlert(res.msg);
       console.log(res);
       // setTimeout(() => { alert(res.msg) }, 400);
     }

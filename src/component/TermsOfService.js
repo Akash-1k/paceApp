@@ -1,6 +1,7 @@
 import React, {useEffect, useState} from 'react';
 import {
   Alert,
+  FlatList,
   SafeAreaView,
   ScrollView,
   StyleSheet,
@@ -37,7 +38,7 @@ const TermsOfService = props => {
         if (result.status == 'Token is Expired') {
           showLogoutAlert();
         } else {
-          //   console.log(typeof result.data[0].description[0]);
+          console.log(result.data[0].description);
           let res1 = result.data[0].description;
           setData(res1);
         }
@@ -67,19 +68,19 @@ const TermsOfService = props => {
     <SafeAreaView style={styles.relative}>
       <ScrollView style={styles.relative}>
         <View style={styles.container}>
-          <Text style={styles.title}>
-            {data.length > 0 ? data[0].title : ''}
-          </Text>
-          <Text style={styles.subtitle}>
-            {data.length > 0 ? data[0].description : ''}
-          </Text>
-
-          <Text style={styles.title}>
-            {data.length > 0 ? data[0].title : ''}
-          </Text>
-          <Text style={styles.subtitle}>
-            {data.length > 0 ? data[0].description : ''}
-          </Text>
+          {data && (
+            <FlatList
+              data={data}
+              renderItem={({item}) => {
+                return (
+                  <>
+                    <Text style={styles.title}>{item.title}</Text>
+                    <Text style={styles.subtitle}>{item.description}</Text>
+                  </>
+                );
+              }}
+            />
+          )}
         </View>
       </ScrollView>
       <Loader loading={isLoading} />

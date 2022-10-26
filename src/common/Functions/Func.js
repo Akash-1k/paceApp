@@ -15,6 +15,10 @@ export const toUpperCaseFirst = str => {
   return str2;
 };
 
+export const toPercent = (curr, total) => {
+  return Math.ceil((curr / total) * 100);
+};
+
 export const inMilsec = timeStr => {
   const timeArr = timeStr.split(':');
   let inMillisec = 0;

@@ -160,6 +160,7 @@ const DoubleYourCoins = () => {
                     height: 15,
                   }}
                 />
+                {/* isCompleted ? 'Completed' : 'Start Streak' */}
                 <Text
                   style={{
                     fontFamily: Fonts.Poppins_Bold,

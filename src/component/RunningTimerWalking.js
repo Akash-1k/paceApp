@@ -4,17 +4,15 @@ import {
   StyleSheet,
   useWindowDimensions,
   Text,
-  ScrollView,
   SafeAreaView,
-  TouchableOpacity,
   View,
   Image,
 } from 'react-native';
 import {SceneMap, TabBar, TabView} from 'react-native-tab-view';
 import MaterialIcons from 'react-native-vector-icons/MaterialIcons';
 import ProgressCircle from 'react-native-progress-circle';
-import {LinearGradient} from 'react-native-gradients';
 import {startCounter, stopCounter} from 'react-native-accurate-step-counter';
+import {toPercent} from '../common/Functions/Func';
 
 const colorList = [
   {offset: '0%', color: '#5D6AFC', opacity: '1'},
@@ -67,7 +65,7 @@ const RunningTimerWalking = ({isStopwatchStart, targetData}) => {
   }, [currentStep]);
 
   const onStepPercent = stepCount => {
-    var percent = Math.ceil((stepCount / stepsTarget) * 100);
+    var percent = toPercent(stepCount, stepsTarget);
     setStepsPercent(percent);
   };
 

@@ -26,9 +26,11 @@ const rootReducer = (state, action) => {
   // if (action.type != 'HIT_STEPS') {
   //   console.error('Main reducer action :::::', action.type);
   // }
-  if (action.type === 'LOGIN_SUCCESS') {
+  // console.error('redux reducers.js', action.type);
+  // if (action.type === 'LOGIN_SUCCESS') {
+  if (action.type === 'LOGOUT_SUCCESS') {
     Object.keys(state).forEach(key => {
-      console.warn('4. key :::::::::', key);
+      // console.warn('4. key :::::::::', key);
       storage.removeItem(`persist:${key}`);
     });
     state = Object.assign({}, initialState);

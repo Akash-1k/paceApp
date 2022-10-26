@@ -1,4 +1,4 @@
-import React, {useEffect, useState} from 'react';
+import React, {useEffect, useState, useCallback} from 'react';
 import {
   Alert,
   Image,
@@ -7,6 +7,7 @@ import {
   StyleSheet,
   Text,
   View,
+  FlatList,
 } from 'react-native';
 import {connect} from 'react-redux';
 import Loader from '../common/Loader';
@@ -37,6 +38,7 @@ const HowToUse = props => {
         if (result.status == 'Token is Expired') {
           showLogoutAlert();
         } else {
+          console.log(result.data[0].description);
           let res = result.data[0].description;
           setData(res);
         }
@@ -61,12 +63,56 @@ const HowToUse = props => {
         {text: 'Logout', onPress: () => props.navigation.navigate('Login')},
       ],
     );
+  const Item = ({item}) => {
+    // Read more & Read less... (START)
+    const [textShown, setTextShown] = useState(false);
+    const [lengthMore, setLengthMore] = useState(false); //to show the "Read more & Less Line"
+    const toggleNumberOfLines = () => {
+      //To toggle the show text or hide it
+      setTextShown(!textShown);
+    };
 
+    const onTextLayout = useCallback(e => {
+      setLengthMore(e.nativeEvent.lines.length >= 3); //to check the text is more than 3 lines or not
+      // console.log(e.nativeEvent);
+    }, []);
+    // Read more & Read less... (END)
+    return (
+      <View style={{marginBottom: 15}}>
+        <Text style={styles.title}>{item.title}</Text>
+        <Image
+          resizeMode="contain"
+          source={{uri: item.image}}
+          style={{
+            width: '100%',
+            height: 227,
+          }}
+        />
+        <Text
+          onTextLayout={onTextLayout}
+          numberOfLines={textShown ? undefined : 3}
+          style={styles.subtitle}>
+          {item.description}{' '}
+        </Text>
+        {lengthMore ? (
+          <Text onPress={toggleNumberOfLines} style={{color: '#C068E5'}}>
+            {textShown ? 'Read less...' : 'Read more...'}
+          </Text>
+        ) : null}
+      </View>
+    );
+  };
   return (
     <SafeAreaView style={styles.relative}>
       <ScrollView style={styles.relative}>
         <View style={styles.container}>
-          <Text style={styles.title}>{data.step_1_title}</Text>
+          {data && (
+            <FlatList
+              data={data}
+              renderItem={({item}) => <Item item={item} />}
+            />
+          )}
+          {/* <Text style={styles.title}>{data.step_1_title}</Text>
           <Image
             resizeMode="contain"
             source={{uri: data.step_1_image}}
@@ -75,10 +121,17 @@ const HowToUse = props => {
               height: 227,
             }}
           />
-          <Text style={styles.subtitle}>
+          <Text
+            onTextLayout={onTextLayout}
+            numberOfLines={textShown ? undefined : 3}
+            style={styles.subtitle}>
             {data.step_1_description}{' '}
-            <Text style={{color: '#C068E5'}}>Know More...</Text>
           </Text>
+          {lengthMore ? (
+            <Text onPress={toggleNumberOfLines} style={{color: '#C068E5'}}>
+              {textShown ? 'Read less...' : 'Read more...'}
+            </Text>
+          ) : null}
 
           <Text style={styles.title}>{data.step_2_title}</Text>
           <Image
@@ -88,14 +141,22 @@ const HowToUse = props => {
               width: '100%',
               height: 125,
             }}
-          />
+          /> */}
 
-          <Text style={styles.subtitle}>
+          {/* <Text
+            onTextLayout={onTextLayout}
+            numberOfLines={textShown ? undefined : 3}
+            style={styles.subtitle}>
             {data.step_2_description}{' '}
-            <Text style={{color: '#C068E5'}}>Know More...</Text>
           </Text>
+          {lengthMore ? (
+            <Text onPress={toggleNumberOfLines} style={{color: '#C068E5'}}>
+              {textShown ? 'Read less...' : 'Read more...'}
+            </Text>
+          ) : null} */}
+          {/* <Text style={{color: '#C068E5'}}>Know More...</Text> */}
 
-          <Text style={styles.title}>{data.step_3_title}</Text>
+          {/* <Text style={styles.title}>{data.step_3_title}</Text>
           <Image
             resizeMode="contain"
             source={{uri: data.step_3_image}}
@@ -104,10 +165,17 @@ const HowToUse = props => {
               height: 227,
             }}
           />
-          <Text style={styles.subtitle}>
+          <Text
+            onTextLayout={onTextLayout}
+            numberOfLines={textShown ? undefined : 3}
+            style={styles.subtitle}>
             {data.step_3_description}{' '}
-            <Text style={{color: '#C068E5'}}>Know More...</Text>
           </Text>
+          {lengthMore ? (
+            <Text onPress={toggleNumberOfLines} style={{color: '#C068E5'}}>
+              {textShown ? 'Read less...' : 'Read more...'}
+            </Text>
+          ) : null} */}
         </View>
       </ScrollView>
       <Loader loading={isLoading} />
@@ -148,6 +216,6 @@ const styles = StyleSheet.create({
     color: '#7B6F72',
     fontSize: 12,
     fontFamily: Fonts.Poppins_Regular,
-    marginVertical: 10,
+    // marginVertical: 10,
   },
 });

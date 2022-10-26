@@ -12,7 +12,7 @@ import {
   Image,
   FlatList,
 } from 'react-native';
-import {TextInput} from 'react-native-paper';
+import {TextInput, Checkbox} from 'react-native-paper';
 import {LinearGradient} from 'react-native-gradients';
 import {Dropdown} from 'react-native-element-dropdown';
 import {connect} from 'react-redux';
@@ -41,6 +41,8 @@ const EditAddress = props => {
   const [addresstype, setAddresstype] = useState('');
   const [isLoading, setIsLoading] = useState(false);
 
+  const [defaultAddress, setDefaultAddress] = useState(false);
+
   const [isCountryPopup, setIsCountryPopup] = useState(false);
   const [countryList, setCountryList] = useState([]);
 
@@ -54,12 +56,27 @@ const EditAddress = props => {
     setCountry(data.country);
     setZipcode(data.zip_code);
     setAddresstype(data.address_type);
+    setDefaultAddress(data.set_default == 1 ? true : false);
   }, []);
 
   const onUpdateAddress = () => {
+    if (
+      props.route.params.data.name == name &&
+      props.route.params.data.house_no == house &&
+      props.route.params.data.city == city &&
+      props.route.params.data.country == country &&
+      props.route.params.data.zip_code == zipcode &&
+      props.route.params.data.address_type == addresstype &&
+      props.route.params.data.set_default == defaultAddress
+        ? 1
+        : 0
+    ) {
+      return;
+    }
+
     var myHeaders = new Headers();
     myHeaders.append('Authorization', 'Bearer ' + props.loginData.token);
-
+    console.log('defaultAddress::::::::', defaultAddress);
     var formdata = new FormData();
     formdata.append('name', name);
     formdata.append('house_no', house);
@@ -68,6 +85,7 @@ const EditAddress = props => {
     formdata.append('zip_code', zipcode);
     formdata.append('address_type', addresstype);
     formdata.append('id', props.route.params.data.id);
+    formdata.append('set_default', defaultAddress ? 1 : 0);
 
     var requestOptions = {
       method: 'POST',
@@ -80,15 +98,21 @@ const EditAddress = props => {
       .then(response => response.json())
       .then(result => {
         if (result.status == 1) {
-          showAlert(result.msg);
+          // showAlert(result.msg);
           // if no need of alert then use below code and comment showAlert
-          // props.getAddressListRequest(props.loginData.token);
-          // goBack();
+
+          props.getAddressListRequest(props.loginData.token);
+          goBack();
+        } else {
+          console.log(result);
         }
-        // console.log('result', result)
         setIsLoading(false);
+        // console.log('result', result)
       })
-      .catch(error => console.log('error', error));
+      .catch(error => {
+        console.log('error', error);
+        setIsLoading(false);
+      });
   };
 
   const showAlert = msg => {
@@ -290,7 +314,6 @@ const EditAddress = props => {
               selectedTextStyle={styles.selectedTextStyle}
               inputSearchStyle={styles.inputSearchStyle}
               data={data}
-              search
               maxHeight={200}
               labelField="label"
               valueField="value"
@@ -304,6 +327,23 @@ const EditAddress = props => {
                 setIsFocus(false);
               }}
             />
+          </View>
+
+          <View
+            style={{
+              marginTop: 10,
+              flexDirection: 'row',
+              // justifyContent: 'flex-end',
+              alignItems: 'center',
+            }}>
+            <Checkbox
+              status={defaultAddress ? 'checked' : 'unchecked'}
+              color={'rgba(50,50,50,0.5)'}
+              onPress={() => {
+                setDefaultAddress(!defaultAddress);
+              }}
+            />
+            <Text>Set Default Address</Text>
           </View>
         </View>
       </ScrollView>

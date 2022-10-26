@@ -20,6 +20,7 @@ const CustomDrawer = props => {
       navigation: () => props.navigation.navigate('Login'),
     };
     props.logoutRequest(data, params);
+    // console.log(props.state);
   };
 
   // console.warn('CustomDrawer ::::::', props);
@@ -212,6 +213,7 @@ const CustomDrawer = props => {
 
 const mapStateToProps = state => ({
   loginData: state.loginReducer.loginData,
+  state: state,
 });
 
 const mapDispatchToProps = dispatch => ({
