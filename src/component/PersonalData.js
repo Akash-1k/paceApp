@@ -1,4 +1,4 @@
-import React, {useEffect, useState} from 'react';
+import React, {useEffect, useState, useRef} from 'react';
 import {
   Text,
   SafeAreaView,
@@ -10,6 +10,7 @@ import {
   ScrollView,
   Alert,
   Pressable,
+  Button,
 } from 'react-native';
 import {TextInput} from 'react-native-paper';
 import {LinearGradient} from 'react-native-gradients';
@@ -92,7 +93,6 @@ const PersonalData = props => {
   }, []);
 
   const onPressMinus = () => {
-    console.log(hours, typeof hours);
     setHours(parseInt(hours) - 1);
   };
 
@@ -371,28 +371,23 @@ const PersonalData = props => {
         animationIn="pulse"
         animationInTiming={700}>
         <View style={styles.modalview}>
-          {/* Cross Btn */}
-          {/* <TouchableOpacity style={styles.crossbtn} onPress={toggleModal}>
-            <Image
-              resizeMode="contain"
-              source={require('../../assets/images/mcross.png')}
-              style={{
-                width: 20,
-                height: 20,
-              }}
-            />
-          </TouchableOpacity> */}
           <CalendarPicker
-            startFromMonday={true}
+            initialDate={
+              props.userDetails?.user?.dob
+                ? new Date(props.userDetails?.user?.dob)
+                : new Date()
+            }
+            selectedStartDate={
+              props.userDetails?.user?.dob
+                ? new Date(props.userDetails?.user?.dob)
+                : new Date()
+            }
             width={370}
-            horizontal={true}
-            scrollable
             showDayStragglers
+            selectedDay
             selectedDayColor="#222"
             selectedDayTextColor="#FFF"
-            // selectedStartDate={
-            //   new Date(parseInt(dobA[0]), parseInt(dobA[1]), parseInt(dobA[2]))
-            // }
+            todayBackgroundColor="#67a"
             onDateChange={currentDate => {
               setDob(
                 `${currentDate.date()} ${

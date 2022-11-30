@@ -27,7 +27,6 @@ import {LinearGradient} from 'react-native-gradients';
 
 const Shop = props => {
   const navigation = useNavigation();
-  // console.log('props.shopCategoryList', props.shopCategoryList);
   const DATA1 = [
     {
       id: '1',
@@ -66,7 +65,7 @@ const Shop = props => {
 
   const [orderby, setOrderBy] = useState('desc');
   const [min_price, setMinPrice] = useState(0);
-  const [max_price, setMaxPrice] = useState('');
+  const [max_price, setMaxPrice] = useState(0);
   const [cat_id, setCatId] = useState('');
 
   const toggleModal = () => {
@@ -75,12 +74,65 @@ const Shop = props => {
 
   useEffect(() => {
     props.shopCategoryListRequest(props.loginData);
+    getAllFilterProducts();
   }, []);
 
   useEffect(() => {
     // setProductsList([]);
     getAllProducts();
   }, [cat_id]);
+
+  const getAllFilterProducts = () => {
+    var myHeaders = new Headers();
+    myHeaders.append('Authorization', 'Bearer ' + props.loginData.token);
+
+    var formdata = new FormData();
+
+    if (orderby != '') {
+      formdata.append('orderby', orderby);
+    }
+
+    if (min_price != '') {
+      formdata.append('min_price', min_price);
+    }
+
+    if (max_price != '') {
+      formdata.append('max_price', max_price);
+    }
+
+    if (cat_id != '') {
+      formdata.append('cat_id', cat_id);
+    }
+
+    var requestOptions = {
+      method: 'POST',
+      headers: myHeaders,
+      body: formdata._parts.length > 0 ? formdata : '',
+      redirect: 'follow',
+    };
+
+    // setIsLoading(true)
+    fetch(Config.BASE_URL + Config.getAllProducts, requestOptions)
+      .then(response => response.json())
+      .then(result => {
+        console.log('getAllFilterProducts', result);
+        if (result.products == 'No product found') {
+          setProductsList([]);
+        } else {
+          setAllProductData(result);
+          setProductsList(result.products);
+          setColorList(result.variation.colors);
+          setSizeList(result.variation.sizes);
+        }
+        // setMaxPrice(result.price.max-range);
+        // toggleModal();
+        // setIsLoading(false)
+      })
+      .catch(error => {
+        // setIsLoading(false)
+        console.log('error', error);
+      });
+  };
 
   const getAllProducts = () => {
     var myHeaders = new Headers();
@@ -109,7 +161,7 @@ const Shop = props => {
     fetch(Config.BASE_URL + Config.fetch_products, requestOptions)
       .then(response => response.json())
       .then(result => {
-        console.log(result);
+        console.log('getAllProducts Shop.js', result);
         setAllProductData(result);
         setProductsList(result.products);
         // setColorList(result.variation.colors);
@@ -123,7 +175,7 @@ const Shop = props => {
   };
 
   const onSelectCategory = (item, index) => {
-    console.log(item);
+    console.log('onSelectCategory Shop.js', item);
     setSelectedCategory(index);
     setCatId(item.id);
   };
@@ -221,8 +273,7 @@ const Shop = props => {
             style={{
               position: 'absolute',
               right: 0,
-              backgroundColor: '#fff',
-              opacity: 0.6,
+              backgroundColor: 'rgba(255,255,255,0.6)',
               padding: 5,
               paddingHorizontal: 10,
               borderBottomLeftRadius: 16,
@@ -284,115 +335,116 @@ const Shop = props => {
 
   return (
     <SafeAreaView style={styles.mainbg}>
-      <ScrollView>
-        <View style={styles.container}>
-          <View style={styles.searchbar}>
-            <Searchbar
-              placeholder="Search Product"
-              loading
-              onChangeText={onChangeSearch}
-              onSubmitEditing={t => {
-                getAllProducts();
-              }}
-              value={searchQuery}
-              placeholderTextColor="#B5B3B3"
-              inputStyle={{
-                backgroundColor: '#F7F8F8',
-                fontFamily: Fonts.Poppins_Regular,
-                fontSize: 14,
-              }}
-              style={{
-                backgroundColor: '#F7F8F8',
-                height: 60,
-                paddingRight: 38,
-              }}
-            />
-            <View
-              style={{
-                display: 'flex',
-                flexDirection: 'row',
-                alignItems: 'center',
-                position: 'absolute',
-                top: 10,
-                right: 18,
-              }}>
-              <Text style={{color: '#DDDADA', marginRight: 10, fontSize: 25}}>
-                |
-              </Text>
-              <TouchableOpacity onPress={toggleModal}>
-                <Image
-                  resizeMode="contain"
-                  source={require('../../assets/images/filter.png')}
-                  style={{
-                    width: 18,
-                    height: 18,
-                    position: 'relative',
-                    top: 2,
-                  }}
-                />
-              </TouchableOpacity>
-            </View>
-          </View>
-
-          <View style={{paddingLeft: 15, marginVertical: 15}}>
-            <ScrollView
-              horizontal={true}
-              showsHorizontalScrollIndicator={false}>
-              {props.shopCategoryList.map((item, index) => {
-                return (
-                  <TouchableOpacity
-                    key={index}
-                    onPress={() => {
-                      onSelectCategory(item, index);
-                    }}
-                    style={[
-                      styles.badgeBox,
-                      index == selectedCategory ? styles.activeBadge : null,
-                    ]}>
-                    <Text style={styles.badegtitle}>{item.name}</Text>
-                  </TouchableOpacity>
-                );
-              })}
-            </ScrollView>
-          </View>
-          {Boolean(productList.length > 0) ? (
-            <View style={styles.itemsBox}>
-              <FlatList
-                data={productList}
-                renderItem={renderItemProducts}
-                numColumns={2}
-                // onEndReached={() => {
-                //   getAllProducts();
-                // }}
-                // onEndReachedThreshold={1}
-              />
-            </View>
-          ) : (
-            <View
-              style={{
-                height: 500,
-                justifyContent: 'center',
-                alignItems: 'center',
+      {/* <ScrollView> */}
+      <View style={styles.container}>
+        <View style={styles.searchbar}>
+          <Searchbar
+            placeholder="Search Product"
+            // clearIcon={()=>(<Text>bbbb </Text>)}
+            onChangeText={onChangeSearch}
+            onSubmitEditing={t => {
+              getAllProducts();
+            }}
+            value={searchQuery}
+            placeholderTextColor="#B5B3B3"
+            inputStyle={{
+              backgroundColor: '#F7F8F8',
+              fontFamily: Fonts.Poppins_Regular,
+              fontSize: 14,
+            }}
+            style={{
+              backgroundColor: '#F7F8F8',
+              height: 60,
+              paddingRight: 38,
+            }}
+          />
+          <View
+            style={{
+              display: 'flex',
+              flexDirection: 'row',
+              alignItems: 'center',
+              position: 'absolute',
+              top: 10,
+              right: 18,
+            }}>
+            <Text style={{color: '#DDDADA', marginRight: 10, fontSize: 25}}>
+              |
+            </Text>
+            <TouchableOpacity
+              onPress={() => {
+                // getAllFilterProducts();
+                toggleModal();
               }}>
               <Image
-                source={require('../../assets/images/empty.png')}
-                style={{width: 100, height: 100}}
+                resizeMode="contain"
+                source={require('../../assets/images/filter.png')}
+                style={{
+                  width: 18,
+                  height: 18,
+                  position: 'relative',
+                  top: 2,
+                }}
               />
-              <Text
-                style={[styles.title1, {fontSize: 25, textAlign: 'center'}]}>
-                {'No Product Found'}
-              </Text>
-            </View>
-          )}
+            </TouchableOpacity>
+          </View>
         </View>
-      </ScrollView>
+
+        <View style={{paddingLeft: 15, marginVertical: 15}}>
+          <ScrollView horizontal={true} showsHorizontalScrollIndicator={false}>
+            {props.shopCategoryList.map((item, index) => {
+              return (
+                <TouchableOpacity
+                  key={index}
+                  onPress={() => {
+                    onSelectCategory(item, index);
+                  }}
+                  style={[
+                    styles.badgeBox,
+                    index == selectedCategory ? styles.activeBadge : null,
+                  ]}>
+                  <Text style={styles.badegtitle}>{item.name}</Text>
+                </TouchableOpacity>
+              );
+            })}
+          </ScrollView>
+        </View>
+        {Boolean(productList.length > 0) ? (
+          <View style={styles.itemsBox}>
+            <FlatList
+              data={productList}
+              renderItem={renderItemProducts}
+              numColumns={2}
+              // onEndReached={() => {
+              //   getAllProducts();
+              // }}
+              // onEndReachedThreshold={1}
+            />
+          </View>
+        ) : (
+          <View
+            style={{
+              height: 500,
+              justifyContent: 'center',
+              alignItems: 'center',
+            }}>
+            <Image
+              source={require('../../assets/images/empty.png')}
+              style={{width: 100, height: 100}}
+            />
+            <Text style={[styles.title1, {fontSize: 25, textAlign: 'center'}]}>
+              {'No Product Found'}
+            </Text>
+          </View>
+        )}
+      </View>
+      {/* </ScrollView> */}
 
       <Modal
         isVisible={isModalVisible}
         onBackdropPress={() => {
           setModalVisible(false);
         }}
-        animationInTiming={1000}
+        animationInTiming={500}
         coverScreen={true}
         style={{
           padding: 0,
@@ -466,6 +518,7 @@ const Shop = props => {
             style={styles.button}
             onPress={() => {
               setModalVisible(false);
+              getAllFilterProducts();
               // getAllProducts();
             }}>
             <Text style={styles.text}>Apply</Text>

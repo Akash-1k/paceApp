@@ -71,14 +71,16 @@ const Blog = props => {
 
   const FirstRoute = () => {
     return (
-      <SafeAreaView style={{paddingTop: 15}}>
-        <FlatList
-          initialNumToRender={0}
-          renderItem={renderItemBlogs}
-          data={blogList}
-          horizontal
-          showsHorizontalScrollIndicator={false}
-        />
+      <SafeAreaView>
+        <View style={{paddingTop: 15}}>
+          <FlatList
+            initialNumToRender={0}
+            renderItem={renderItemBlogs}
+            data={blogList}
+            horizontal
+            showsHorizontalScrollIndicator={false}
+          />
+        </View>
       </SafeAreaView>
     );
   };

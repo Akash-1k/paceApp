@@ -1,4 +1,4 @@
-import React, {useState} from 'react';
+import React, {useState, useEffect} from 'react';
 import {
   Text,
   SafeAreaView,
@@ -8,7 +8,6 @@ import {
   TouchableOpacity,
   ScrollView,
   TextInput,
-  Pressable,
 } from 'react-native';
 import {LinearGradient} from 'react-native-gradients';
 import {useNavigation} from '@react-navigation/native';
@@ -17,11 +16,6 @@ import Ionicons from 'react-native-vector-icons/Ionicons';
 import Loader from '../common/Loader';
 import {connect} from 'react-redux';
 import Config from '../constants/Config';
-import {
-  WheelPicker,
-  TimePicker,
-  DatePicker,
-} from 'react-native-wheel-picker-android';
 import Modal from 'react-native-modal';
 import Fonts from '../constants/Fonts';
 
@@ -33,21 +27,13 @@ const StartWalking = props => {
   ];
 
   const [isLoading, setIsLoading] = useState(false);
-
-  const wheelPickerData = [
-    'sunday',
-    'monday',
-    'tuesday',
-    'wednesday',
-    'thursday',
-    'friday',
-  ];
-
   const [isModalVisible, setModalVisible] = useState(false);
   const [isDistanceUnitVisible, setDistanceUnitVisible] = useState(false);
   const [steps, setSteps] = useState('6500');
   const [distance, setDistance] = useState('5.0');
   const [distanceUnit, setDistanceUnit] = useState('Km');
+
+  const [userWalkingData, setUserWalkingData] = useState();
 
   const toggleModal = () => {
     setModalVisible(!isModalVisible);
@@ -90,9 +76,9 @@ const StartWalking = props => {
 
     var formdata = new FormData();
     formdata.append('distance', String(distance));
-    formdata.append('distance_in', distanceUnit == 'Km' ? '1' : '2');
+    formdata.append('distance_in', distanceUnit == 'Km' ? '1' : '0');
     formdata.append('steps', String(steps));
-    formdata.append('created_at', String(today));
+    formdata.append('type', 'walking');
 
     var requestOptions = {
       method: 'POST',
@@ -100,24 +86,55 @@ const StartWalking = props => {
       body: formdata,
       redirect: 'follow',
     };
-    // setIsLoading(true);
+    setIsLoading(true);
     fetch(Config.BASE_URL + Config.step_process, requestOptions)
       .then(response => response.json())
       .then(result => {
         console.log(result);
-        if (result.status == 1) {
-          navigation.navigate('BeReadyCountDownWalking', {
-            id: result.id,
+        if (result.status) {
+          navigation.navigate('BeReadyCountDown', {
+            id: result.data.id,
+            nextScreen: 'WalkingTimer',
+            lastData: null,
           });
         }
-        // setIsLoading(false);
+        setIsLoading(false);
       })
       .catch(error => {
         console.log('error', error);
         alert('Something went wrong StartWalking setTraget');
-        // setIsLoading(false);
+        setIsLoading(false);
       });
   };
+
+  const userWalkingStatus = () => {
+    var myHeaders = new Headers();
+    myHeaders.append('Authorization', `Bearer ${props.loginData.token}`);
+
+    var requestOptions = {
+      method: 'GET',
+      redirect: 'follow',
+      headers: myHeaders,
+    };
+    setIsLoading(true);
+    fetch(Config.BASE_URL + Config.user_walking_status, requestOptions)
+      .then(response => response.json())
+      .then(result => {
+        if (result.status) {
+          setIsLoading(false);
+          console.log(result);
+          setUserWalkingData(result.data);
+        } else {
+          console.log('Error userWalkingStatus StartWalking', result);
+          setIsLoading(false);
+        }
+      })
+      .catch(error => console.log('error', error));
+  };
+
+  useEffect(() => {
+    userWalkingStatus();
+  }, []);
 
   return (
     <>
@@ -136,14 +153,6 @@ const StartWalking = props => {
             </View>
             <View style={styles.box}>
               <View style={styles.boxFlex}>
-                {/* <Image
-                  resizeMode="contain"
-                  source={require('../../assets/images/walk1.png')}
-                  style={{
-                    width: 200,
-                    height: 200,
-                  }}
-                /> */}
                 <View
                   style={{
                     width: 200,
@@ -185,7 +194,17 @@ const StartWalking = props => {
                           justifyContent: 'center',
                           alignItems: 'center',
                         }}>
-                        <TouchableOpacity onPress={toggleModal}>
+                        <TouchableOpacity
+                          onPress={() => {
+                            if (userWalkingData.in_progress) {
+                              navigation.navigate('WalkingTimer', {
+                                // lastData: userWalkingData.last_walking,
+                                lastData: userWalkingData.last_walking,
+                              });
+                            } else {
+                              toggleModal();
+                            }
+                          }}>
                           <View
                             style={{
                               width: 142,
@@ -227,273 +246,292 @@ const StartWalking = props => {
                   Total Steps:{' '}
                   <Text
                     style={{fontFamily: Fonts.Poppins_Bold, color: '#3B2645'}}>
-                    80,547
+                    {userWalkingData && userWalkingData.today_total_steps}
                   </Text>
                 </Text>
               </View>
-              <Row>
-                <Col size={32}>
-                  <View style={styles.items}>
-                    <Text
-                      style={{
-                        fontFamily: Fonts.Poppins_Bold,
-                        fontSize: 16,
-                        color: '#C068E5',
-                      }}>
-                      <Text>
-                        3.5<Text style={{fontSize: 13}}>km</Text>
-                      </Text>
-                    </Text>
-
-                    <Text
-                      style={[
-                        styles.titlemins,
-                        {
-                          color: '#000',
-                          fontSize: 10,
-                          opacity: 0.5,
-                          position: 'relative',
-                          top: -4,
-                        },
-                      ]}>
-                      Total Distance
-                    </Text>
-                  </View>
-                </Col>
-                <Col size={32} offset={2}>
-                  <View style={styles.items}>
-                    <Text
-                      style={{
-                        fontFamily: Fonts.Poppins_Bold,
-                        fontSize: 16,
-                        color: '#C068E5',
-                      }}>
-                      <Text>00:23:00</Text>
-                    </Text>
-
-                    <Text
-                      style={[
-                        styles.titlemins,
-                        {
-                          color: '#000',
-                          fontSize: 10,
-                          opacity: 0.5,
-                          position: 'relative',
-                          top: -4,
-                        },
-                      ]}>
-                      Time
-                    </Text>
-                  </View>
-                </Col>
-                <Col size={32} offset={2}>
-                  <View style={styles.items}>
-                    <Text
-                      style={{
-                        fontFamily: Fonts.Poppins_Bold,
-                        fontSize: 16,
-                        color: '#C068E5',
-                      }}>
-                      <Text>118</Text>
-                    </Text>
-
-                    <Text
-                      style={[
-                        styles.titlemins,
-                        {
-                          color: '#000',
-                          fontSize: 10,
-                          opacity: 0.5,
-                          position: 'relative',
-                          top: -4,
-                        },
-                      ]}>
-                      Calories
-                    </Text>
-                  </View>
-                </Col>
-              </Row>
-              <Row style={{marginVertical: 7, marginBottom: 14}}>
-                <Col size={32}>
-                  <View style={styles.items}>
-                    <Text
-                      style={{
-                        fontFamily: Fonts.Poppins_Bold,
-                        fontSize: 16,
-                        color: '#C068E5',
-                      }}>
-                      <Text>91,361Steps</Text>
-                    </Text>
-
-                    <Text
-                      style={[
-                        styles.titlemins,
-                        {
-                          color: '#000',
-                          fontSize: 10,
-                          opacity: 0.5,
-                          position: 'relative',
-                          top: -4,
-                        },
-                      ]}>
-                      Best Streak
-                    </Text>
-                  </View>
-                </Col>
-                <Col size={32} offset={2}>
-                  <View style={styles.items}>
-                    <Text
-                      style={{
-                        fontFamily: Fonts.Poppins_Bold,
-                        fontSize: 16,
-                        color: '#C068E5',
-                      }}>
-                      <Text>
-                        1,715.5<Text style={{fontSize: 13}}>/hr</Text>
-                      </Text>
-                    </Text>
-
-                    <Text
-                      style={[
-                        styles.titlemins,
-                        {
-                          color: '#000',
-                          fontSize: 10,
-                          opacity: 0.5,
-                          position: 'relative',
-                          top: -4,
-                        },
-                      ]}>
-                      Avg Pace
-                    </Text>
-                  </View>
-                </Col>
-                <Col size={32} offset={2}>
-                  <View style={styles.items}>
-                    <Text
-                      style={{
-                        fontFamily: Fonts.Poppins_Bold,
-                        fontSize: 16,
-                        color: '#C068E5',
-                      }}>
-                      <Text>4 km</Text>
-                    </Text>
-
-                    <Text
-                      style={[
-                        styles.titlemins,
-                        {
-                          color: '#000',
-                          fontSize: 10,
-                          opacity: 0.5,
-                          position: 'relative',
-                          top: -4,
-                        },
-                      ]}>
-                      Daily Avg Run
-                    </Text>
-                  </View>
-                </Col>
-              </Row>
-
-              <Text style={styles.sText}>Recent Activity</Text>
-
-              <View style={[styles.card, {marginTop: 9}]}>
-                <View style={styles.cardheader}>
-                  <View
-                    style={{
-                      display: 'flex',
-                      flexDirection: 'row',
-                    }}>
-                    <Image
-                      resizeMode="contain"
-                      source={require('../../assets/images/calender.png')}
-                      style={{
-                        width: 12,
-                        height: 12,
-                      }}
-                    />
-                    <Text style={styles.carddate}>Date</Text>
-                  </View>
-
-                  <Text
-                    style={[
-                      styles.sText,
-                      {
-                        fontSize: 10,
-                      },
-                    ]}>
-                    {yesterday.toDateString()}
-                  </Text>
-                </View>
-                <View style={{padding: 15}}>
+              {userWalkingData && (
+                <>
                   <Row>
-                    <Col size={25}>
-                      <View style={styles.cardflex}>
-                        <Image
-                          resizeMode="contain"
-                          source={require('../../assets/images/steps.png')}
+                    <Col size={32}>
+                      <View style={styles.items}>
+                        <Text
                           style={{
-                            width: 20,
-                            height: 15,
-                            marginBottom: 6,
-                          }}
-                        />
-                        <Text style={styles.cardbText}>3,431</Text>
-                        <Text style={styles.cardbText1}>Steps</Text>
+                            fontFamily: Fonts.Poppins_Bold,
+                            fontSize: 18,
+                            color: '#C068E5',
+                          }}>
+                          <Text>
+                            {userWalkingData.total_distance.toFixed(2)}
+                            <Text style={{fontSize: 13}}>km</Text>
+                          </Text>
+                        </Text>
+
+                        <Text
+                          style={[
+                            styles.titlemins,
+                            {
+                              color: '#000',
+                              fontSize: 10,
+                              opacity: 0.5,
+                              position: 'relative',
+                              top: -4,
+                            },
+                          ]}>
+                          Total Distance
+                        </Text>
                       </View>
                     </Col>
-
-                    <Col size={25}>
-                      <View style={styles.cardflex}>
-                        <Image
-                          resizeMode="contain"
-                          source={require('../../assets/images/sicon1.png')}
+                    <Col size={32} offset={2}>
+                      <View style={styles.items}>
+                        <Text
                           style={{
-                            width: 20,
-                            height: 15,
-                            marginBottom: 6,
-                          }}
-                        />
-                        <Text style={styles.cardbText}>1.6km</Text>
-                        <Text style={styles.cardbText1}>Distance</Text>
+                            fontFamily: Fonts.Poppins_Bold,
+                            fontSize: 18,
+                            color: '#C068E5',
+                          }}>
+                          <Text>{userWalkingData.total_time}</Text>
+                        </Text>
+
+                        <Text
+                          style={[
+                            styles.titlemins,
+                            {
+                              color: '#000',
+                              fontSize: 10,
+                              opacity: 0.5,
+                              position: 'relative',
+                              top: -4,
+                            },
+                          ]}>
+                          Time
+                        </Text>
                       </View>
                     </Col>
-
-                    <Col size={25}>
-                      <View style={styles.cardflex}>
-                        <Image
-                          resizeMode="contain"
-                          source={require('../../assets/images/sicon.png')}
+                    <Col size={32} offset={2}>
+                      <View style={styles.items}>
+                        <Text
                           style={{
-                            width: 20,
-                            height: 15,
-                            marginBottom: 6,
-                          }}
-                        />
-                        <Text style={styles.cardbText}>110kcal</Text>
-                        <Text style={styles.cardbText1}>Calories</Text>
-                      </View>
-                    </Col>
+                            fontFamily: Fonts.Poppins_Bold,
+                            fontSize: 18,
+                            color: '#C068E5',
+                          }}>
+                          <Text>{userWalkingData.total_calories}</Text>
+                        </Text>
 
-                    <Col size={25}>
-                      <View style={styles.cardflex}>
-                        <Image
-                          resizeMode="contain"
-                          source={require('../../assets/images/sicon.png')}
-                          style={{
-                            width: 20,
-                            height: 15,
-                            marginBottom: 6,
-                          }}
-                        />
-                        <Text style={styles.cardbText}>03min</Text>
-                        <Text style={styles.cardbText1}>Time</Text>
+                        <Text
+                          style={[
+                            styles.titlemins,
+                            {
+                              color: '#000',
+                              fontSize: 10,
+                              opacity: 0.5,
+                              position: 'relative',
+                              top: -4,
+                            },
+                          ]}>
+                          Calories
+                        </Text>
                       </View>
                     </Col>
                   </Row>
-                </View>
-              </View>
+                  <Row style={{marginVertical: 7, marginBottom: 14}}>
+                    <Col size={32}>
+                      <View style={styles.items}>
+                        <Text
+                          style={{
+                            fontFamily: Fonts.Poppins_Bold,
+                            fontSize: 18,
+                            color: '#C068E5',
+                          }}>
+                          <Text>
+                            {userWalkingData.longest_run == null
+                              ? 0
+                              : userWalkingData.longest_run}
+                            Steps
+                          </Text>
+                        </Text>
+
+                        <Text
+                          style={[
+                            styles.titlemins,
+                            {
+                              color: '#000',
+                              fontSize: 10,
+                              opacity: 0.5,
+                              position: 'relative',
+                              top: -4,
+                            },
+                          ]}>
+                          Best Streak
+                        </Text>
+                      </View>
+                    </Col>
+                    <Col size={32} offset={2}>
+                      <View style={styles.items}>
+                        <Text
+                          style={{
+                            fontFamily: Fonts.Poppins_Bold,
+                            fontSize: 18,
+                            color: '#C068E5',
+                          }}>
+                          <Text>
+                            {userWalkingData.avg_pace}
+                            <Text style={{fontSize: 13}}>/hr</Text>
+                          </Text>
+                        </Text>
+
+                        <Text
+                          style={[
+                            styles.titlemins,
+                            {
+                              color: '#000',
+                              fontSize: 10,
+                              opacity: 0.5,
+                              position: 'relative',
+                              top: -4,
+                            },
+                          ]}>
+                          Avg Pace
+                        </Text>
+                      </View>
+                    </Col>
+                    <Col size={32} offset={2}>
+                      <View style={styles.items}>
+                        <Text
+                          style={{
+                            fontFamily: Fonts.Poppins_Bold,
+                            fontSize: 18,
+                            color: '#C068E5',
+                          }}>
+                          <Text>{userWalkingData.avg_run}</Text>
+                        </Text>
+
+                        <Text
+                          style={[
+                            styles.titlemins,
+                            {
+                              color: '#000',
+                              fontSize: 10,
+                              opacity: 0.5,
+                              position: 'relative',
+                              top: -4,
+                            },
+                          ]}>
+                          Daily Avg Steps
+                        </Text>
+                      </View>
+                    </Col>
+                  </Row>
+
+                  <Text style={styles.sText}>Recent Activity</Text>
+
+                  <View style={[styles.card, {marginTop: 9}]}>
+                    <View style={styles.cardheader}>
+                      <View
+                        style={{
+                          display: 'flex',
+                          flexDirection: 'row',
+                        }}>
+                        <Image
+                          resizeMode="contain"
+                          source={require('../../assets/images/calender.png')}
+                          style={{
+                            width: 12,
+                            height: 12,
+                          }}
+                        />
+                        <Text style={styles.carddate}>Date</Text>
+                      </View>
+
+                      <Text
+                        style={[
+                          styles.sText,
+                          {
+                            fontSize: 10,
+                          },
+                        ]}>
+                        {yesterday.toDateString()}
+                      </Text>
+                    </View>
+                    <View style={{padding: 15}}>
+                      <Row>
+                        <Col size={25}>
+                          <View style={styles.cardflex}>
+                            <Image
+                              resizeMode="contain"
+                              source={require('../../assets/images/steps.png')}
+                              style={{
+                                width: 20,
+                                height: 15,
+                                marginBottom: 6,
+                              }}
+                            />
+                            <Text style={styles.cardbText}>
+                              {userWalkingData.recent_avg_pace}
+                            </Text>
+                            <Text style={styles.cardbText1}>Steps</Text>
+                          </View>
+                        </Col>
+
+                        <Col size={25}>
+                          <View style={styles.cardflex}>
+                            <Image
+                              resizeMode="contain"
+                              source={require('../../assets/images/sicon1.png')}
+                              style={{
+                                width: 20,
+                                height: 15,
+                                marginBottom: 6,
+                              }}
+                            />
+                            <Text style={styles.cardbText}>
+                              {userWalkingData.recent_distance.toFixed(2)}km
+                            </Text>
+                            <Text style={styles.cardbText1}>Distance</Text>
+                          </View>
+                        </Col>
+
+                        <Col size={25}>
+                          <View style={styles.cardflex}>
+                            <Image
+                              resizeMode="contain"
+                              source={require('../../assets/images/sicon.png')}
+                              style={{
+                                width: 20,
+                                height: 15,
+                                marginBottom: 6,
+                              }}
+                            />
+                            <Text style={styles.cardbText}>
+                              {userWalkingData.recent_calories}kcal
+                            </Text>
+                            <Text style={styles.cardbText1}>Calories</Text>
+                          </View>
+                        </Col>
+
+                        <Col size={25}>
+                          <View style={styles.cardflex}>
+                            <Image
+                              resizeMode="contain"
+                              source={require('../../assets/images/sicon.png')}
+                              style={{
+                                width: 20,
+                                height: 15,
+                                marginBottom: 6,
+                              }}
+                            />
+                            <Text style={styles.cardbText}>
+                              {userWalkingData.recent_time}min
+                            </Text>
+                            <Text style={styles.cardbText1}>Time</Text>
+                          </View>
+                        </Col>
+                      </Row>
+                    </View>
+                  </View>
+                </>
+              )}
             </View>
           </View>
           <View style={styles.gradient}>

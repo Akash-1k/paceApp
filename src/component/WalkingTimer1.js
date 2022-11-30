@@ -16,9 +16,15 @@ import {Row, Column as Col, Grid} from 'react-native-responsive-grid';
 import ProgressCircle from 'react-native-progress-circle';
 import {useNavigation, useRoute} from '@react-navigation/native';
 import {Stopwatch, Timer} from 'react-native-stopwatch-timer';
-import Ionicons from 'react-native-vector-icons/Ionicons';
 import {connect} from 'react-redux';
 import Loader from '../common/Loader';
+import {showAlert} from '../utils/CommonFunctions';
+import {CircularProgressBase} from 'react-native-circular-progress-indicator';
+import {
+  toPercent,
+  inMilsec,
+  calculateCaloriesBurnt,
+} from '../common/Functions/Func';
 
 const WalkingTimer1 = props => {
   const navigation = useNavigation();
@@ -26,10 +32,36 @@ const WalkingTimer1 = props => {
   const [targetData, setTargetData] = useState();
   const [isLoading, setIsLoading] = useState(false);
 
-  const [isStopwatchStart, setIsStopwatchStart] = useState(false);
+  const [isStopwatchStart, setIsStopwatchStart] = useState(true);
   const [resetStopwatch, setResetStopwatch] = useState(false);
   const [mintues, setMintues] = useState('00');
   const [timeUnit, setTimeUnit] = useState('sec');
+
+  const [currCalBurn, setCurrCalBurn] = useState(0);
+  const [currentStep, setCurrentStep] = useState(0);
+  const [time, setTime] = useState('');
+
+  const [showButton, setShowButton] = useState(false);
+
+  let totalCal = 0;
+
+  let a = props.userDetails.user.dob.split(':');
+  if (targetData) {
+    totalCal = calculateCaloriesBurnt(
+      targetData.distance * 1000,
+      2022 - parseInt(a[0]),
+      props.userDetails.user.current_weight,
+    );
+  }
+
+  const props1 = {
+    radius: 25,
+    activeStrokeWidth: 6,
+    inActiveStrokeWidth: 6,
+    inActiveStrokeColor: '#F2F5F8',
+    activeStrokeColor: '#5D6AFC',
+    activeStrokeSecondaryColor: '#C068E5',
+  };
 
   useEffect(() => {
     var myHeaders = new Headers();
@@ -58,6 +90,24 @@ const WalkingTimer1 = props => {
         setIsLoading(false);
       });
   }, []);
+
+  useEffect(() => {
+    if (targetData) {
+      if (currentStep >= targetData.steps) {
+        setIsStopwatchStart(false);
+        showAlert('Target completed...');
+        navigation.navigate('Root', {screen: 'TabOne'});
+      }
+    }
+
+    setCurrCalBurn(
+      calculateCaloriesBurnt(
+        currentStep * 0.762,
+        2022 - parseInt(a[0]),
+        props.userDetails.user.current_weight,
+      ),
+    );
+  }, [mintues]);
 
   const colorList = [
     {offset: '0%', color: '#5D6AFC', opacity: '1'},
@@ -115,6 +165,8 @@ const WalkingTimer1 = props => {
             <RunningTimerWalking
               targetData={targetData}
               isStopwatchStart={isStopwatchStart}
+              currentStep={currentStep}
+              setCurrentStep={setCurrentStep}
             />
           )}
         </View>
@@ -124,24 +176,40 @@ const WalkingTimer1 = props => {
             <Row>
               <Col size={32}>
                 <View style={styles.items}>
-                  <ProgressCircle
-                    percent={0}
-                    radius={25}
-                    borderWidth={4}
-                    color="#C068E5"
-                    shadowColor="#F2F5F8"
-                    bgColor="#fff">
-                    <View style={styles.flexprog}>
-                      <Image
-                        resizeMode="contain"
-                        source={require('../../assets/images/walk.png')}
-                        style={{
-                          width: 20,
-                          height: 20,
-                        }}
-                      />
-                    </View>
-                  </ProgressCircle>
+                  {targetData && (
+                    <CircularProgressBase
+                      {...props1}
+                      value={toPercent(currentStep, targetData.steps)}>
+                      <View style={styles.flexprog}>
+                        <Image
+                          resizeMode="contain"
+                          source={require('../../assets/images/walk.png')}
+                          style={{
+                            width: 20,
+                            height: 20,
+                          }}
+                        />
+                      </View>
+                    </CircularProgressBase>
+                    // <ProgressCircle
+                    //   percent={toPercent(currentStep, targetData.steps)}
+                    //   radius={25}
+                    //   borderWidth={4}
+                    //   color="#C068E5"
+                    //   shadowColor="#F2F5F8"
+                    //   bgColor="#fff">
+                    //   <View style={styles.flexprog}>
+                    //     <Image
+                    //       resizeMode="contain"
+                    //       source={require('../../assets/images/walk.png')}
+                    //       style={{
+                    //         width: 20,
+                    //         height: 20,
+                    //       }}
+                    //     />
+                    //   </View>
+                    // </ProgressCircle>
+                  )}
                   <Text
                     style={{
                       fontFamily: Fonts.Poppins_Bold,
@@ -149,7 +217,7 @@ const WalkingTimer1 = props => {
                       color: '#C068E5',
                       paddingTop: 4,
                     }}>
-                    <Text>0.0km</Text>
+                    <Text>{((currentStep * 0.762) / 1000).toFixed(2)}km</Text>
                   </Text>
 
                   <Text
@@ -170,8 +238,26 @@ const WalkingTimer1 = props => {
 
               <Col size={32} offset={2}>
                 <View style={styles.items}>
-                  <ProgressCircle
-                    percent={0}
+                  <CircularProgressBase
+                    {...props1}
+                    value={
+                      toPercent(currCalBurn, totalCal)
+                        ? toPercent(currCalBurn, totalCal)
+                        : 0
+                    }>
+                    <View style={styles.flexprog}>
+                      <Image
+                        resizeMode="contain"
+                        source={require('../../assets/images/sicon2.png')}
+                        style={{
+                          width: 20,
+                          height: 20,
+                        }}
+                      />
+                    </View>
+                  </CircularProgressBase>
+                  {/* <ProgressCircle
+                    percent={toPercent(currCalBurn, totalCal)}
                     radius={25}
                     borderWidth={4}
                     color="#C068E5"
@@ -187,7 +273,7 @@ const WalkingTimer1 = props => {
                         }}
                       />
                     </View>
-                  </ProgressCircle>
+                  </ProgressCircle> */}
                   <Text
                     style={{
                       fontFamily: Fonts.Poppins_Bold,
@@ -195,7 +281,7 @@ const WalkingTimer1 = props => {
                       color: '#C068E5',
                       paddingTop: 4,
                     }}>
-                    <Text>0kcal</Text>
+                    <Text>{currCalBurn}kcal</Text>
                   </Text>
 
                   <Text
@@ -216,8 +302,22 @@ const WalkingTimer1 = props => {
 
               <Col size={32} offset={2}>
                 <View style={styles.items}>
-                  <ProgressCircle
-                    percent={0}
+                  <CircularProgressBase
+                    {...props1}
+                    value={toPercent(inMilsec(time), 100000)}>
+                    <View style={styles.flexprog}>
+                      <Image
+                        resizeMode="contain"
+                        source={require('../../assets/images/sicon3.png')}
+                        style={{
+                          width: 20,
+                          height: 20,
+                        }}
+                      />
+                    </View>
+                  </CircularProgressBase>
+                  {/* <ProgressCircle
+                    percent={toPercent(inMilsec(time), 200000)}
                     radius={25}
                     borderWidth={4}
                     color="#C068E5"
@@ -233,7 +333,7 @@ const WalkingTimer1 = props => {
                         }}
                       />
                     </View>
-                  </ProgressCircle>
+                  </ProgressCircle> */}
                   <Text
                     style={{
                       fontFamily: Fonts.Poppins_Bold,
@@ -242,8 +342,7 @@ const WalkingTimer1 = props => {
                       paddingTop: 4,
                     }}>
                     <Text>
-                      {mintues}
-                      {timeUnit}
+                      {mintues} {timeUnit}
                     </Text>
                   </Text>
 
@@ -277,27 +376,25 @@ const WalkingTimer1 = props => {
                   let currTimeArray = time.split(':').map(v => {
                     return parseInt(v);
                   });
-
+                  setTime(time);
                   if (currTimeArray[0] > 0) {
                     if (hour < currTimeArray[0]) {
                       hour = currTimeArray[0];
-                      console.log('hour ::::::::', hour);
+                      // console.log('hour ::::::::', hour);
                       setMintues(hour);
                       setTimeUnit('hour');
                     }
                   } else if (currTimeArray[1] > 0) {
-                    // console.log('min,', min);
-
                     if (min < currTimeArray[1]) {
                       min = currTimeArray[1];
-                      console.log('min 1111,', currTimeArray[2], min);
+                      // console.log('min 1111,', currTimeArray[2], min);
                       setMintues(min);
                       setTimeUnit('min');
                     }
                     // min
                   } else if (sec < currTimeArray[2]) {
                     sec = currTimeArray[2];
-                    console.log('sec,', sec);
+                    // console.log('sec,', sec);
                     setMintues(sec);
                     setTimeUnit('sec');
                   }
@@ -305,8 +402,53 @@ const WalkingTimer1 = props => {
                 options={options}
               />
             </View>
-
             <View
+              style={{
+                width: '100%',
+              }}>
+              {showButton ? (
+                <View
+                  style={{
+                    flexDirection: 'row',
+                    justifyContent: 'space-evenly',
+                  }}>
+                  <View style={{width: '40%'}}>
+                    <TouchableOpacity
+                      onPress={() => {
+                        setIsStopwatchStart(true);
+                        setShowButton(false);
+                      }}
+                      style={styles.button}>
+                      <LinearGradient colorList={colorList1} angle={200} />
+                      <Text style={styles.text}>Resume</Text>
+                    </TouchableOpacity>
+                  </View>
+                  <View style={{width: '40%'}}>
+                    <TouchableOpacity
+                      onPress={() => {
+                        navigation.navigate('Root', {screen: 'TabOne'});
+                      }}
+                      style={styles.button}>
+                      <LinearGradient colorList={colorList1} angle={200} />
+                      <Text style={styles.text}>End</Text>
+                    </TouchableOpacity>
+                  </View>
+                </View>
+              ) : (
+                <View style={{width: '100%'}}>
+                  <TouchableOpacity
+                    onLongPress={() => {
+                      setShowButton(true);
+                      setIsStopwatchStart(false);
+                    }}
+                    style={styles.button}>
+                    <LinearGradient colorList={colorList1} angle={200} />
+                    <Text style={styles.text}>Long Press To Pause</Text>
+                  </TouchableOpacity>
+                </View>
+              )}
+            </View>
+            {/* <View
               style={{
                 width: '100%',
               }}>
@@ -346,12 +488,12 @@ const WalkingTimer1 = props => {
                   </View>
                 </Col>
               </Row>
-            </View>
+            </View> */}
           </ScrollView>
         </View>
       </View>
       <View style={styles.gradient}>
-        <LinearGradient colorList={colorList} angle={360} />
+        <LinearGradient colorList={colorList} angle={300} />
       </View>
       <Loader loading={isLoading} />
     </View>

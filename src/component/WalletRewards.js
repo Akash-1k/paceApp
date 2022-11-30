@@ -11,9 +11,10 @@ import {
 } from 'react-native';
 import {Row, Column as Col, Grid} from 'react-native-responsive-grid';
 import {useNavigation} from '@react-navigation/native';
+import {connect} from 'react-redux';
 import Fonts from '../constants/Fonts';
 
-const WalletRewards = () => {
+const WalletRewards = props => {
   const navigation = useNavigation();
   return (
     <SafeAreaView>
@@ -61,7 +62,8 @@ const WalletRewards = () => {
                       top: 3,
                     },
                   ]}>
-                  938 <Text style={{fontSize: 23}}>Coins</Text>
+                  {props.homeData?.wallet?.earn_coins}{' '}
+                  <Text style={{fontSize: 23}}>Coins</Text>
                 </Text>
               </View>
 
@@ -158,7 +160,8 @@ const WalletRewards = () => {
                         color: '#C068E5',
                       }}>
                       <Text>
-                        938 <Text style={{fontSize: 14}}>Coins</Text>
+                        {props.homeData?.wallet?.earn_coins}{' '}
+                        <Text style={{fontSize: 14}}>Coins</Text>
                       </Text>
                     </Text>
                   </View>
@@ -269,7 +272,14 @@ const WalletRewards = () => {
   );
 };
 
-export default WalletRewards;
+const mapStateToProps = state => ({
+  loginData: state.loginReducer?.loginData,
+  userDetails: state.profileReducer?.userDetails,
+  homeData: state.homeReducer?.homeData,
+});
+
+const mapDispatchToProps = dispatch => ({});
+export default connect(mapStateToProps, mapDispatchToProps)(WalletRewards);
 
 const styles = StyleSheet.create({
   radius: {

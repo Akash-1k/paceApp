@@ -32,7 +32,7 @@ export default (state = INITIAL_STATE, action) => {
       };
 
     case USER_DETAILS_SUCCESS:
-      console.log(action.data);
+      // console.log(action.data);
       return {
         ...state,
         userDetails: action.data,

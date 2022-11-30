@@ -1,16 +1,28 @@
 import {Platform} from 'react-native';
 
 const Config = {
+  // Strip_PK:
+  //   'pk_test_51LMm3HIrDDSW9ldIUDvQk0QlcEsjLfojPBOTyfUP34Lkm5Au23GTUfKecCrf7uPlNo8gRC9dwFhXrTPe4DCG3qsq00jpxFNzPf',
+  // Strip_SK:
+  // 'sk_test_51LMm3HIrDDSW9ldIE0xbf7iGST6kcrNeiIA4XLazdR6xH3QmMDLIlKgvGTx5GwtMmFWxUa8NGMxeVnqznzYnMV0p00VwG729Se',
+
   Strip_PK:
-    'pk_test_51LMm3HIrDDSW9ldIUDvQk0QlcEsjLfojPBOTyfUP34Lkm5Au23GTUfKecCrf7uPlNo8gRC9dwFhXrTPe4DCG3qsq00jpxFNzPf',
+    'pk_test_51KloP1EhFW4LgI7esw2m5Y2hJHJjYSungM2G479QEZEL8o4J81HmyDcPgzhxvymRawLtVc1iLK1UIu9O81g8lVW800mmD4zv5m',
   Strip_SK:
-    'sk_test_51LMm3HIrDDSW9ldIE0xbf7iGST6kcrNeiIA4XLazdR6xH3QmMDLIlKgvGTx5GwtMmFWxUa8NGMxeVnqznzYnMV0p00VwG729Se',
+    'sk_test_51KloP1EhFW4LgI7e8KaFFkd8k0Hsi1FvNH6zSWzhQjdxHQ0ekcSzrYBbwocCOLDX7KYcjMItp3ioXVJuSinGhlRs006XkJKKjQ',
 
   BASE_URL: 'https://dev.indiit.solutions/pace/public/api',
   IMAGE_BASE_URL: 'https://dev.indiit.solutions/pace/public/assets/images/',
   VIDEO_BASE_URL: 'https://dev.indiit.solutions/pace/public/assets/videos/',
 
-  PLACEHOLDER_IMAGE: 'https://picsum.photos/id/237/200/300',
+  PLACEHOLDER_IMAGE: 'https://picsum.photos/id/321/200/300',
+
+  STRIP_BASE_URL: 'https://api.stripe.com/v1',
+
+  strip_create_customers: '/customers',
+  strip_create_payment_intents: '/payment_intents',
+
+  reward_coin_value: 0.2,
 
   do_login: '/do_login',
   do_signup: '/do_signup',
@@ -50,11 +62,11 @@ const Config = {
   edit_product_cart: '/edit-product-cart',
   earned_coins: '/earned-coins',
   contact_email: '/contact-email',
-  all_payment_cards: '/all-payment-cards',
-  add_payment_cards: '/add-payment-cards',
-  set_deault_payment_cards: '/set-deault-payment-cards',
+  all_payment_cards: '/payment-card',
+  add_payment_cards: '/payment-card',
+  set_deault_payment_cards: '/payment-card/default',
   edit_payment_cards: '/edit-payment-cards',
-  delete_payment_card: '/delete-payment-card',
+  delete_payment_card: '/payment-card/delete',
   home: '/home',
   update_profile_image: '/update-profile-image',
   viewed_workouts_video: '/viewed-workouts-video',
@@ -63,6 +75,13 @@ const Config = {
   step_process: '/step-process',
   update_product_cart: '/update-product-cart',
   fetch_products: '/fetch-products',
+  get_milestone: '/get-milestone',
+  user_walking_status: '/user-walking-status',
+  user_running_status: '/user-running-status',
+  user_running: '/user-running',
+  user_walking: '/user-walking',
+  checkout: '/checkout',
+  progress: '/progress',
   logout: '/logout',
 };
 

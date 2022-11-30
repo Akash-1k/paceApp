@@ -43,7 +43,7 @@ const BeReadyCountDown = () => {
       if (route.params.nextScreen == 'StartWorkout') {
         navigation.navigate(route.params.nextScreen);
       } else if (route.params.nextScreen == 'WalkingTimer') {
-        navigation.navigate(route.params.nextScreen);
+        navigation.navigate(route.params.nextScreen, route.params);
       }
       return;
     }

@@ -65,17 +65,19 @@ const ShopSlider = props => {
 
   const FirstRoute = () => {
     return (
-      <SafeAreaView style={{paddingTop: 15}}>
-        <FlatList
-          initialNumToRender={0}
-          renderItem={reanderItemShop}
-          // keyExtractor={index => {
-          //   return index;
-          // }}
-          data={shopList}
-          horizontal
-          showsHorizontalScrollIndicator={false}
-        />
+      <SafeAreaView>
+        <View style={{paddingTop: 15}}>
+          <FlatList
+            initialNumToRender={0}
+            renderItem={reanderItemShop}
+            // keyExtractor={index => {
+            //   return index;
+            // }}
+            data={shopList}
+            horizontal
+            showsHorizontalScrollIndicator={false}
+          />
+        </View>
       </SafeAreaView>
     );
   };

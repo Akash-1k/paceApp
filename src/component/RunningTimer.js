@@ -9,52 +9,89 @@ import {
   TouchableOpacity,
   View,
   Image,
+  NativeModules,
+  NativeEventEmitter,
 } from 'react-native';
 import {SceneMap, TabBar, TabView} from 'react-native-tab-view';
 import MaterialIcons from 'react-native-vector-icons/MaterialIcons';
 import ProgressCircle from 'react-native-progress-circle';
 import {startCounter, stopCounter} from 'react-native-accurate-step-counter';
+import {toPercent} from '../common/Functions/Func';
+import StepcounterIosAndroid from 'react-native-stepcounter-ios-android';
+import {CircularProgressBase} from 'react-native-circular-progress-indicator';
+// import {startCounter, stopCounter} from 'react-native-accurate-step-counter';
 
-const RunningTimer = ({isStopwatchStart}) => {
+const colorList = [
+  {offset: '0%', color: '#5D6AFC', opacity: '1'},
+  {offset: '100%', color: '#C069E5', opacity: '1'},
+];
+
+const RunningTimer = ({
+  isStopwatchStart,
+  targetData,
+  currentStep,
+  setCurrentStep,
+}) => {
   const [index, setIndex] = React.useState(0);
-
-  const [currentStep, setCurrentStep] = useState(0);
   const [stepsPercent, setStepsPercent] = useState(0);
 
   let count = 0;
 
-  const config = {
-    default_threshold: 50.0,
-    default_delay: 550000,
-    cheatInterval: 3000,
-    onStepCountChange: stepCount => {
-      setCurrentStep(currentStep + stepCount);
-    },
-    onCheat: () => {
-      console.log('User is Cheating');
-    },
+  const props1 = {
+    radius: 140,
+    activeStrokeWidth: 8,
+    inActiveStrokeWidth: 6,
+    activeStrokeColor: '#F2F5F8',
+    inActiveStrokeColor: 'rgba(255,255,255,0.3)',
   };
 
   useEffect(() => {
-    count = currentStep;
-    if (!isStopwatchStart) {
-      setCurrentStep(count);
-    }
+    StepcounterIosAndroid.isSupported()
+      .then(result => {
+        if (result) {
+          console.log('Sensor TYPE_STEP_COUNTER is supported on this device');
+          const myModuleEvt = new NativeEventEmitter(
+            NativeModules.StepcounterIosAndroid,
+          );
+          count = currentStep;
+          if (!isStopwatchStart) {
+            setCurrentStep(count);
+          }
+          // console.log(isStopwatchStart, 'OUT  :::::');
 
-    if (isStopwatchStart) {
-      startCounter(config);
-    }
-    return () => {
-      stopCounter();
-    };
+          if (isStopwatchStart) {
+            // console.log('CALL AGAIN');
+            myModuleEvt.addListener('StepCounter', data => {
+              console.log('STEPS', data);
+              // console.log(isStopwatchStart, 'IN   :::::');
+              // console.log('currentStep', currentStep);
+              setCurrentStep(currentStep + data.steps);
+            });
+          } else {
+            console.log('first');
+            myModuleEvt.removeSubscription();
+          }
+          // console.log(isStopwatchStart, 'OUT 2  :::::');
+
+          StepcounterIosAndroid.startStepCounter();
+          // console.log(isStopwatchStart, 'OUT 3  :::::');
+        } else {
+          console.log(
+            'Sensor TYPE_STEP_COUNTER is not supported on this device',
+          );
+        }
+      })
+      .catch(err => console.log(err));
+
+    return () => StepcounterIosAndroid.stopStepCounter();
   }, [isStopwatchStart]);
 
   useEffect(() => {
-    onStepPercent(currentStep);
+    onStepPercent(currentStep, targetData.steps);
   }, [currentStep]);
 
-  const onStepPercent = stepCount => {
-    var percent = Math.ceil((stepCount / 50) * 100);
+  const onStepPercent = (stepCount, stepsTarget) => {
+    var percent = toPercent(stepCount, stepsTarget);
     setStepsPercent(percent);
   };
 
@@ -66,13 +103,7 @@ const RunningTimer = ({isStopwatchStart}) => {
           flexDirection: 'column',
         }}>
         <View style={styles.items}>
-          <ProgressCircle
-            percent={stepsPercent}
-            radius={140}
-            borderWidth={4}
-            shadowColor="#BB68E6"
-            color="rgb(255, 255, 255)"
-            bgColor="#756AF6">
+          <CircularProgressBase duration={0} {...props1} value={stepsPercent}>
             <View
               style={{
                 width: 205,
@@ -99,18 +130,21 @@ const RunningTimer = ({isStopwatchStart}) => {
                   marginBottom: -17,
                   fontFamily: Fonts.Poppins_Bold,
                 }}>
-                1.6km
+                {(currentStep * 0.000769).toFixed(2)}
               </Text>
-              <Text
-                style={{
-                  color: '#fff',
-                  fontSize: 12,
-                  fontFamily: Fonts.Poppins_Regular,
-                }}>
-                out of Target: 5km
-              </Text>
+              {targetData && (
+                <Text
+                  style={{
+                    color: '#fff',
+                    fontSize: 12,
+                    fontFamily: Fonts.Poppins_Regular,
+                  }}>
+                  out of Target: {targetData.distance}km
+                </Text>
+              )}
             </View>
-          </ProgressCircle>
+          </CircularProgressBase>
+          {/* </ProgressCircle> */}
         </View>
         <View
           style={{
@@ -277,5 +311,11 @@ const styles = StyleSheet.create({
     color: '#fff',
     fontFamily: Fonts.Poppins_Bold,
     fontSize: 16,
+  },
+  gradient: {
+    position: 'absolute',
+    flex: 1,
+    height: '50%',
+    width: '100%',
   },
 });

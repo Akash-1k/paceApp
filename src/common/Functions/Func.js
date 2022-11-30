@@ -1,3 +1,5 @@
+import caloriesBurnt from 'calories-burnt';
+
 export const validateEmail = email => {
   return String(email)
     .toLowerCase()
@@ -19,8 +21,19 @@ export const toPercent = (curr, total) => {
   return Math.ceil((curr / total) * 100);
 };
 
+export const calculateCaloriesBurnt = (dist, age, weight) => {
+  return caloriesBurnt({
+    meters: dist,
+    slope: -0.015,
+    treadmill: false,
+    age: age,
+    restingHeartBeatsPerMinute: 80,
+    kilograms: weight,
+  });
+};
+
 export const inMilsec = timeStr => {
-  const timeArr = timeStr.split(':');
+  const timeArr = String(timeStr).split(':');
   let inMillisec = 0;
   if (timeArr.length == 3) {
     inMillisec =

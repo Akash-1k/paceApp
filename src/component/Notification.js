@@ -8,15 +8,95 @@ import {
   SafeAreaView,
   TouchableOpacity,
   Image,
+  FlatList,
 } from 'react-native';
 import {List, Button, Divider} from 'react-native-paper';
+import {notificationData} from '../staticData/NotificationStaticData';
+
+const SingleNotification = ({item}) => {
+  console.log('item :::::', item);
+  return (
+    <>
+      <View style={styles.boxitem}>
+        <List.Item
+          title={() => (
+            <View style={{position: 'relative', top: -8}}>
+              <Text style={styles.title}>{item.title}</Text>
+              <View
+                style={{
+                  display: 'flex',
+                  flexDirection: 'row',
+                }}>
+                <Text numberOfLines={1} style={styles.subtitle}>
+                  {item.subtitle}
+                </Text>
+                {item.orderId && (
+                  <Text
+                    style={[
+                      styles.subtitle,
+                      {
+                        fontSize: 10,
+                        paddingLeft: 10,
+                      },
+                    ]}
+                    numberOfLines={1}>
+                    <Text
+                      style={[
+                        styles.subtitle,
+                        {
+                          fontWeight: '300',
+                          fontFamily: Fonts.Poppins_Regular,
+                          color: '#3B2645',
+                          fontSize: 10,
+                        },
+                      ]}>
+                      Order ID :{' '}
+                    </Text>{' '}
+                    {item.orderId}
+                  </Text>
+                )}
+              </View>
+            </View>
+          )}
+          left={() => (
+            <View style={styles.userimg}>
+              <Image
+                resizeMode="cover"
+                style={{
+                  width: 50,
+                  height: 50,
+                  borderRadius: 1000,
+                }}
+                source={item.url}
+              />
+            </View>
+          )}
+          right={() => <Text style={styles.justnow}>{item.time}</Text>}
+          style={{paddingVertical: 0, paddingHorizontal: 0}}
+        />
+      </View>
+      <Divider
+        style={{
+          backgroundColor: '#DDDADA',
+          height: 1.1,
+          margin: 0,
+        }}
+      />
+    </>
+  );
+};
 
 const Notification = () => {
   return (
     <SafeAreaView style={styles.relative}>
       <ScrollView style={styles.relative}>
         <View style={styles.container}>
-          <View style={styles.boxitem}>
+          <FlatList
+            data={notificationData}
+            renderItem={({item}) => <SingleNotification item={item} />}
+            keyExtractor={item => item.id}
+          />
+          {/* <View style={styles.boxitem}>
             <List.Item
               title={() => (
                 <View style={{position: 'relative', top: -8}}>
@@ -293,7 +373,7 @@ const Notification = () => {
               backgroundColor: '#DDDADA',
               height: 1.1,
             }}
-          />
+          /> */}
         </View>
       </ScrollView>
     </SafeAreaView>

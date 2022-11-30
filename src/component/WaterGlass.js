@@ -24,55 +24,13 @@ import {
 } from '../modules/Home/actions';
 
 const WaterGlass = props => {
-  const [getAllData, setAllData] = useState();
-  const [default_glass, setDefaultGlass] = useState([]);
   const [isLoading, setIsLoading] = useState(false);
 
   useEffect(() => {
     props.getWaterGlassRequested(props.loginData.token);
   }, []);
-  // console.log('Water Glass Props', props.state.homeReducer);
 
-  const getGlassData = () => {
-    var myHeaders = new Headers();
-    myHeaders.append('Authorization', 'Bearer ' + props.loginData.token);
-    var requestOptions = {
-      method: 'GET',
-      headers: myHeaders,
-      redirect: 'follow',
-    };
-    setIsLoading(true);
-    fetch(Config.BASE_URL + Config.water_glass, requestOptions)
-      .then(response => response.json())
-      .then(result => {
-        console.log('res::::', result);
-        // alert(result.glass.default_glass);
-        saveGlass(result.glass[0].default_glass, result.glass[0].fill_glass);
-        console.log('res11 ::::', result);
-        setAllData(result);
-        setIsLoading(false);
-      })
-      .catch(error => console.log('get error', error));
-  };
-
-  const saveGlass = (glass, fill_glass) => {
-    console.log(glass, fill_glass);
-    let newData = [];
-    for (let index = 1; index <= glass; index++) {
-      if (fill_glass >= index) {
-        newData.push({
-          glass: index,
-          isFilled: true,
-        });
-      } else {
-        newData.push({
-          glass: index,
-          isFilled: false,
-        });
-      }
-    }
-    setDefaultGlass(newData);
-  };
+  // console.log('Water Glass Props', props.glassInfo);
 
   const addGlass = () => {
     var myHeaders = new Headers();
@@ -83,12 +41,10 @@ const WaterGlass = props => {
       headers: myHeaders,
       redirect: 'follow',
     };
-    // setIsLoading(true);
 
     fetch(Config.BASE_URL + Config.add_water_glass, requestOptions)
       .then(response => response.json())
       .then(result => {
-        console.log(result);
         props.getWaterGlassRequested(props.loginData.token);
         props.getHomeRequested(props.loginData.token);
         // setIsLoading(false);
@@ -97,11 +53,11 @@ const WaterGlass = props => {
   };
 
   const removeGlass = () => {
-    if (props.glassInfo.default_glass == 7) {
+    if (props.glassInfo[0].default_glass == 7) {
       showAlert("Glass can't be removed");
       return;
     }
-    if (props.glassInfo.default_glass <= props.glassInfo.fill_glass) {
+    if (props.glassInfo[0].default_glass <= props.glassInfo[0].fill_glass) {
       showAlert("Filled Glass can't be removed");
       return;
     }
@@ -118,7 +74,7 @@ const WaterGlass = props => {
     fetch(Config.BASE_URL + Config.remove_water_glass, requestOptions)
       .then(response => response.json())
       .then(result => {
-        console.log('remove_api_response', result);
+        // console.log('remove_api_response', result);
         props.getWaterGlassRequested(props.loginData.token);
         props.getHomeRequested(props.loginData.token);
         // setIsLoading(false);
@@ -141,7 +97,7 @@ const WaterGlass = props => {
     fetch(Config.BASE_URL + Config.fill_water_glass, requestOptions)
       .then(response => response.json())
       .then(result => {
-        console.log('fill water glass', result);
+        // console.log('fill water glass', result);
         props.getWaterGlassRequested(props.loginData.token);
         props.getHomeRequested(props.loginData.token);
         setIsLoading(false);
@@ -155,7 +111,7 @@ const WaterGlass = props => {
         onPress={() => {
           fillWaterGlass();
         }}
-        disabled={!(item.item.glass == props.glassInfo.fill_glass + 1)}
+        disabled={!(item.item.glass == props.glassInfo[0].fill_glass + 1)}
         style={styles.gbox}>
         <Image
           resizeMode="contain"
@@ -227,8 +183,7 @@ const WaterGlass = props => {
             source={require('../../assets/images/glassbg.png')}
             style={styles.walletbg}>
             <Text style={styles.glasstext}>
-              {/* 1000ml {} / {''} */}
-              {props.glassInfo ? props.glassInfo.fill_glass * 250 : 0}
+              {props.glassInfo ? props.glassInfo[0].fill_glass * 250 : 0}
               {'ml'}/
               <Text
                 style={{
@@ -236,12 +191,11 @@ const WaterGlass = props => {
                   fontFamily: Fonts.Poppins_Regular,
                 }}>
                 {props.glassInfo
-                  ? props.glassInfo.default_glass * 250
+                  ? props.glassInfo[0].default_glass * 250
                   : 7 * 250}
                 ml of water per day
               </Text>
             </Text>
-
             <View style={styles.itemflex}>
               <FlatList
                 data={props.saveGlass}
@@ -260,12 +214,11 @@ const WaterGlass = props => {
 const mapStateToProps = state => ({
   loginData: state.loginReducer.loginData,
   userDetails: state.profileReducer.userDetails,
-  glassInfo: state.homeReducer?.waterGlassInfo?.glass[0],
+  glassInfo: state.homeReducer?.waterGlassInfo.glass,
   saveGlass: state.homeReducer?.saveGlass,
 });
 
 const mapDispatchToProps = dispatch => ({
-  // shopCategoryListRequest: (data) => dispatch(shopCategoryListRequest(data)),
   getWaterGlassRequested: data => dispatch(getWaterGlassRequested(data)),
   getHomeRequested: data => dispatch(getHomeRequested(data)),
 });

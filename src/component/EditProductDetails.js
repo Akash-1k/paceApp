@@ -389,7 +389,7 @@ const EditProductDetails = props => {
               </Col>
               <Col size={48} offset={4}>
                 <TouchableOpacity
-                  onPress={() => navigation.navigate('Checkout')}
+                  onPress={() => navigation.navigate('PaymentMethod')}
                   style={[
                     styles.button,
                     {

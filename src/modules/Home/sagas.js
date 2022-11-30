@@ -43,7 +43,7 @@ function* onSendSteps({data}) {
       .then(result => {
         return result;
       })
-      .catch(error => console.log('error', error));
+      .catch(error => console.log('error Home SAGAS onSendSteps ', error));
 
     if (res.status == 'Token is Expired') {
       yield showLogoutAlert(data.logout);
@@ -59,7 +59,7 @@ function* onSendSteps({data}) {
       // yield* hideLoader(false, '');
       // console.log('asaas', res);
       setTimeout(() => {
-        console.log('Home Saga onSendSteps :::::::::::', res.msg);
+        // console.log('Home Saga onSendSteps :::::::::::', res.msg);
       }, 400);
     }
   } catch (error) {
@@ -95,7 +95,8 @@ function* onWaterGlass({data}) {
 
     if (res.status == 1) {
       let save = saveGlass(res.glass[0].default_glass, res.glass[0].fill_glass);
-      yield put(getWaterGlassSuccess(res, save));
+      // console.log(save);
+      yield put(getWaterGlassSuccess({res, save}));
       yield* hideLoader(false, '');
     } else {
       yield put(getWaterGlassFail());
@@ -135,7 +136,6 @@ function* onHome({data}) {
   try {
     var myHeaders = new Headers();
     myHeaders.append('Authorization', 'Bearer ' + data);
-    console.log('Token SAgA Home onHome Function', data);
 
     var requestOptions = {
       method: 'GET',
@@ -145,7 +145,6 @@ function* onHome({data}) {
     let res = yield fetch(Config.BASE_URL + Config.home, requestOptions)
       .then(response => response.json())
       .then(result => {
-        console.log('Token SAGA Home onHome 1', result);
         return result;
       })
       .catch(error => console.log('error', error));

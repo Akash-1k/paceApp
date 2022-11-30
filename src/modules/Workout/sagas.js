@@ -49,7 +49,7 @@ function* onGetWorkout({data}) {
     }
 
     if (res.status == 1) {
-      yield put(workoutListSuccess(res.data));
+      yield put(workoutListSuccess(res));
       yield* hideLoader(false, '');
     } else {
       yield put(workoutListFail());

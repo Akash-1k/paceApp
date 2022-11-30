@@ -9,6 +9,7 @@ import blogReducer from '../modules/Blog/reducer';
 import shopReducer from '../modules/Shop/reducer';
 import workoutReducer from '../modules/Workout/reducer';
 import homeReducer from '../modules/Home/reducer';
+import progressReducer from '../modules/Progress/reducer';
 
 const appReducer = combineReducers({
   loadingReducer,
@@ -19,6 +20,7 @@ const appReducer = combineReducers({
   shopReducer,
   workoutReducer,
   homeReducer,
+  progressReducer,
 });
 
 const initialState = appReducer({}, {});

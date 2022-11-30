@@ -27,7 +27,6 @@ import {
 } from './types';
 
 function* onUserDetails({data}) {
-  // console.log('onUserDeatils::::::::::::::', data);
   yield* showLoader(false);
 
   try {
@@ -36,7 +35,7 @@ function* onUserDetails({data}) {
     )
       .then(response => response.json())
       .then(result => {
-        console.log('onUserDetails SAGA PROFILE :::', result);
+        // console.log('onUserDetails SAGA PROFILE :::', result);
         return result;
       })
       .catch(error => console.log('error', error));
@@ -48,7 +47,7 @@ function* onUserDetails({data}) {
       return;
     }
     if (res.user.status == 1) {
-      console.log('userDetailsSuccess SAGA');
+      // console.log('userDetailsSuccess SAGA');
       yield put(userDetailsSuccess(res));
       yield* hideLoader(false, '');
       // navigation.navigation()
@@ -182,7 +181,7 @@ function* onAddressList({data}) {
     if (res.status == 1) {
       yield put(getAddressListSuccess(res.data));
       yield* hideLoader(false, '');
-      console.log('rrrr', res);
+      // console.log('rrrr', res);
       // navigation.navigation()
     } else if (res.status == 0) {
       yield put(getAddressListFail());
@@ -226,16 +225,16 @@ function* onGetCardList({data}) {
       return;
     }
 
-    if (res.status == 1) {
-      yield put(getCardListSuccess(res.data));
+    if (res.status == true) {
+      if (res.cards == []) {
+        yield put(getCardListSuccess([]));
+      } else {
+        yield put(getCardListSuccess(res.cards));
+      }
       yield* hideLoader(false, '');
     } else {
-      yield put(getCardListFail());
+      yield put(getCardListSuccess([]));
       yield* hideLoader(false, '');
-      // console.log(res);
-      setTimeout(() => {
-        alert('res.msg 3');
-      }, 400);
     }
   } catch (error) {
     yield put(getCardListFail());

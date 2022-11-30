@@ -50,7 +50,11 @@ const TabTwoScreen = props => {
         onPress={() => {
           props.setWorkoutListItem(data.item);
           if (data.item.premium_feature == 1) {
-            toggleModal();
+            if (props.premium) {
+              navigation.navigate('WorkoutDetails');
+            } else {
+              toggleModal();
+            }
           } else {
             navigation.navigate('WorkoutDetails');
           }
@@ -267,7 +271,12 @@ const TabTwoScreen = props => {
             </Text>
 
             <TouchableOpacity
-              onPress={() => console.log('Test')}
+              onPress={() => {
+                toggleModal();
+                navigation.navigate('PaymentMethod', {
+                  pervScreen: 'BuyPremium',
+                });
+              }}
               style={[styles.button, {width: '100%', marginBottom: 0}]}>
               <LinearGradient colorList={colorList2} angle={180} />
               <Text style={styles.text}>Buy Premium for $9.90</Text>
@@ -283,6 +292,7 @@ const mapStateToProps = state => ({
   loginData: state.loginReducer.loginData,
   userDetails: state.profileReducer.userDetails,
   workoutList: state.workoutReducer.workoutList,
+  premium: state.workoutReducer.premium,
   listItem: state.workoutReducer.listItem,
 });
 

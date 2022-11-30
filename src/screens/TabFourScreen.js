@@ -31,7 +31,7 @@ function TabFourScreen(props) {
   const navigation = useNavigation();
   const [modalVisible, setModalVisible] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
-  // console.log('TabFour props :::::::', props.userDetails);
+  console.log('TabFour props :::::::', props.userDetails);
 
   useEffect(() => {
     getUserDetails();
@@ -186,12 +186,13 @@ function TabFourScreen(props) {
                 </TouchableOpacity>
 
                 <Image
-                  resizeMode="cover"
+                  resizeMode="contain"
                   source={
                     props.userDetails?.user?.image
                       ? {
                           uri:
-                            'https://dev.indiit.solutions/pace/public/assets/images/profile/' +
+                            Config.IMAGE_BASE_URL +
+                            'profile/' +
                             props.userDetails.user.image,
                         }
                       : require('../../assets/images/userpro.png')
@@ -215,7 +216,7 @@ function TabFourScreen(props) {
                       fontSize: 18,
                       color: '#C068E5',
                     }}>
-                    {props.userDetails?.user?.height == 'null' ? (
+                    {props.userDetails?.user?.height == null ? (
                       <Text>{'NA'}</Text>
                     ) : (
                       <Text>
@@ -234,7 +235,7 @@ function TabFourScreen(props) {
                       fontSize: 18,
                       color: '#C068E5',
                     }}>
-                    {props.userDetails?.user?.current_weight == 'null' ? (
+                    {props.userDetails?.user?.current_weight == null ? (
                       <Text>{'NA'}</Text>
                     ) : (
                       <Text>
@@ -253,14 +254,14 @@ function TabFourScreen(props) {
                       fontSize: 18,
                       color: '#C068E5',
                     }}>
-                    {props.userDetails?.user?.dob && (
+                    {/* {props.userDetails?.user?.dob && (
                       <Text>
                         {year -
                           parseInt(props.userDetails.user.dob.slice(0, 4))}
                         {' Years'}
                       </Text>
-                    )}
-                    {/* {props.userDetails?.user?.dob == 'null' ? (
+                    )} */}
+                    {props.userDetails?.user?.dob == null ? (
                       <Text>{'NA'}</Text>
                     ) : (
                       <Text>
@@ -268,7 +269,7 @@ function TabFourScreen(props) {
                           parseInt(props.userDetails.user.dob.slice(0, 4))}
                         {' Years'}
                       </Text>
-                    )} */}
+                    )}
                   </Text>
                   <Paragraph style={styles.para}>Age</Paragraph>
                 </View>

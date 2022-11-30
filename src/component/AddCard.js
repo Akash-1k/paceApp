@@ -1,6 +1,6 @@
 import {useNavigation} from '@react-navigation/native';
 import {CardField, createToken} from '@stripe/stripe-react-native';
-import React, {useState} from 'react';
+import React, {useEffect, useState} from 'react';
 import {
   SafeAreaView,
   ScrollView,
@@ -8,14 +8,18 @@ import {
   Text,
   TouchableOpacity,
   View,
+  Alert,
 } from 'react-native';
 import {LinearGradient} from 'react-native-gradients';
-import {TextInput} from 'react-native-paper';
+import {TextInput, Checkbox} from 'react-native-paper';
 import {connect} from 'react-redux';
 import Loader from '../common/Loader';
 import Config from '../constants/Config';
 import Fonts from '../constants/Fonts';
-import {getCardListRequest} from '../modules/Profile/actions';
+import {
+  getCardListRequest,
+  userDetailsRequest,
+} from '../modules/Profile/actions';
 import {showAlert} from '../utils/CommonFunctions';
 
 const AddCard = props => {
@@ -27,6 +31,7 @@ const AddCard = props => {
   //   const [cvv, setCvv] = useState('');
   //   const [cardNumber, setCardNumber] = useState('');
   //   const [expiryDate, setExpiryDate] = useState('');
+  const [defaultCard, setDefaultCard] = useState(false);
 
   const [isLoading, setIsLoading] = useState(false);
 
@@ -35,68 +40,187 @@ const AddCard = props => {
     {offset: '100%', color: '#5D6AFC', opacity: '1'},
   ];
 
+  useEffect(() => {
+    if (props.userDetails.user.email == null) {
+      Alert.alert('Please Provide Email !!!', '', [
+        {
+          text: 'Cancel',
+          onPress: () => navigation.goBack(),
+          style: 'cancel',
+        },
+        {text: 'OK', onPress: () => navigation.navigate('Account')},
+      ]);
+      return;
+    }
+  }, []);
+
   const onSave = () => {
+    setIsLoading(true);
     createToken({
       type: 'Card',
       address: {country: 'IN'},
       name: cardName,
     })
       .then(result => {
-        console.log('token------------------', result.token);
         if (result.error) {
           showAlert(result.error.message);
+          setIsLoading(false);
         } else {
-          addCardDetails(result.token);
+          if (props.userDetails.user.customerid == null) {
+            setIsLoading(true);
+            createCustomer()
+              .then(response => response.json())
+              .then(res => {
+                if (res.error) {
+                  console.log(res.error);
+                  setIsLoading(false);
+                } else {
+                  addCardDetails(result.token, res.id);
+                  setIsLoading(false);
+                }
+              })
+              .catch(error => {
+                console.log('error', error);
+                showAlert('Add to fail card!!!!');
+                setIsLoading(false);
+              });
+          } else {
+            addCardDetails(result.token, props.userDetails.user.customerid);
+          }
         }
       })
       .catch(err => {
-        console.log('errrrrerrerrerrer', err);
+        console.log('errrrrerrerrerrer ADD CARD Comp', err);
         // alert('Something went wrong');
       });
   };
-  console.log(props.userDetails.user.id);
-  const addCardDetails = token => {
-    console.log('token', token, cardInput.validCVC);
-    var myHeaders = new Headers();
-    myHeaders.append('Authorization', 'Bearer ' + props.loginData.token);
 
-    var formdata = new FormData();
-    formdata.append('type', token.type);
-    formdata.append('brand', token.card.brand);
-    formdata.append('token', token.id);
-    formdata.append('last4', token.card.last4);
-    formdata.append('customerid', props.userDetails.user.id);
-    formdata.append(
-      'expiry_date',
-      token.card.expMonth + '/' + token.card.expYear,
+  const createCustomer = async () => {
+    var myHeaders = new Headers();
+    myHeaders.append('Authorization', 'Bearer ' + Config.Strip_SK);
+    myHeaders.append(
+      'Content-Type',
+      'application/x-www-form-urlencoded;charset=UTF-8',
     );
-    formdata.append('cvv', cardInput.validCVC);
-    // formdata.append('cvv', cvv);
+
+    var details = {
+      email: props.userDetails.user.email,
+      name: props.userDetails.user.name,
+    };
+
+    var formBody = [];
+    for (var property in details) {
+      var encodedKey = encodeURIComponent(property);
+      var encodedValue = encodeURIComponent(details[property]);
+      formBody.push(encodedKey + '=' + encodedValue);
+    }
+    formBody = formBody.join('&');
 
     var requestOptions = {
       method: 'POST',
       headers: myHeaders,
-      body: formdata,
+      body: formBody,
       redirect: 'follow',
     };
+
+    const res = await fetch(
+      Config.STRIP_BASE_URL + Config.strip_create_customers,
+      requestOptions,
+    );
+    return res;
+  };
+
+  const attachCardToCustomer = async (token, customerid) => {
+    var myHeaders = new Headers();
+    myHeaders.append('Authorization', 'Bearer ' + Config.Strip_SK);
+    myHeaders.append(
+      'Content-Type',
+      'application/x-www-form-urlencoded;charset=UTF-8',
+    );
+
+    var details = {
+      source: token,
+    };
+
+    var formBody = [];
+    for (var property in details) {
+      var encodedKey = encodeURIComponent(property);
+      var encodedValue = encodeURIComponent(details[property]);
+      formBody.push(encodedKey + '=' + encodedValue);
+    }
+    formBody = formBody.join('&');
+
+    var requestOptions = {
+      method: 'POST',
+      headers: myHeaders,
+      body: formBody,
+      redirect: 'follow',
+    };
+
+    const res = await fetch(
+      `${Config.STRIP_BASE_URL}${Config.strip_create_customers}/${customerid}/sources`,
+      requestOptions,
+    );
+    return res;
+  };
+
+  const addCardDetails = (token, customerid) => {
     setIsLoading(true);
-    fetch(Config.BASE_URL + Config.add_payment_cards, requestOptions)
+    attachCardToCustomer(token.id, customerid)
       .then(response => response.json())
-      .then(result => {
-        if (result.status == 1) {
-          setIsLoading(false);
-          props.getCardListRequest(props.loginData.token);
-          navigation.navigate('PaymentCards');
-          console.log('resultresult:::', result);
+      .then(res => {
+        if (res.error) {
+          console.log(res.error.message);
         } else {
-          alert(result.error);
-          setIsLoading(false);
+          var myHeaders = new Headers();
+          myHeaders.append('Authorization', 'Bearer ' + props.loginData.token);
+
+          var formdata = new FormData();
+          formdata.append('type', token.type);
+          formdata.append('bank_name', bankName);
+          formdata.append('brand', token.card.brand);
+          formdata.append('token', res.id);
+          formdata.append('last_four', token.card.last4);
+          formdata.append('default', defaultCard ? '1' : '0');
+
+          formdata.append('customer_id', customerid);
+          formdata.append(
+            'expiry_date',
+            token.card.expMonth + '/' + token.card.expYear,
+          );
+          formdata.append('cvv', cardInput.validCVC);
+          formdata.append('customer_name', token.card.name);
+
+          var requestOptions = {
+            method: 'POST',
+            headers: myHeaders,
+            body: formdata,
+            redirect: 'follow',
+          };
+          setIsLoading(true);
+
+          fetch(Config.BASE_URL + Config.add_payment_cards, requestOptions)
+            .then(response => response.json())
+            .then(result => {
+              if (result.status == 1) {
+                setIsLoading(false);
+                props.getCardListRequest(props.loginData.token);
+                props.userDetailsRequest({token: props.loginData.token});
+                navigation.goBack();
+
+                console.log('resultresult:::', result);
+              } else {
+                alert(result.error);
+                setIsLoading(false);
+              }
+            })
+            .catch(error => {
+              setIsLoading(false);
+              console.log('error', error);
+            });
         }
       })
-      .catch(error => {
-        setIsLoading(false);
-        console.log('error', error);
-      });
+      .catch(err => console.log('ERROR :::', err));
   };
 
   return (
@@ -126,30 +250,6 @@ const AddCard = props => {
             />
           </View>
 
-          {/* <View style={styles.inputconatiner}>
-            <Text style={styles.labelname}>Card Number</Text>
-            <TextInput
-              style={[styles.input, {paddingLeft: 100}]}
-              underlineColor={'transparent'}
-              keyboardType="numeric"
-              selectionColor="#3B2645"
-              placeholder="xxxxxxxxxxxxxxxxxxxx"
-              onChangeText={txt => setCardNumber(txt)}
-              value={cardNumber}
-              theme={{
-                colors: {
-                  primary: '#F7F8F8',
-                  text: '#3B2645',
-                },
-                fonts: {
-                  regular: {
-                    fontFamily: Fonts.Poppins_Regular,
-                  },
-                },
-              }}
-            />
-          </View> */}
-
           <View style={styles.inputconatiner}>
             <Text style={styles.labelname}>Bank Name</Text>
             <TextInput
@@ -173,53 +273,6 @@ const AddCard = props => {
             />
           </View>
 
-          {/* <View style={styles.inputconatiner}>
-            <Text style={styles.labelname}>Expiry Date</Text>
-            <TextInput
-              style={[styles.input, {paddingLeft: 80}]}
-              underlineColor={'transparent'}
-              selectionColor="#3B2645"
-              placeholder="MM/YY"
-              keyboardType="numeric"
-              onChangeText={txt => setExpiryDate(txt)}
-              value={expiryDate}
-              theme={{
-                colors: {
-                  primary: '#F7F8F8',
-                  text: '#3B2645',
-                },
-                fonts: {
-                  regular: {
-                    fontFamily: Fonts.Poppins_Regular,
-                  },
-                },
-              }}
-            />
-          </View>
-
-          <View style={styles.inputconatiner}>
-            <Text style={styles.labelname}>Cvv</Text>
-            <TextInput
-              style={[styles.input, {paddingLeft: 80}]}
-              underlineColor={'transparent'}
-              selectionColor="#3B2645"
-              placeholder="XXX"
-              keyboardType="numeric"
-              onChangeText={txt => setCvv(txt)}
-              value={cvv}
-              theme={{
-                colors: {
-                  primary: '#F7F8F8',
-                  text: '#3B2645',
-                },
-                fonts: {
-                  regular: {
-                    fontFamily: Fonts.Poppins_Regular,
-                  },
-                },
-              }}
-            />
-          </View> */}
           <CardField
             postalCodeEnabled={false}
             placeholders={{
@@ -231,10 +284,26 @@ const AddCard = props => {
               height: 54,
             }}
             onCardChange={card => {
-              console.log(card);
+              // console.log(card);
               setCardInput(card);
             }}
           />
+          <View
+            style={{
+              marginTop: 10,
+              flexDirection: 'row',
+              // justifyContent: 'flex-end',
+              alignItems: 'center',
+            }}>
+            <Checkbox
+              status={defaultCard ? 'checked' : 'unchecked'}
+              color={'rgba(50,50,50,0.5)'}
+              onPress={() => {
+                setDefaultCard(!defaultCard);
+              }}
+            />
+            <Text>Set Default Card</Text>
+          </View>
         </View>
       </ScrollView>
       <TouchableOpacity onPress={() => onSave()} style={styles.button}>
@@ -257,6 +326,7 @@ const mapStateToProps = state => ({
 
 const mapDispatchToProps = dispatch => ({
   getCardListRequest: data => dispatch(getCardListRequest(data)),
+  userDetailsRequest: data => dispatch(userDetailsRequest(data)),
 });
 
 export default connect(mapStateToProps, mapDispatchToProps)(AddCard);

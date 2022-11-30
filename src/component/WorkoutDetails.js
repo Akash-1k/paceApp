@@ -195,7 +195,7 @@ const WorkoutDetails = props => {
                 ? {
                     uri: `${Config.IMAGE_BASE_URL}workouts/${data.item.thumb_image}`,
                   }
-                : require('../../assets/images/workout-set-placeholder.png')
+                : require('../../assets/images/LogoBlack.png')
             }
             resizeMode="cover"
             style={{

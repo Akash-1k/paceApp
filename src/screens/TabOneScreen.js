@@ -1,5 +1,8 @@
 import React, {useEffect, useState} from 'react';
-import {useNavigation} from '@react-navigation/native';
+import {
+  createNavigationContainerRef,
+  useNavigation,
+} from '@react-navigation/native';
 import {
   View,
   Text,
@@ -8,28 +11,28 @@ import {
   SafeAreaView,
   Image,
   TouchableOpacity,
-  LogBox,
+  BackHandler,
+  Pressable,
   Button,
 } from 'react-native';
 import {Row, Column as Col, Grid} from 'react-native-responsive-grid';
 import {LinearGradient} from 'react-native-gradients';
-import ProgressCircle from 'react-native-progress-circle';
+import {CircularProgressBase} from 'react-native-circular-progress-indicator';
 import Blog from '../component/Blog';
 import ShopSlider from '../component/ShopSlider';
 import Fonts from '../constants/Fonts';
 import {connect} from 'react-redux';
 import Config from '../constants/Config';
-import Loader from '../common/Loader';
-import axios from 'axios';
-
-import {startCounter, stopCounter} from 'react-native-accurate-step-counter';
-
+import {userDetailsRequest} from '../modules/Profile/actions';
 import {
   setSteps,
   stepsRequest,
   getWaterGlassRequested,
   getHomeRequested,
 } from '../modules/Home/actions';
+import {toPercent} from '../common/Functions/Func';
+import useTracking from '../utils/useTracking';
+import axios from 'axios';
 
 function TabOneScreen(props) {
   const navigation = useNavigation();
@@ -37,388 +40,404 @@ function TabOneScreen(props) {
     {offset: '0%', color: '#5D6AFC', opacity: '1'},
     {offset: '100%', color: '#C068E5', opacity: '1'},
   ];
+
   const colorList1 = [
     {offset: '0%', color: '#5D6AFC', opacity: '1'},
     {offset: '30%', color: '#C068E5', opacity: '1'},
     {offset: '100%', color: '#C068E5', opacity: '1'},
   ];
-  const [homeData, setHomeData] = useState({});
-  const [water, setWaterData] = useState({});
 
-  const [stepsTarget, setStepsTarget] = useState(0);
-  const [stepsPercent, setStepsPercent] = useState(0);
-  const [isLoading, setIsLoading] = useState(false);
+  const {location, history, distance} = useTracking(true);
 
-  // useEffect(() => {
-  //   onGetHomeData();
-  //   props.getHomeRequested(props.loginData.token);
-  // }, []);
-  // console.log('Tabonescreen.js props.loginData', props.loginData);
-  const onHitSteps = () => {
-    let params = {
-      token: props.loginData.token,
-      steps: props.steps,
-    };
-    if (props.steps > 0) {
-      props.stepsRequest(params);
-    }
-  };
-
-  // useEffect(() => {
-  //   const unsubscribe = navigation.addListener('focus', () => {
-  //     // The screen is focused
-  //     // Call any action
-  //     setTimeout(() => {
-  //       props.getHomeRequested(props.loginData.token);
-  //     }, 1000);
-  //     onGetHomeData();
-  //   });
-
-  // Return the function to unsubscribe from the event so it gets removed on unmount
-  //   return unsubscribe;
-  // }, [navigation]);
+  // console.log('Location', location, history, distance);
+  useEffect(() => {
+    navigation.setOptions({
+      headerRight: () => (
+        <View
+          style={{
+            display: 'flex',
+            flexDirection: 'row',
+            alignItems: 'center',
+          }}>
+          <Text
+            style={{
+              fontFamily: Fonts.Poppins_Bold,
+              color: '#3B2645',
+              fontSize: 17,
+            }}>
+            <Text style={{fontFamily: Fonts.Poppins_Regular}}>Hey</Text>{' '}
+            {props.userDetails != [] ? props?.userDetails?.user?.name : 'User'}!
+          </Text>
+          <Pressable
+            onPress={() => {
+              props.navigation.navigate('TabFour');
+            }}>
+            <Image
+              resizeMode="contain"
+              source={
+                props.userDetails?.user?.image
+                  ? {
+                      uri:
+                        Config.IMAGE_BASE_URL +
+                        'profile/' +
+                        props.userDetails.user.image,
+                    }
+                  : require('../../assets/images/userpro.png')
+              }
+              style={{
+                width: 34,
+                height: 34,
+                marginLeft: 12,
+                borderRadius: 100,
+              }}
+            />
+          </Pressable>
+        </View>
+      ),
+    });
+  }, [props.userDetails]);
 
   useEffect(() => {
-    const config = {
-      default_threshold: 100.0,
-      default_delay: 550000000,
-      cheatInterval: 3000,
-      onStepCountChange: stepCount => {
-        props.setSteps(stepCount);
-      },
-      onCheat: () => {
-        console.log('User is Cheating');
-      },
-    };
-
-    startCounter(config);
-    return () => {
-      stopCounter();
-    };
+    props.getHomeRequested(props.loginData.token);
+    props.userDetailsRequest({token: props.loginData.token});
   }, []);
 
   useEffect(() => {
-    onStepPercent(props.steps);
-  }, [props.steps, stepsTarget]);
-
-  const onStepPercent = stepCount => {
-    var percent = Math.ceil((stepCount / stepsTarget) * 100);
-
-    setStepsPercent(percent);
-    onHitSteps();
-  };
-
-  const onGetHomeData = () => {
-    var myHeaders = new Headers();
-    myHeaders.append('Authorization', 'Bearer ' + props.loginData.token);
-    var requestOptions = {
-      method: 'GET',
-      headers: myHeaders,
-      redirect: 'follow',
-    };
-    setIsLoading(true);
-    fetch(Config.BASE_URL + Config.home, requestOptions)
-      .then(response => response.json())
-      .then(result => {
-        // console.log("result.water_glass[0]:::", result.water_glass.glass[0]);
-        setHomeData(result);
-        setIsLoading(false);
-        setStepsTarget(result.steps[0].goal_steps);
-        setWaterData(result.water_glass.glass[0]);
-      })
-      .catch(error => console.log('error 1', error));
-  };
-
-  // useEffect(() => {
-  //   console.log('sendStepsSuccess:::::::', props.sendStepsSuccess);
-  //   if (props.sendStepsSuccess.completed_steps) {
-  //     onStepPercent(props.sendStepsSuccess?.completed_steps)
-  //   }
-  // }, [props.sendStepsSuccess]);
-
-  useEffect(() => {
-    props.getWaterGlassRequested(props.loginData.token);
+    const backHandler = BackHandler.addEventListener(
+      'hardwareBackPress',
+      () => true,
+    );
+    return () => backHandler.remove();
   }, []);
 
   return (
     <SafeAreaView style={styles.mainbg}>
       <ScrollView style={styles.mainbg}>
-        <View style={styles.container}>
-          <Row>
-            <Col size={47}>
-              <View style={[styles.boxgradient, {marginBottom: 7}]}>
-                <View style={styles.relative}>
-                  <View style={styles.headflex}>
-                    <Image
-                      resizeMode="contain"
-                      source={require('../../assets/images/running.png')}
-                      style={{
-                        width: 41,
-                        height: 41,
-                      }}
-                    />
-                    <Text style={styles.title}>Running</Text>
-                  </View>
-
-                  <Text style={styles.titlecal}>
-                    238kcal
-                    <Text style={styles.titlemins}>/ 30 mins</Text>
-                  </Text>
-                  <TouchableOpacity
-                    style={styles.startbtn}
-                    onPress={() => navigation.navigate('StartRunning')}>
-                    <Text style={styles.btntext}>Start</Text>
-                  </TouchableOpacity>
-                </View>
-                <View style={styles.gradient}>
-                  <LinearGradient colorList={colorList} angle={300} />
-                </View>
-              </View>
-
-              <View
-                style={styles.boxwhite}
-                onStartShouldSetResponder={() => {
-                  console.log(water?.glass_val, water?.fill_glass);
-                  navigation.navigate('WaterGlasses');
-                }}>
-                <View style={styles.relative}>
-                  <View style={styles.headflex}>
-                    <Image
-                      resizeMode="contain"
-                      source={require('../../assets/images/water.png')}
-                      style={{
-                        width: 41,
-                        height: 41,
-                      }}
-                    />
-                    <Text style={[styles.title, {color: '#3B2645'}]}>
-                      Water
-                    </Text>
-                  </View>
-                  <View
-                    style={{
-                      display: 'flex',
-                      flexDirection: 'row',
-                      alignItems: 'flex-end',
-                      height: 25,
-                      marginTop: 8,
-                    }}>
-                    <Text
-                      style={{
-                        fontFamily: Fonts.Poppins_Bold,
-                        fontSize: 20,
-                        color: '#C068E5',
-                      }}>
-                      {/* {props.glassInfo?.glass[0]?.fill_glass * 250} */}
-                      {props.homeData?.water_glass?.glass[0]?.fill_glass *
-                        props.homeData?.water_glass?.glass[0]?.glass_val}
-                    </Text>
-
-                    <Text
-                      style={[
-                        styles.titlemins,
-                        {
-                          color: '#3B2645',
-                          fontSize: 12,
-                          position: 'relative',
-                          top: 4,
-                          opacity: 0.3,
-                        },
-                      ]}>
-                      {' /'}{' '}
-                      {parseInt(
-                        props.homeData?.water_glass?.glass[0]?.default_glass,
-                      ) * props.homeData?.water_glass?.glass[0]?.glass_val}{' '}
-                      {/* {parseInt(props.glassInfo?.glass[0]?.default_glass) * 250}{' '} */}
-                      {'ml'}
-                    </Text>
-                  </View>
-                </View>
-              </View>
-            </Col>
-            <Col size={49} offset={2}>
-              <View
-                style={[styles.boxwhite, {marginBottom: 8}]}
-                onStartShouldSetResponder={() =>
-                  navigation.navigate('WalletRewards')
-                }>
-                <View style={styles.relative}>
-                  <View style={styles.headflex}>
-                    <Image
-                      resizeMode="contain"
-                      source={require('../../assets/images/wallet.png')}
-                      style={{
-                        width: 41,
-                        height: 41,
-                      }}
-                    />
-                    <Text style={[styles.title, {color: '#3B2645'}]}>
-                      Wallet
-                    </Text>
-                  </View>
-                  <View
-                    style={{
-                      display: 'flex',
-                      flexDirection: 'row',
-                      alignItems: 'flex-end',
-                      height: 25,
-                      marginTop: 8,
-                    }}>
-                    <Image
-                      resizeMode="contain"
-                      source={require('../../assets/images/coins.png')}
-                      style={{
-                        width: 22,
-                        height: 22,
-                        marginRight: 4,
-                      }}
-                    />
-                    <Text
-                      style={{
-                        fontFamily: Fonts.Poppins_Bold,
-                        fontSize: 20,
-                        color: '#C068E5',
-                      }}>
-                      {props.homeData?.wallet?.earn_coins}
-                    </Text>
-
-                    <Text
-                      style={[
-                        styles.titlemins,
-                        {
-                          color: '#3B2645',
-                          fontSize: 12,
-                          position: 'relative',
-                          top: 4,
-                          opacity: 0.3,
-                        },
-                      ]}>
-                      {' '}
-                      Coins
-                    </Text>
-                  </View>
-                </View>
-              </View>
-
-              <View
-                style={[styles.boxwhite, {height: 140, alignItems: 'center'}]}
-                onStartShouldSetResponder={() =>
-                  navigation.navigate('StartWalking')
-                }>
-                <View style={styles.relative}>
-                  <ProgressCircle
-                    percent={stepsPercent}
-                    radius={57}
-                    borderWidth={8}
-                    color="#C068E5"
-                    shadowColor="#F2F5F8"
-                    bgColor="#fff">
-                    <View style={styles.flexprog}>
+        {props.homeData.water_glass != undefined && (
+          <View style={styles.container}>
+            <Row>
+              <Col size={47}>
+                <View style={[styles.boxgradient, {marginBottom: 7}]}>
+                  <View style={styles.relative}>
+                    <View style={styles.headflex}>
                       <Image
                         resizeMode="contain"
-                        source={require('../../assets/images/walk.png')}
+                        source={require('../../assets/images/running.png')}
                         style={{
-                          width: 19,
-                          height: 19,
+                          width: 41,
+                          height: 41,
+                        }}
+                      />
+                      <Text style={styles.title}>Running</Text>
+                    </View>
+
+                    <Text style={styles.titlecal}>
+                      {props.runningSteps ? props.runningSteps.calories : 0}
+                      kcal
+                      <Text style={styles.titlemins}>
+                        / {props.runningSteps ? props.runningSteps.time : 0}{' '}
+                        mins
+                      </Text>
+                    </Text>
+                    <TouchableOpacity
+                      style={styles.startbtn}
+                      onPress={() => navigation.navigate('StartRunning')}>
+                      <Text style={styles.btntext}>Start</Text>
+                    </TouchableOpacity>
+                  </View>
+                  <View style={styles.gradient}>
+                    <LinearGradient colorList={colorList} angle={300} />
+                  </View>
+                </View>
+
+                <View
+                  style={styles.boxwhite}
+                  onStartShouldSetResponder={() => {
+                    navigation.navigate('WaterGlasses');
+                  }}>
+                  <View style={styles.relative}>
+                    <View style={styles.headflex}>
+                      <Image
+                        resizeMode="contain"
+                        source={require('../../assets/images/water.png')}
+                        style={{
+                          width: 41,
+                          height: 41,
+                        }}
+                      />
+                      <Text style={[styles.title, {color: '#3B2645'}]}>
+                        Water
+                      </Text>
+                    </View>
+                    <View
+                      style={{
+                        display: 'flex',
+                        flexDirection: 'row',
+                        alignItems: 'flex-end',
+                        height: 25,
+                        marginTop: 8,
+                      }}>
+                      <Text
+                        style={{
+                          fontFamily: Fonts.Poppins_Bold,
+                          fontSize: 20,
+                          color: '#C068E5',
+                        }}>
+                        {props.homeData?.water_glass != [] &&
+                          props.homeData?.water_glass[0]?.fill_glass *
+                            props.homeData?.water_glass[0]?.glass_val}
+                      </Text>
+
+                      <Text
+                        style={[
+                          styles.titlemins,
+                          {
+                            color: '#3B2645',
+                            fontSize: 12,
+                            position: 'relative',
+                            top: 4,
+                            opacity: 0.3,
+                          },
+                        ]}>
+                        {' /'}{' '}
+                        {props.homeData?.water_glass != [] &&
+                          parseInt(
+                            props.homeData?.water_glass[0]?.default_glass,
+                          ) * props.homeData?.water_glass[0]?.glass_val}{' '}
+                        {'ml'}
+                      </Text>
+                    </View>
+                  </View>
+                </View>
+              </Col>
+              <Col size={49} offset={2}>
+                <View
+                  style={[styles.boxwhite, {marginBottom: 8}]}
+                  onStartShouldSetResponder={() =>
+                    navigation.navigate('WalletRewards')
+                  }>
+                  <View style={styles.relative}>
+                    <View style={styles.headflex}>
+                      <Image
+                        resizeMode="contain"
+                        source={require('../../assets/images/wallet.png')}
+                        style={{
+                          width: 41,
+                          height: 41,
+                        }}
+                      />
+                      <Text style={[styles.title, {color: '#3B2645'}]}>
+                        Wallet
+                      </Text>
+                    </View>
+                    <View
+                      style={{
+                        display: 'flex',
+                        flexDirection: 'row',
+                        alignItems: 'flex-end',
+                        height: 25,
+                        marginTop: 8,
+                      }}>
+                      <Image
+                        resizeMode="contain"
+                        source={require('../../assets/images/coins.png')}
+                        style={{
+                          width: 22,
+                          height: 22,
+                          marginRight: 4,
                         }}
                       />
                       <Text
                         style={{
                           fontFamily: Fonts.Poppins_Bold,
                           fontSize: 20,
-                          lineHeight: 26,
                           color: '#C068E5',
                         }}>
-                        {props.steps}
+                        {props.homeData?.wallet?.earn_coins}
                       </Text>
-                      <Text style={styles.sText}>Steps Today</Text>
-                      <Text style={styles.sGoal}>
-                        {'Goal'} {stepsTarget}
+
+                      <Text
+                        style={[
+                          styles.titlemins,
+                          {
+                            color: '#3B2645',
+                            fontSize: 12,
+                            position: 'relative',
+                            top: 4,
+                            opacity: 0.3,
+                          },
+                        ]}>
+                        {' '}
+                        Coins
                       </Text>
                     </View>
-                  </ProgressCircle>
+                  </View>
                 </View>
-              </View>
-            </Col>
-          </Row>
-          <View style={styles.boxgradient1}>
-            <View style={styles.relative}>
-              <View style={[styles.headflex, {paddingTop: 25}]}>
-                <Text
-                  style={[
-                    styles.title,
-                    {
-                      fontSize: 16,
-                      paddingLeft: 0,
-                      fontFamily: Fonts.Poppins_SemiBold,
-                    },
-                  ]}>
-                  Double your coins
-                </Text>
+
+                {props.walkingSteps && (
+                  <View
+                    style={[
+                      styles.boxwhite,
+                      {height: 140, alignItems: 'center'},
+                    ]}
+                    onStartShouldSetResponder={() =>
+                      navigation.navigate('StartWalking')
+                    }>
+                    <View style={styles.relative}>
+                      <CircularProgressBase
+                        value={toPercent(
+                          props.walkingSteps.completed_steps,
+                          props.walkingSteps.goal_steps,
+                        )}
+                        radius={57}
+                        activeStrokeColor={'#5D6AFC'}
+                        activeStrokeSecondaryColor={'#C068E5'}
+                        inActiveStrokeColor={'rgba(192,203,222,.2)'}>
+                        <View style={styles.flexprog}>
+                          <Image
+                            resizeMode="contain"
+                            source={require('../../assets/images/walk.png')}
+                            style={{
+                              width: 19,
+                              height: 19,
+                            }}
+                          />
+                          <Text
+                            style={{
+                              fontFamily: Fonts.Poppins_Bold,
+                              fontSize: 20,
+                              lineHeight: 26,
+                              color: '#C068E5',
+                            }}>
+                            {props.walkingSteps?.completed_steps == null
+                              ? 0
+                              : props.walkingSteps?.completed_steps}
+                          </Text>
+                          <Text style={styles.sText}>Steps Today</Text>
+                          <Text style={styles.sGoal}>
+                            {'Goal'} {props.walkingSteps.goal_steps}
+                          </Text>
+                        </View>
+                      </CircularProgressBase>
+                    </View>
+                  </View>
+                )}
+              </Col>
+            </Row>
+            {/* <Button
+              title={'asd'}
+              onPress={() => {
+                var formdata = new FormData();
+                formdata.append('name', 'route.params.id');
+                formdata.append('phoneNo', 'route.params.id');
+                formdata.append('password', 'route.params.id');
+                formdata.append('email', 'route.parasdams.id');
+
+                var requestOptions = {
+                  method: 'POST',
+                  body: formdata,
+                  redirect: 'follow',
+                };
+                fetch(
+                  'https://dev.indiit.solutions/renting_reef/api/register',
+                  requestOptions,
+                )
+                  .then(res => res.json())
+                  .then(result => console.log(result))
+                  .catch(err => console.log(err));
+                // axios
+                //   .post(
+                //     'https://dev.indiit.solutions/renting_reef/api/register',
+                //     {
+                //       email: 'email',
+                //       password: 'password',
+                //     },
+                //   )
+                //   .then(response => {
+                //     console.log(response);
+                //   })
+                //   .catch(err => console.log(err));
+              }}
+            /> */}
+
+            <View style={styles.boxgradient1}>
+              <View style={styles.relative}>
+                <View style={[styles.headflex, {paddingTop: 25}]}>
+                  <Text
+                    style={[
+                      styles.title,
+                      {
+                        fontSize: 16,
+                        paddingLeft: 0,
+                        fontFamily: Fonts.Poppins_SemiBold,
+                      },
+                    ]}>
+                    Double your coins
+                  </Text>
+                  <Image
+                    resizeMode="contain"
+                    source={require('../../assets/images/coins.png')}
+                    style={{
+                      width: 21,
+                      height: 21,
+                      marginLeft: 5,
+                    }}
+                  />
+                </View>
+                <View style={{width: '65%', marginBottom: 8}}>
+                  <Text style={[styles.titlecal, {fontSize: 12}]}>
+                    <Text style={[styles.titlemins, {color: '#F0EDFF'}]}>
+                      You can get double amount of coins from your runs
+                    </Text>{' '}
+                    {'Let’s Go'}
+                  </Text>
+                </View>
+
+                <TouchableOpacity
+                  onPress={() => navigation.navigate('DoubleYourCoins')}
+                  style={[styles.startbtn, {width: 120}]}>
+                  <Text style={styles.btntext}>Join the streak</Text>
+                </TouchableOpacity>
                 <Image
                   resizeMode="contain"
-                  source={require('../../assets/images/coins.png')}
+                  source={require('../../assets/images/girl.png')}
                   style={{
-                    width: 21,
-                    height: 21,
+                    width: 98,
+                    height: 180,
                     marginLeft: 5,
+                    position: 'absolute',
+                    right: 0,
                   }}
                 />
               </View>
-              <View style={{width: '65%', marginBottom: 8}}>
-                <Text style={[styles.titlecal, {fontSize: 12}]}>
-                  <Text style={[styles.titlemins, {color: '#F0EDFF'}]}>
-                    You can get double amount of coins from your runs
-                  </Text>{' '}
-                  Let’s Go
-                </Text>
+
+              <View style={styles.gradient1}>
+                <LinearGradient colorList={colorList1} angle={300} />
               </View>
-              <TouchableOpacity
-                onPress={() => navigation.navigate('DoubleYourCoins')}
-                style={[styles.startbtn, {width: 120}]}>
-                <Text style={styles.btntext}>Join the streak</Text>
+            </View>
+
+            <View style={[styles.flexdir, {marginBottom: 5}]}>
+              <Text style={[styles.sText, {fontSize: 16}]}>Shop</Text>
+              <TouchableOpacity onPress={() => navigation.navigate('Shop')}>
+                <Text style={[styles.sGoal, {fontSize: 10, color: '#B4B4B4'}]}>
+                  View All
+                </Text>
               </TouchableOpacity>
-              <Image
-                resizeMode="contain"
-                source={require('../../assets/images/girl.png')}
-                style={{
-                  width: 98,
-                  height: 180,
-                  marginLeft: 5,
-                  position: 'absolute',
-                  right: 0,
-                }}
-              />
             </View>
-            <View style={styles.gradient1}>
-              <LinearGradient colorList={colorList1} angle={300} />
+            <ShopSlider data={props.homeData.products} />
+            <View style={[styles.flexdir, {marginBottom: 5, marginTop: 25}]}>
+              <Text style={[styles.sText, {fontSize: 16}]}>Blog</Text>
+              <TouchableOpacity onPress={() => navigation.navigate('BlogList')}>
+                <Text style={[styles.sGoal, {fontSize: 10, color: '#B4B4B4'}]}>
+                  View All
+                </Text>
+              </TouchableOpacity>
             </View>
+
+            <Blog data={props.homeData.blogs} />
           </View>
-
-          <View style={[styles.flexdir, {marginBottom: 5}]}>
-            <Text style={[styles.sText, {fontSize: 16}]}>Shop</Text>
-            <TouchableOpacity onPress={() => navigation.navigate('Shop')}>
-              <Text style={[styles.sGoal, {fontSize: 10, color: '#B4B4B4'}]}>
-                View All
-              </Text>
-            </TouchableOpacity>
-          </View>
-
-          <ShopSlider data={props.homeData.products} />
-
-          <View style={[styles.flexdir, {marginBottom: 5, marginTop: 25}]}>
-            <Text style={[styles.sText, {fontSize: 16}]}>Blog</Text>
-            <TouchableOpacity onPress={() => navigation.navigate('BlogList')}>
-              <Text style={[styles.sGoal, {fontSize: 10, color: '#B4B4B4'}]}>
-                View All
-              </Text>
-            </TouchableOpacity>
-          </View>
-
-          <Blog data={props.homeData.blogs} />
-        </View>
+        )}
       </ScrollView>
-      <Loader loading={isLoading} />
     </SafeAreaView>
   );
 }
@@ -428,9 +447,10 @@ const mapStateToProps = state => ({
   userDetails: state.profileReducer?.userDetails,
   sendStepsSuccess: state.homeReducer?.sendStepsSuccess,
   steps: state.homeReducer?.steps,
-  glassInfo: state.homeReducer?.waterGlassInfo,
   homeData: state.homeReducer?.homeData,
-  state,
+  walkingSteps: state.homeReducer?.homeData?.walking_steps,
+  runningSteps: state.homeReducer?.homeData?.running_steps,
+  cartItemData: state.shopReducer.cartItemData,
 });
 
 const mapDispatchToProps = dispatch => ({
@@ -438,6 +458,7 @@ const mapDispatchToProps = dispatch => ({
   setSteps: data => dispatch(setSteps(data)),
   getWaterGlassRequested: data => dispatch(getWaterGlassRequested(data)),
   getHomeRequested: data => dispatch(getHomeRequested(data)),
+  userDetailsRequest: data => dispatch(userDetailsRequest(data)),
 });
 
 export default connect(mapStateToProps, mapDispatchToProps)(TabOneScreen);

@@ -88,6 +88,7 @@ function* onAddToCart({data}) {
     let res = yield fetch(Config.BASE_URL + Config.insert_cart, requestOptions)
       .then(response => response.json())
       .then(result => {
+        console.log(result);
         return result;
       })
       .catch(error => console.log('error', error));
@@ -100,6 +101,7 @@ function* onAddToCart({data}) {
     }
 
     if (res.status == 1) {
+      console.log('res.status', res);
       yield put(addToCartSuccess(res.data));
       onCart(data.token);
       yield* hideLoader(false, '');
@@ -137,6 +139,7 @@ function* onCart(data) {
     let res = yield fetch(Config.BASE_URL + Config.cart, requestOptions)
       .then(response => response.json())
       .then(result => {
+        console.log('From Config.cart', result);
         return result;
       })
       .catch(error => console.log('error', error));

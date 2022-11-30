@@ -282,15 +282,15 @@ const VideoPlayer = props => {
           resizeMode={screenType}
           onFullScreen={isFullScreen}
           repeat
-          // source={{
-          //   uri:
-          //     Config.VIDEO_BASE_URL +
-          //     'workout_vid/' +
-          //     props.playVideoDetails.video_url,
-          // }}
           source={{
-            uri: 'http://commondatastorage.googleapis.com/gtv-videos-bucket/sample/ForBiggerBlazes.mp4',
+            uri:
+              Config.VIDEO_BASE_URL +
+              'workout_vid/' +
+              props.playVideoDetails.video_url,
           }}
+          // source={{
+          //   uri: 'http://commondatastorage.googleapis.com/gtv-videos-bucket/sample/ForBiggerBlazes.mp4',
+          // }}
           style={[
             {
               backgroundColor: Colors.fontColor,
@@ -299,7 +299,7 @@ const VideoPlayer = props => {
           ]}
           volume={10}
           bufferConfig={{
-            minBufferMs: 15000,
+            minBufferMs: 3000,
             maxBufferMs: 50000,
             bufferForPlaybackMs: 2500,
             bufferForPlaybackAfterRebufferMs: 5000,

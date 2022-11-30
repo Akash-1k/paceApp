@@ -36,7 +36,6 @@ import {connect} from 'react-redux';
 import Rest from './component/Rest';
 // MY CODE
 import Ionicons from 'react-native-vector-icons/Ionicons';
-import MaterialIcons from 'react-native-vector-icons/MaterialIcons';
 import AboutMission from './component/AboutMission';
 import Account from './component/Account';
 import AddAddress from './component/AddAddress';
@@ -54,7 +53,6 @@ import ContactSupportForm from './component/ContactSupportForm';
 import DoubleYourCoins from './component/DoubleYourCoins';
 import DoubleYourCoinsCompleted from './component/DoubleYourCoinsCompleted';
 import EditAddress from './component/EditAddress';
-import EditCard from './component/EditCard';
 import EditProductDetails from './component/EditProductDetails';
 import EquipmentsSlider from './component/EquipmentsSlider';
 import Faqs from './component/Faqs';
@@ -101,6 +99,7 @@ import TabFourScreen from './screens/TabFourScreen';
 import TabOneScreen from './screens/TabOneScreen';
 import TabThreeScreen from './screens/TabThreeScreen';
 import TabTwoScreen from './screens/TabTwoScreen';
+import OrderFail from './component/OrderFail';
 
 LogBox.ignoreAllLogs();
 
@@ -415,7 +414,8 @@ function MainDrawerNavigation() {
           },
           headerShadowVisible: false,
           headerLeft: () => (
-            <TouchableOpacity onPress={() => navigation.goBack()}>
+            <TouchableOpacity
+              onPress={() => navigation.navigate('Root', {screen: 'TabOne'})}>
               <Ionicons
                 name="chevron-back"
                 size={18}
@@ -652,6 +652,11 @@ function MainDrawerNavigation() {
         options={{headerShown: false}}
       />
       <Stack.Screen
+        name="OrderFail"
+        component={OrderFail}
+        options={{headerShown: false}}
+      />
+      <Stack.Screen
         name="Account"
         component={Account}
         options={({navigation}) => ({
@@ -809,34 +814,6 @@ function MainDrawerNavigation() {
         })}
       />
       <Stack.Screen
-        name="EditCard"
-        component={EditCard}
-        options={({navigation}) => ({
-          title: 'Edit Card',
-          headerTitleStyle: {
-            fontFamily: Fonts.Poppins_Bold,
-            color: '#3B2645',
-            fontSize: 16,
-          },
-          headerShadowVisible: false,
-          headerLeft: () => (
-            <TouchableOpacity
-              onPress={() => navigation.navigate('PaymentCards')}>
-              <Ionicons
-                name="chevron-back"
-                size={18}
-                color="#3B2645"
-                style={{
-                  paddingRight: 6,
-                  position: 'relative',
-                  top: -1.5,
-                }}
-              />
-            </TouchableOpacity>
-          ),
-        })}
-      />
-      <Stack.Screen
         name="ManageAddress"
         component={ManageAddress}
         options={{headerShown: false}}
@@ -854,8 +831,7 @@ function MainDrawerNavigation() {
           },
           headerShadowVisible: false,
           headerLeft: () => (
-            <TouchableOpacity
-              onPress={() => navigation.navigate('ManageAddress')}>
+            <TouchableOpacity onPress={() => navigation.goBack()}>
               <Ionicons
                 name="chevron-back"
                 size={18}
@@ -1067,11 +1043,13 @@ function MainDrawerNavigation() {
               />
             </TouchableOpacity>
           ),
-          headerRight: () => (
-            <View style={styles.delivered}>
-              <Text style={styles.title1}>Deliverd</Text>
-            </View>
-          ),
+          headerRight: () => {
+            return (
+              <View style={styles.delivered}>
+                <Text style={styles.title1}>Deliverd</Text>
+              </View>
+            );
+          },
         })}
       />
       <Stack.Screen
@@ -1392,97 +1370,66 @@ function MyTabs() {
       <Tab.Screen
         name="TabOne"
         component={TabOneScreen}
-        options={{
-          title: '',
-
-          headerLeft: ({navigation}) => (
-            // <TouchableOpacity  onPress={() => navigation.DrawerActions}>
-
-            <TouchableOpacity
-              onPress={() => {
-                console.log(drawerNavigation?.getState());
-                const state = drawerNavigation?.getState();
-                if (state.default == 'closed') {
-                  drawerNavigation?.openDrawer();
-                } else {
-                }
-              }}>
-              <Image
-                resizeMode="contain"
-                source={require('./../assets/images/menu.png')}
-                style={{
-                  width: 21,
-                  height: 15,
-                }}
-              />
-            </TouchableOpacity>
-          ),
-          headerRight: props => (
-            <View
-              style={{
-                display: 'flex',
-                flexDirection: 'row',
-                alignItems: 'center',
-              }}>
-              <Text style={styles.title}>
-                <Text style={styles.innertitle}>Hey</Text>{' '}
-                {props.userDetails?.first_name
-                  ? props.userDetails?.first_name
-                  : 'Omega'}
-                !
-              </Text>
-              <Pressable
+        options={props => {
+          return {
+            title: '',
+            headerLeft: () => (
+              <TouchableOpacity
                 onPress={() => {
-                  navigation.navigate('TabFour');
+                  const state = drawerNavigation?.getState();
+                  if (state.default == 'closed') {
+                    drawerNavigation?.openDrawer();
+                  } else {
+                  }
                 }}>
                 <Image
                   resizeMode="contain"
-                  source={require('./../assets/images/userprofile.png')}
+                  source={require('./../assets/images/menu.png')}
                   style={{
-                    width: 34,
-                    height: 34,
-                    marginLeft: 12,
+                    width: 21,
+                    height: 15,
                   }}
                 />
-              </Pressable>
-            </View>
-          ),
-          tabBarIcon: ({focused}) => (
-            <>
-              <Image
-                source={
-                  focused
-                    ? require('./../assets/images/home.png')
-                    : require('./../assets/images/home1.png')
-                }
-                style={{width: 20, marginBottom: 10, height: 20}}
-                resizeMode="contain"
-              />
-              <Image
-                source={
-                  focused
-                    ? require('./../assets/images/dot.png')
-                    : require('./../assets/images/dotwhite.png')
-                }
-                style={{width: 4, height: 4}}
-                resizeMode="contain"
-              />
-              <Image
-                source={
-                  focused
-                    ? require('./../assets/images/line.png')
-                    : require('./../assets/images/line1.png')
-                }
-                style={{
-                  width: 64,
-                  height: 4,
-                  position: 'absolute',
-                  top: -12,
-                }}
-                resizeMode="contain"
-              />
-            </>
-          ),
+              </TouchableOpacity>
+            ),
+
+            tabBarIcon: ({focused}) => (
+              <>
+                <Image
+                  source={
+                    focused
+                      ? require('./../assets/images/home.png')
+                      : require('./../assets/images/home1.png')
+                  }
+                  style={{width: 20, marginBottom: 10, height: 20}}
+                  resizeMode="contain"
+                />
+                <Image
+                  source={
+                    focused
+                      ? require('./../assets/images/dot.png')
+                      : require('./../assets/images/dotwhite.png')
+                  }
+                  style={{width: 4, height: 4}}
+                  resizeMode="contain"
+                />
+                <Image
+                  source={
+                    focused
+                      ? require('./../assets/images/line.png')
+                      : require('./../assets/images/line1.png')
+                  }
+                  style={{
+                    width: 64,
+                    height: 4,
+                    position: 'absolute',
+                    top: -12,
+                  }}
+                  resizeMode="contain"
+                />
+              </>
+            ),
+          };
         }}
       />
       <Tab.Screen
@@ -1597,29 +1544,6 @@ function MyTabs() {
               Cart
             </Text>
           ),
-          headerRight: () => (
-            <TouchableOpacity
-              onPress={() => navigation.navigate('PaymentMethod')}
-              style={styles.checkbtn}>
-              <Text
-                style={{
-                  fontFamily: Fonts.Poppins_Medium,
-                  fontSize: 11,
-                  color: '#876BF3',
-                }}>
-                Checkout
-              </Text>
-              <MaterialIcons
-                name="keyboard-arrow-right"
-                size={16}
-                color="#876BF3"
-                style={{
-                  position: 'relative',
-                  bottom: 1.2,
-                }}
-              />
-            </TouchableOpacity>
-          ),
           tabBarIcon: ({focused}) => (
             <>
               <Image
@@ -1729,7 +1653,7 @@ const styles = StyleSheet.create({
     paddingLeft: 12,
     paddingTop: 5,
   },
-  title1: {
+  title11: {
     fontFamily: Fonts.Poppins_SemiBold,
     color: '#63C501',
     fontSize: 10,
@@ -1739,19 +1663,6 @@ const styles = StyleSheet.create({
     color: '#3B2645',
     fontSize: 17,
   },
-  checkbtn: {
-    borderWidth: 2,
-    borderColor: '#B668E7',
-    padding: 8,
-    paddingHorizontal: 13,
-    borderRadius: 1000,
-    paddingLeft: 16,
-    display: 'flex',
-    flexDirection: 'row',
-    alignItems: 'center',
-    backgroundColor: '#F6F6FF',
-  },
-
   delivered: {
     backgroundColor: '#EFF9E6',
     padding: 10,

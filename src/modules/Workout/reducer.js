@@ -27,6 +27,7 @@ const INITIAL_STATE = {
   nextWorkoutDetails: {},
   isStatusBar: false,
   startWorkoutDetails: [],
+  premium: null,
 };
 
 export default (state = INITIAL_STATE, action) => {
@@ -39,7 +40,8 @@ export default (state = INITIAL_STATE, action) => {
     case GET_WORKOUT_LIST_SUCCESS:
       return {
         ...state,
-        workoutList: action.data,
+        workoutList: action.data.data,
+        premium: action.data.premium,
       };
 
     case GET_WORKOUT_LIST_FAIL:

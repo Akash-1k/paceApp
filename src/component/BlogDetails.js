@@ -62,7 +62,7 @@ const BlogDetails = props => {
               resizeMode="cover"
               source={
                 blogDetails?.blogs === undefined
-                  ? require('../../assets/images/place.png')
+                  ? require('../../assets/images/LogoBlack.png')
                   : {
                       uri:
                         'https://dev.indiit.solutions/pace/public/assets/images/blogs/' +

@@ -63,6 +63,7 @@ const BlogList = props => {
         <View style={styles.blogbody}>
           <Text style={styles.title}>{data.item.name} </Text>
           <HTMLView value={data.item.description} stylesheet={styles1} />
+
           {/* <Text numberOfLines={6} style={[styles.subtitle, {marginBottom: 9}]}>
             {data.item.description}
           </Text> */}
@@ -110,7 +111,7 @@ export default connect(mapStateToProps, mapDispatchToProps)(BlogList);
 
 const styles1 = StyleSheet.create({
   p: {
-    width: 240,
+    width: '10%',
     color: '#7B6F72',
     fontSize: 10,
     fontFamily: Fonts.Poppins_Regular,

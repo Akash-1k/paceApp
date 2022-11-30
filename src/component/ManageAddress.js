@@ -36,7 +36,7 @@ const ManageAddress = props => {
   useEffect(() => {
     props.getAddressListRequest(props.loginData.token);
   }, []);
-
+  console.log(props.addressList);
   const AddAddress = () => {
     props.navigation.navigate('AddAddress');
   };

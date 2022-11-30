@@ -162,6 +162,16 @@ android {
         }
     }
 
+    packagingOptions {
+        pickFirst '**/libjsc.so'
+        pickFirst '**/libc++_shared.so'
+        pickFirst '**/libfbjni.so'
+        pickFirst '**/llibturbomodulejsijni.so'
+        pickFirst '**/libturbomodulejsijni.so'
+        // Add more according to your error here
+    }
+
+
     if (isNewArchitectureEnabled()) {
         // We configure the NDK build only if you decide to opt-in for the New Architecture.
         externalNativeBuild {

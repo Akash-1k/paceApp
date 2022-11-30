@@ -17,6 +17,7 @@ import {connect} from 'react-redux';
 import Loader from '../common/Loader';
 import Config from '../constants/Config';
 import {getCartRequest} from '../modules/Shop/actions';
+import MaterialIcons from 'react-native-vector-icons/MaterialIcons';
 
 const TabThreeScreen = props => {
   const [data, setData] = useState('');
@@ -31,6 +32,39 @@ const TabThreeScreen = props => {
   }, []);
   // props.getCartRequest(props.loginData.token);
 
+  useEffect(() => {
+    if (props.cartItemData.length <= 0) {
+      props.navigation.setOptions({
+        headerRight: () => <View />,
+      });
+    } else {
+      props.navigation.setOptions({
+        headerRight: () => (
+          <TouchableOpacity
+            onPress={() => props.navigation.navigate('PaymentMethod')}
+            style={styles.checkbtn}>
+            <Text
+              style={{
+                fontFamily: Fonts.Poppins_Medium,
+                fontSize: 11,
+                color: '#876BF3',
+              }}>
+              Checkout
+            </Text>
+            <MaterialIcons
+              name="keyboard-arrow-right"
+              size={16}
+              color="#876BF3"
+              style={{
+                position: 'relative',
+                bottom: 1.2,
+              }}
+            />
+          </TouchableOpacity>
+        ),
+      });
+    }
+  }, [props.cartItemData]);
   {
     props.cartItemData.map(e => (totalAmount += e.price * e.add_cart_stock));
   }
@@ -188,16 +222,18 @@ const TabThreeScreen = props => {
   return (
     <SafeAreaView style={styles.mainbg}>
       <View style={styles.container}>
-        <View style={[styles.flexdir, {marginBottom: 10}]}>
-          <Text style={styles.sGoal}>
-            {`Total (${props.cartItemData.length}`}
-            {props.cartItemData.length <= 1 ? ' item)' : ' items)'}
-          </Text>
-          <Text style={styles.sText}>
-            <Text style={{fontSize: 12}}>$</Text>
-            {totalAmount}.<Text style={{fontSize: 12}}>00</Text>
-          </Text>
-        </View>
+        {props.cartItemData.length > 0 && (
+          <View style={[styles.flexdir, {marginBottom: 10}]}>
+            <Text style={styles.sGoal}>
+              {`Total (${props.cartItemData.length}`}
+              {props.cartItemData.length <= 1 ? ' item)' : ' items)'}
+            </Text>
+            <Text style={styles.sText}>
+              <Text style={{fontSize: 12}}>$</Text>
+              {totalAmount}.<Text style={{fontSize: 12}}>00</Text>
+            </Text>
+          </View>
+        )}
 
         {props.cartItemData.length > 0 ? (
           <FlatList
@@ -315,5 +351,17 @@ const styles = StyleSheet.create({
     borderRadius: 6,
     backgroundColor: '#F7F8F8',
     padding: 10,
+  },
+  checkbtn: {
+    borderWidth: 2,
+    borderColor: '#B668E7',
+    padding: 8,
+    paddingHorizontal: 13,
+    borderRadius: 1000,
+    paddingLeft: 16,
+    display: 'flex',
+    flexDirection: 'row',
+    alignItems: 'center',
+    backgroundColor: '#F6F6FF',
   },
 });

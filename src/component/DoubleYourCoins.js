@@ -1,4 +1,4 @@
-import React from 'react';
+import React, {useEffect, useState} from 'react';
 import {
   Text,
   SafeAreaView,
@@ -8,18 +8,160 @@ import {
   StyleSheet,
   View,
   ImageBackground,
+  FlatList,
 } from 'react-native';
+import {CircularProgressBase} from 'react-native-circular-progress-indicator';
 import ProgressCircle from 'react-native-progress-circle';
 import {LinearGradient} from 'react-native-gradients';
 import {useNavigation} from '@react-navigation/native';
 import Fonts from '../constants/Fonts';
+import Config from '../constants/Config';
+import {connect} from 'react-redux';
+import Loader from '../common/Loader';
 
-const DoubleYourCoins = () => {
+const DoubleYourCoins = props => {
+  const [data, setData] = useState();
+  const [isLoading, setIsLoading] = useState(false);
+
+  const props1 = {
+    radius: 35,
+    activeStrokeWidth: 6,
+    inActiveStrokeWidth: 6,
+    inActiveStrokeColor: '#F2F5F8',
+    activeStrokeColor: '#5D6AFC',
+    activeStrokeSecondaryColor: '#C068E5',
+  };
+
+  useEffect(() => {
+    getMilestone();
+  }, []);
+
+  const getMilestone = () => {
+    var myHeaders = new Headers();
+    myHeaders.append('Authorization', 'Bearer ' + props.loginData.token);
+
+    var requestOptions = {
+      method: 'GET',
+      headers: myHeaders,
+      redirect: 'follow',
+    };
+    setIsLoading(true);
+    fetch(Config.BASE_URL + Config.get_milestone, requestOptions)
+      .then(response => response.json())
+      .then(result => {
+        // console.log(result);
+        setData(result.data);
+        setIsLoading(false);
+      })
+      .catch(error => {
+        console.log('error', error);
+        setIsLoading(false);
+      });
+  };
   const navigation = useNavigation();
   const colorList1 = [
     {offset: '0%', color: '#C068E5', opacity: '1'},
     {offset: '100%', color: '#5D6AFC', opacity: '1'},
   ];
+
+  const Milestone = ({item}) => {
+    console.log('aa', item);
+    return (
+      <View
+        style={[
+          styles.boxbor,
+          item.running_status == null || item.running_status == 'in-progress'
+            ? styles.boxbor1
+            : {},
+        ]}>
+        <View style={styles.relative}>
+          <CircularProgressBase {...props1} value={50}>
+            <View style={styles.flexprog}>
+              <Image
+                resizeMode="contain"
+                source={require('../../assets/images/run1.png')}
+                style={{
+                  width: 20,
+                  height: 20,
+                }}
+              />
+            </View>
+          </CircularProgressBase>
+        </View>
+        <View style={{paddingLeft: 16}}>
+          <Text
+            style={{
+              fontFamily: Fonts.Poppins_Bold,
+              fontSize: 20,
+              lineHeight: 25,
+              color: '#C068E5',
+            }}>
+            <Text> {item.title}</Text>
+          </Text>
+          <Text
+            style={{
+              fontFamily: Fonts.Poppins_Regular,
+              color: '#3B2645',
+            }}>
+            Total Distance :
+            <Text
+              style={{
+                fontWeight: '600',
+                color: '#3B2645AA',
+                // opacity: 0.8,
+                fontFamily: Fonts.Poppins_Bold,
+              }}>
+              {' '}
+              {item.distance}
+              {''} km
+            </Text>
+          </Text>
+        </View>
+        {item.running_status == 'completed' && (
+          <TouchableOpacity style={[styles.nbtn]}>
+            <Image
+              resizeMode="contain"
+              source={require('../../assets/images/completed.png')}
+              style={{
+                width: 15,
+                height: 15,
+              }}
+            />
+            <Text
+              style={{
+                fontFamily: Fonts.Poppins_Bold,
+                color: '#62516A',
+                fontSize: 12,
+                paddingLeft: 6,
+              }}>
+              Completed
+            </Text>
+          </TouchableOpacity>
+        )}
+        {item.running_status == null && (
+          <View style={styles.nbtn1}>
+            <TouchableOpacity
+              onPress={() => navigation.navigate('WalkingTimerMilestone')}
+              style={styles.button}>
+              <LinearGradient colorList={colorList1} angle={200} />
+              <Text style={styles.text}>Start Streak</Text>
+            </TouchableOpacity>
+          </View>
+        )}
+        {item.running_status == 'in-progress' && (
+          <View style={styles.nbtn1}>
+            <TouchableOpacity
+              onPress={() => navigation.navigate('WalkingTimerMilestone')}
+              style={styles.button}>
+              <LinearGradient colorList={colorList1} angle={200} />
+              <Text style={styles.text}>Resume Streak</Text>
+            </TouchableOpacity>
+          </View>
+        )}
+      </View>
+    );
+  };
+
   return (
     <SafeAreaView style={styles.mainbg}>
       <ScrollView>
@@ -28,15 +170,46 @@ const DoubleYourCoins = () => {
             <ImageBackground
               source={require('../../assets/images/coinsbg.png')}
               style={styles.walletbg}>
-              <Image
-                resizeMode="contain"
-                source={require('../../assets/images/dcoins.png')}
+              <View
                 style={{
                   width: 270,
                   height: 270,
-                }}
-              />
-              <View style={{marginTop: -30}}>
+                  backgroundColor: 'rgba(255,255,255,0.1)',
+                  borderRadius: 500,
+                  justifyContent: 'center',
+                  alignItems: 'center',
+                }}>
+                <View
+                  style={{
+                    width: 210,
+                    height: 210,
+                    backgroundColor: 'rgba(255,255,255,0.1)',
+                    borderRadius: 500,
+                    justifyContent: 'center',
+                    alignItems: 'center',
+                  }}>
+                  <View
+                    style={{
+                      width: 140,
+                      height: 140,
+                      backgroundColor: 'rgba(255,255,255,0.1)',
+                      borderRadius: 500,
+                      justifyContent: 'center',
+                      alignItems: 'center',
+                    }}>
+                    <Image
+                      resizeMode="contain"
+                      source={require('../../assets/images/runner.png')}
+                      style={{
+                        width: 180,
+                        height: 180,
+                      }}
+                    />
+                  </View>
+                </View>
+              </View>
+
+              <View style={{marginTop: 15}}>
                 <View
                   style={{
                     display: 'flex',
@@ -103,77 +276,12 @@ const DoubleYourCoins = () => {
             </ImageBackground>
           </View>
           <View style={styles.container}>
-            <View style={styles.boxbor}>
-              <View style={styles.relative}>
-                <ProgressCircle
-                  percent={50}
-                  radius={35}
-                  borderWidth={5}
-                  color="#C068E5"
-                  shadowColor="#F2F5F8"
-                  bgColor="#fff">
-                  <View style={styles.flexprog}>
-                    <Image
-                      resizeMode="contain"
-                      source={require('../../assets/images/run1.png')}
-                      style={{
-                        width: 20,
-                        height: 20,
-                      }}
-                    />
-                  </View>
-                </ProgressCircle>
-              </View>
-              <View style={{paddingLeft: 16}}>
-                <Text
-                  style={{
-                    fontFamily: Fonts.Poppins_Bold,
-                    fontSize: 20,
-                    lineHeight: 25,
-                    color: '#C068E5',
-                  }}>
-                  <Text>Milestone 1</Text>
-                </Text>
-                <Text
-                  style={{
-                    fontFamily: Fonts.Poppins_Regular,
-                    color: '#3B2645',
-                  }}>
-                  Total Distance :
-                  <Text
-                    style={{
-                      fontWeight: '600',
-                      color: '#3B2645',
-                      opacity: 0.8,
-                      fontFamily: Fonts.Poppins_Bold,
-                    }}>
-                    {''} 5 km
-                  </Text>
-                </Text>
-              </View>
-              <TouchableOpacity style={styles.nbtn}>
-                <Image
-                  resizeMode="contain"
-                  source={require('../../assets/images/completed.png')}
-                  style={{
-                    width: 15,
-                    height: 15,
-                  }}
-                />
-                {/* isCompleted ? 'Completed' : 'Start Streak' */}
-                <Text
-                  style={{
-                    fontFamily: Fonts.Poppins_Bold,
-                    color: '#62516A',
-                    fontSize: 12,
-                    paddingLeft: 6,
-                  }}>
-                  Completed
-                </Text>
-              </TouchableOpacity>
-            </View>
-
-            <View style={[styles.boxbor, styles.boxbor1]}>
+            <FlatList
+              data={data}
+              renderItem={({item, index}) => <Milestone item={item} />}
+              keyExtractor={item => item.id}
+            />
+            {/* <View style={[styles.boxbor, styles.boxbor1]}>
               <View style={styles.relative}>
                 <ProgressCircle
                   percent={100}
@@ -229,26 +337,33 @@ const DoubleYourCoins = () => {
                   <Text style={styles.text}>Start Streak</Text>
                 </TouchableOpacity>
               </View>
-            </View>
-            <Text
-              style={{
-                fontFamily: Fonts.Poppins_Regular,
-                textAlign: 'center',
-                fontSize: 12,
-                color: '#62516A',
-                opacity: 0.7,
-                marginTop: 20,
-              }}>
-              Completing this streak will earn you double.
-            </Text>
+            </View> */}
           </View>
+          <Text
+            style={{
+              fontFamily: Fonts.Poppins_Regular,
+              textAlign: 'center',
+              fontSize: 12,
+              color: '#62516A',
+              opacity: 0.7,
+              marginTop: 20,
+            }}>
+            Completing this streak will earn you double.
+          </Text>
         </View>
       </ScrollView>
+      <Loader loading={isLoading} transparent={false} />
     </SafeAreaView>
   );
 };
+const mapStateToProps = state => ({
+  loginData: state.loginReducer.loginData,
+  userDetails: state.profileReducer.userDetails,
+});
 
-export default DoubleYourCoins;
+const mapDispatchToProps = dispatch => ({});
+
+export default connect(mapStateToProps, mapDispatchToProps)(DoubleYourCoins);
 
 const styles = StyleSheet.create({
   radius: {
@@ -267,10 +382,9 @@ const styles = StyleSheet.create({
   },
   container: {
     paddingHorizontal: 15,
-    marginTop: -130,
+    marginTop: -100,
     display: 'flex',
     justifyContent: 'center',
-    alignItems: 'center',
   },
   title: {
     color: '#3B2645',
@@ -335,6 +449,7 @@ const styles = StyleSheet.create({
     borderColor: '#fff',
   },
   boxbor: {
+    alignSelf: 'center',
     backgroundColor: '#fff',
     borderRadius: 15,
     padding: 15,
@@ -379,7 +494,10 @@ const styles = StyleSheet.create({
     position: 'absolute',
     left: 100,
     bottom: -25,
+    width: '50%',
     backgroundColor: '#fff',
+    justifyContent: 'center',
+    alignItems: 'center',
   },
   nbtn1: {
     borderColor: '#C068E5',

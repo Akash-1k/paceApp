@@ -21,6 +21,7 @@ import Config from '../constants/Config';
 
 const PaymentCards = props => {
   const navigation = useNavigation();
+
   const [selectedIndex, setIndex] = useState(null);
   const [cardDetails, setCardDetails] = useState({});
   const [isLoading, setIsLoading] = useState(false);
@@ -29,17 +30,12 @@ const PaymentCards = props => {
     props.getCardListRequest(props.loginData.token);
   }, []);
 
-  const onSetDefault = () => {
+  const onSetDefault = id => {
     var myHeaders = new Headers();
     myHeaders.append('Authorization', 'Bearer ' + props.loginData.token);
 
     var formdata = new FormData();
-    formdata.append('customerid', cardDetails.customerid);
-    formdata.append('type', cardDetails.type);
-    formdata.append('brand', cardDetails.brand);
-    formdata.append('token', cardDetails.token);
-    formdata.append('last4', cardDetails.last4);
-    formdata.append('card_id', cardDetails.id);
+    formdata.append('id', id);
 
     var requestOptions = {
       method: 'POST',
@@ -54,34 +50,65 @@ const PaymentCards = props => {
       .then(result => {
         setIsLoading(false);
         props.getCardListRequest(props.loginData.token);
-        setIndex('');
-        // console.log(result)
+        setIndex(null);
       })
       .catch(error => console.log('error', error));
   };
 
-  const onDeletecard = id => {
+  const onDeletecardStrip = async (customerid, cardid) => {
     var myHeaders = new Headers();
-    myHeaders.append('Authorization', 'Bearer ' + props.loginData.token);
-    var formdata = new FormData();
-    formdata.append('card_id', id);
+    myHeaders.append('Authorization', 'Bearer ' + Config.Strip_SK);
+    myHeaders.append(
+      'Content-Type',
+      'application/x-www-form-urlencoded;charset=UTF-8',
+    );
+
     var requestOptions = {
-      method: 'POST',
+      method: 'DELETE',
       headers: myHeaders,
-      body: formdata,
       redirect: 'follow',
     };
+
+    const res = await fetch(
+      `${Config.STRIP_BASE_URL}${Config.strip_create_customers}/${customerid}/sources/${cardid}`,
+      requestOptions,
+    );
+    return res;
+  };
+
+  const onDeletecard = item => {
     setIsLoading(true);
-    fetch(Config.BASE_URL + Config.delete_payment_card, requestOptions)
+    onDeletecardStrip(item.customer_id, item.token)
       .then(response => response.json())
-      .then(result => {
-        setIsLoading(false);
-        props.getCardListRequest(props.loginData.token);
-      })
-      .catch(error => console.log('error', error));
+      .then(res => {
+        if (res.error) {
+          console.log('res.error.message onDeletecard', res.error.message);
+        } else {
+          var myHeaders = new Headers();
+          myHeaders.append('Authorization', 'Bearer ' + props.loginData.token);
+          var formdata = new FormData();
+          formdata.append('id', item.id);
+          var requestOptions = {
+            method: 'POST',
+            headers: myHeaders,
+            body: formdata,
+            redirect: 'follow',
+          };
+          setIsLoading(true);
+          fetch(Config.BASE_URL + Config.delete_payment_card, requestOptions)
+            .then(response => response.json())
+            .then(result => {
+              setIsLoading(false);
+              props.getCardListRequest(props.loginData.token);
+              setIndex(null);
+            })
+            .catch(error => console.log('error', error));
+        }
+      });
   };
 
   const renderItem = item => {
+    console.log(item.item);
     return (
       <Pressable
         onPress={() => {
@@ -89,10 +116,8 @@ const PaymentCards = props => {
         }}
         style={styles.cardbox}>
         <ImageBackground
-          // source={{uri: 'https://picsum.photos/id/237/200/300'}}
           source={require('../../assets/images/card.png')}
           style={{flex: 1}}
-          // style={{flex: 1, transform: [{scale: 1.03}]}}
           resizeMode="cover"
           imageStyle={{}}>
           <View style={styles.maincontainer}>
@@ -118,19 +143,18 @@ const PaymentCards = props => {
                     top: 5,
                   }}
                 />
-                {'  ' + item.item.brand}
+                {'  ' + item.item.bank_name}
               </Text>
               <TouchableOpacity
                 onPress={() => {
                   setCardDetails(item.item);
-                  console.log(item.item);
                   setIndex(item.index);
                 }}>
                 <Entypo name="dots-three-horizontal" color={'#fff'} size={20} />
               </TouchableOpacity>
             </View>
             <Text style={styles.cardtext}>
-              **** **** **** {item.item.last4}
+              **** **** **** {item.item.last_four}
             </Text>
             <View
               style={{
@@ -140,7 +164,9 @@ const PaymentCards = props => {
                 justifyContent: 'space-between',
               }}>
               <Text style={styles.cardtext1}>Platinum Plus</Text>
-              <Text style={styles.cardtextsub}>{item.item.expiry_date}</Text>
+              <Text style={styles.cardtextsub}>
+                Exp {item.item.expiry_date}
+              </Text>
             </View>
             <View
               style={{
@@ -150,32 +176,16 @@ const PaymentCards = props => {
                 justifyContent: 'space-between',
                 marginTop: 'auto',
               }}>
-              <Text style={styles.username}>{item.item.type}</Text>
+              <Text style={styles.username}>{item.item.customer_name}</Text>
               <PaymentIcon type={item.item.brand.toLowerCase()} width={37} />
-
-              {/* <Image
-                resizeMode="contain"
-                source={require('../../assets/images/cardr.png')}
-                style={{
-                  width: 37,
-                  height: 22,
-                }}
-              /> */}
             </View>
           </View>
           {selectedIndex == item.index ? (
             <View style={styles.showBox}>
-              <TouchableOpacity
-                onPress={() =>
-                  navigation.navigate('EditCard', {cardDetails: cardDetails})
-                }>
-                <Text style={styles.droptitle}>Edit</Text>
-              </TouchableOpacity>
-
-              {item.item.set_default != 1 && (
+              {item.item.default != '1' && (
                 <TouchableOpacity
                   onPress={() => {
-                    onSetDefault();
+                    onSetDefault(item.item.id);
                   }}
                   style={{
                     paddingVertical: 10,
@@ -186,7 +196,7 @@ const PaymentCards = props => {
 
               <TouchableOpacity
                 onPress={() => {
-                  onDeletecard(item.item.id);
+                  onDeletecard(item.item);
                 }}>
                 <Text style={[styles.droptitle, {color: '#DF0707'}]}>
                   Delete
@@ -195,7 +205,7 @@ const PaymentCards = props => {
             </View>
           ) : null}
 
-          {item.item.set_default == 1 && (
+          {item.item.default == '1' && (
             <Text
               style={[
                 styles.cardtext,
