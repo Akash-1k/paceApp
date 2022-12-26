@@ -30,8 +30,6 @@ const WaterGlass = props => {
     props.getWaterGlassRequested(props.loginData.token);
   }, []);
 
-  // console.log('Water Glass Props', props.glassInfo);
-
   const addGlass = () => {
     var myHeaders = new Headers();
     myHeaders.append('Authorization', 'Bearer ' + props.loginData.token);

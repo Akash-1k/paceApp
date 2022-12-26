@@ -35,25 +35,46 @@ const Rest = props => {
     return () => backHandler.remove();
   }, []);
 
-  // console.log(
-  //   'Rest next workout props :::::::::::::',
-  //   props.nextWorkoutDetails,
-  // );
+  const workoutStatus = () => {
+    var formdata = new FormData();
+    formdata.append('workout_id', props.nextWorkoutDetails.workout_id);
+    formdata.append('excersice_id', props.nextWorkoutDetails.id);
+
+    var myHeaders = new Headers();
+    myHeaders.append('Authorization', 'Bearer ' + props.loginData.token);
+
+    var requestOptions = {
+      method: 'POST',
+      body: formdata,
+      headers: myHeaders,
+      redirect: 'follow',
+    };
+
+    fetch(Config.BASE_URL + Config.workout_status, requestOptions)
+      .then(response => response.json())
+      .then(result => {
+        console.log(result);
+      })
+      .catch(error => {
+        console.log('error', error);
+      });
+  };
+
   useEffect(() => {
     if (route.params.nav == '30') {
       setTimeLeft(3);
     } else if (route.params.nav == '60') {
-      console.log(
-        'props.nextWorkoutDetails REst::::',
-        props.nextWorkoutDetails,
-      );
-      const data = {
-        token: props.loginData.token,
-        exersiseId: props.nextWorkoutDetails.id,
-        workout_id: props.nextWorkoutDetails.workout_id,
-      };
-      props.startWorkoutRequest(data);
-      setTimeLeft(6);
+      workoutStatus();
+      if (props.nextWorkoutDetails != null) {
+        setTimeLeft(6);
+        const data = {
+          token: props.loginData.token,
+          exersiseId: props.nextWorkoutDetails.id,
+          workout_id: props.nextWorkoutDetails.workout_id,
+          loader: false,
+        };
+        props.startWorkoutRequest(data);
+      }
     }
   }, []);
 
@@ -98,15 +119,6 @@ const Rest = props => {
         }
       }
 
-      //   console.log(
-      //     'route.params.nextScreen ::::::::::',
-      //     route.params.nextScreen,
-      //   );
-      //   if (route.params.nextScreen == 'StartWorkout') {
-      //     navigation.navigate(route.params.nextScreen);
-      //   } else if (route.params.nextScreen == 'WalkingTimer') {
-      //     navigation.navigate(route.params.nextScreen);
-      //   }
       return;
     }
     // save intervalId to clear the interval when the
@@ -123,13 +135,34 @@ const Rest = props => {
   return (
     <>
       <View style={styles.container}>
+        <TouchableOpacity
+          style={{
+            position: 'absolute',
+            top: 0,
+            right: 20,
+            top: 15,
+            zIndex: 2,
+          }}
+          onPress={() => setTimeLeft(0)}>
+          <Image
+            resizeMode="contain"
+            source={require('../../assets/images/whitecross.png')}
+            style={{
+              width: 20,
+              height: 20,
+              opacity: 0.5,
+            }}
+          />
+        </TouchableOpacity>
         <View style={styles.box}>
           <Text style={styles.title}>Rest</Text>
           {/* <Text style={styles.subtitle}> Next {type} starts in</Text> */}
           <Text style={styles.btitle}>{timeLeft}</Text>
         </View>
         {route?.params?.nav == '30' && (
-          <TouchableOpacity style={{flex: 0.16, alignItems: 'center'}}>
+          <TouchableOpacity
+            onPress={() => setTimeLeft(0)}
+            style={{flex: 0.16, alignItems: 'center'}}>
             <Text style={styles.title}>{'Next >>'}</Text>
 
             {props?.playVideoDetails?.title && (
@@ -141,7 +174,9 @@ const Rest = props => {
           </TouchableOpacity>
         )}
         {route?.params?.nav == '60' && (
-          <TouchableOpacity style={{flex: 0.16, alignItems: 'center'}}>
+          <TouchableOpacity
+            onPress={() => setTimeLeft(0)}
+            style={{flex: 0.16, alignItems: 'center'}}>
             <Text style={styles.title}>{'Next >>'}</Text>
 
             {props?.nextWorkoutDetails?.title && (

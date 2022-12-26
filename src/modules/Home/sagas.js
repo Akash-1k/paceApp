@@ -2,6 +2,7 @@ import {put, takeLatest} from 'redux-saga/effects';
 import Config from '../../constants/Config';
 import {
   hideLoader,
+  showAlert,
   showLoader,
   showLogoutAlert,
 } from '../../utils/CommonFunctions';
@@ -67,11 +68,11 @@ function* onSendSteps({data}) {
   }
 }
 
-function* onWaterGlass({data}) {
+function* onWaterGlass(action) {
   yield* showLoader(false);
   try {
     var myHeaders = new Headers();
-    myHeaders.append('Authorization', 'Bearer ' + data);
+    myHeaders.append('Authorization', 'Bearer ' + action.data);
 
     var requestOptions = {
       method: 'GET',
@@ -96,7 +97,8 @@ function* onWaterGlass({data}) {
     if (res.status == 1) {
       let save = saveGlass(res.glass[0].default_glass, res.glass[0].fill_glass);
       // console.log(save);
-      yield put(getWaterGlassSuccess({res, save}));
+      var data = {res, save};
+      yield put(getWaterGlassSuccess(data));
       yield* hideLoader(false, '');
     } else {
       yield put(getWaterGlassFail());
@@ -127,7 +129,6 @@ const saveGlass = (glass, fill_glass) => {
       });
     }
   }
-  console.log('asdas', glass, fill_glass);
   return newData;
 };
 

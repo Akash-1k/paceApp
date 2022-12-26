@@ -14,9 +14,10 @@ class LoadingView extends React.PureComponent {
   };
 
   render() {
-    const {loading, isError, errorMessage} = this.props;
+    const {loading, transparent, isError, errorMessage} = this.props;
+
     return (
-      <Modal visible={loading} transparent>
+      <Modal visible={loading} transparent={transparent}>
         <View style={styles.parentContainer}>
           <View style={styles.container}>
             <View style={{borderRadius: 10, padding: 5}}>
@@ -50,6 +51,7 @@ const mapStateToProps = state => ({
   loading: state.loadingReducer.loading,
   isError: state.loadingReducer.isError,
   errorMessage: state.loadingReducer.errorMessage,
+  transparent: state.loadingReducer.transparent,
 });
 const mapDispatchToProps = dispatch => ({
   hideErrorModalView: () => dispatch(hideErrorModal()),

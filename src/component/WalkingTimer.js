@@ -94,7 +94,7 @@ const WalkingTimer = props => {
     },
     text: {
       marginLeft: 7,
-      fontSize: 40,
+      fontSize: 38,
       fontFamily: Fonts.Poppins_Bold,
     },
   };

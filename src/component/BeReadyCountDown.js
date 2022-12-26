@@ -10,6 +10,7 @@ import {
   BackHandler,
 } from 'react-native';
 import {useNavigation, useRoute} from '@react-navigation/native';
+
 const BeReadyCountDown = () => {
   const navigation = useNavigation();
   const route = useRoute();
@@ -26,7 +27,7 @@ const BeReadyCountDown = () => {
   }, []);
 
   useEffect(() => {
-    if (route.params.nextScreen == 'StartWorkout') {
+    if (route.params.nextScreen == 'VideoPlayer') {
       setType('Workout');
     } else if (route.params.nextScreen == 'WalkingTimer') {
       setType('Running Timer');
@@ -40,7 +41,7 @@ const BeReadyCountDown = () => {
         'route.params.nextScreen ::::::::::',
         route.params.nextScreen,
       );
-      if (route.params.nextScreen == 'StartWorkout') {
+      if (route.params.nextScreen == 'VideoPlayer') {
         navigation.navigate(route.params.nextScreen);
       } else if (route.params.nextScreen == 'WalkingTimer') {
         navigation.navigate(route.params.nextScreen, route.params);

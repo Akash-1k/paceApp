@@ -10,7 +10,7 @@ import {
   ScrollView,
   Button,
 } from 'react-native';
-import {useNavigation} from '@react-navigation/native';
+import {useNavigation, useIsFocused} from '@react-navigation/native';
 import Ionicons from 'react-native-vector-icons/Ionicons';
 import MaterialIcons from 'react-native-vector-icons/MaterialIcons';
 import {data1} from './ProgressDaily';
@@ -37,6 +37,8 @@ const customDayHeaderStylesCallback = ({dayOfWeek}) => {
 
 const ProgressThisMonth = props => {
   const navigation = useNavigation();
+  const isFocused = useIsFocused();
+
   const [isOpened, setIsOpened] = useState(false);
   const [item, setItem] = useState(2);
   const [itemData, setItemData] = useState();
@@ -81,36 +83,38 @@ const ProgressThisMonth = props => {
   }, [item]);
 
   useEffect(() => {
-    var y = currMonth.getFullYear(),
-      m = currMonth.getMonth();
-    var firstDay = new Date(y, m, 1);
-    var lastDay = new Date(y, m + 1, 0);
+    if (isFocused) {
+      var y = currMonth.getFullYear(),
+        m = currMonth.getMonth();
+      var firstDay = new Date(y, m, 1);
+      var lastDay = new Date(y, m + 1, 0);
 
-    var firstFormattedDate = `${firstDay.getFullYear()}-${
-      firstDay.getMonth() + 1
-    }-${firstDay.getDate()}`;
+      var firstFormattedDate = `${firstDay.getFullYear()}-${
+        firstDay.getMonth() + 1
+      }-${firstDay.getDate()}`;
 
-    var lastFormattedDate = `${lastDay.getFullYear()}-${
-      lastDay.getMonth() + 1
-    }-${lastDay.getDate()}`;
+      var lastFormattedDate = `${lastDay.getFullYear()}-${
+        lastDay.getMonth() + 1
+      }-${lastDay.getDate()}`;
 
-    var myHeaders = new Headers();
-    myHeaders.append('Authorization', 'Bearer ' + props.loginData.token);
+      var myHeaders = new Headers();
+      myHeaders.append('Authorization', 'Bearer ' + props.loginData.token);
 
-    var requestOptions = {
-      method: 'GET',
-      headers: myHeaders,
-      redirect: 'follow',
-    };
+      var requestOptions = {
+        method: 'GET',
+        headers: myHeaders,
+        redirect: 'follow',
+      };
 
-    var data = {
-      requestOptions,
-      params: `?start_date=${firstFormattedDate}&end_date=${lastFormattedDate}`,
-    };
-    // ?start_date=2022-11-26&end_date=2022-11-26
+      var data = {
+        requestOptions,
+        params: `?start_date=${firstFormattedDate}&end_date=${lastFormattedDate}`,
+      };
+      // ?start_date=2022-11-26&end_date=2022-11-26
 
-    props.myProgressRequest(data);
-  }, [reload]);
+      props.myProgressRequest(data);
+    }
+  }, [reload, isFocused]);
 
   const data = [
     {label: 'Today', value: '1'},
@@ -198,9 +202,19 @@ const ProgressThisMonth = props => {
               monthYearHeaderWrapperStyle={{display: 'none'}}
               weekdays={['S', 'M', 'T', 'W', 'T', 'F', 'S']}
               ref={ref => (calendar.current = ref)}
+              disabledDates={date => {
+                if (
+                  new Date() < date ||
+                  new Date(props.userDetails.user.registered_date) > date
+                ) {
+                  return true;
+                } else {
+                  return false;
+                }
+              }}
               showDayStragglers
-              selectedDayColor="#222"
-              selectedDayTextColor="#FFF"
+              selectedDayColor="#F2F2FE"
+              // selectedDayTextColor="#FFF"
               todayBackgroundColor="#FFF"
               todayTextStyle={{
                 color: '#3B2645',
@@ -218,17 +232,24 @@ const ProgressThisMonth = props => {
           </View>
 
           {console.log(
-            calendar.current.state.currentMonth,
-            new Date(props.userDetails.user.registered_date).getMonth(),
+            calendar.current && calendar.current.state.currentMonth,
+            new Date(props.userDetails.user.registered_date).toDateString(),
+            calendar.current && calendar.current.state.currentYear,
           )}
           <View style={styles.box}>
             <View style={styles.icondate}>
               <TouchableOpacity
-                // disabled={
-                //   calendar.current &&
-                //   calendar.current.state.currentMonth + 1 ===
-                //     new Date(props.userDetails.user.registered_date).getMonth()
-                // }
+                disabled={
+                  calendar.current &&
+                  calendar.current.state.currentMonth ==
+                    new Date(
+                      props.userDetails.user.registered_date,
+                    ).getMonth() &&
+                  calendar.current.state.currentYear ==
+                    new Date(
+                      props.userDetails.user.registered_date,
+                    ).getFullYear()
+                }
                 onPress={() => {
                   setItem(item - 1);
                   calendar.current.handleOnPressPrevious();
@@ -271,11 +292,11 @@ const ProgressThisMonth = props => {
                   ? props.myPercentageData.water
                   : 0,
                 value: props.myProgressData
-                  ? props.myProgressData.fill_water_glass
+                  ? props.myProgressData.fill_water_glass * 250
                   : 0,
                 type: 'ml',
                 total: props.myProgressData
-                  ? props.myProgressData.total_water_glass
+                  ? props.myProgressData.total_water_glass * 250
                   : 0,
               }}
             />

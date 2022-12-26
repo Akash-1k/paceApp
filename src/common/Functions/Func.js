@@ -18,7 +18,9 @@ export const toUpperCaseFirst = str => {
 };
 
 export const toPercent = (curr, total) => {
-  return Math.ceil((curr / total) * 100);
+  var currInt = parseFloat(curr);
+  var totalInt = parseFloat(total);
+  return Math.ceil((currInt / totalInt) * 100);
 };
 
 export const calculateCaloriesBurnt = (dist, age, weight) => {
@@ -44,6 +46,24 @@ export const inMilsec = timeStr => {
     inMillisec = parseInt(timeArr[0]) * 60000 + parseInt(timeArr[1]) * 1000;
   } else if (timeArr.length == 1) {
     inMillisec = parseInt(timeArr[0]) * 1000;
+  } else {
+    inMillisec = 0;
+  }
+  return inMillisec;
+};
+
+export const inSec = timeStr => {
+  const timeArr = String(timeStr).split(':');
+  let inMillisec = 0;
+  if (timeArr.length == 3) {
+    inMillisec =
+      parseInt(timeArr[0]) * 3600 +
+      parseInt(timeArr[1]) * 60 +
+      parseInt(timeArr[2]) * 1;
+  } else if (timeArr.length == 2) {
+    inMillisec = parseInt(timeArr[0]) * 60 + parseInt(timeArr[1]) * 1;
+  } else if (timeArr.length == 1) {
+    inMillisec = parseInt(timeArr[0]) * 1;
   } else {
     inMillisec = 0;
   }

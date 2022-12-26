@@ -11,7 +11,7 @@ import {
   ScrollView,
   Button,
 } from 'react-native';
-import {useNavigation, useRoute} from '@react-navigation/native';
+import {useNavigation, useRoute, useIsFocused} from '@react-navigation/native';
 import Ionicons from 'react-native-vector-icons/Ionicons';
 import MaterialIcons from 'react-native-vector-icons/MaterialIcons';
 import LineProgressBar from './LineProgressBar';
@@ -142,6 +142,7 @@ const progressProps = {
 const ProgressDaily = props => {
   const navigation = useNavigation();
   const route = useRoute();
+  const isFocused = useIsFocused();
 
   const [isOpened, setIsOpened] = useState(false);
   const [item, setItem] = useState(3);
@@ -155,25 +156,27 @@ const ProgressDaily = props => {
   }
 
   useEffect(() => {
-    var formattedDate = `${currDate.getFullYear()}-${
-      currDate.getMonth() + 1
-    }-${currDate.getDate()}`;
+    if (isFocused) {
+      var formattedDate = `${currDate.getFullYear()}-${
+        currDate.getMonth() + 1
+      }-${currDate.getDate()}`;
 
-    var myHeaders = new Headers();
-    myHeaders.append('Authorization', 'Bearer ' + props.loginData.token);
+      var myHeaders = new Headers();
+      myHeaders.append('Authorization', 'Bearer ' + props.loginData.token);
 
-    var requestOptions = {
-      method: 'GET',
-      headers: myHeaders,
-      redirect: 'follow',
-    };
+      var requestOptions = {
+        method: 'GET',
+        headers: myHeaders,
+        redirect: 'follow',
+      };
 
-    var data = {
-      requestOptions,
-      params: `?date=${formattedDate}`,
-    };
-    props.myProgressRequest(data);
-  }, [reload]);
+      var data = {
+        requestOptions,
+        params: `?date=${formattedDate}`,
+      };
+      props.myProgressRequest(data);
+    }
+  }, [reload, isFocused, currDate]);
 
   useEffect(() => {
     if (route.params) {

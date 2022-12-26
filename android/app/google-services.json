@@ -1,0 +1,47 @@
+{
+  "project_info": {
+    "project_number": "606905922360",
+    "project_id": "pacesocialauth",
+    "storage_bucket": "pacesocialauth.appspot.com"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:606905922360:android:95214a0181ab5ada0c07cd",
+        "android_client_info": {
+          "package_name": "com.app.pace"
+        }
+      },
+      "oauth_client": [
+        {
+          "client_id": "606905922360-pk6fpk1g1m2ms4v0vf198a6m5urc001q.apps.googleusercontent.com",
+          "client_type": 1,
+          "android_info": {
+            "package_name": "com.app.pace",
+            "certificate_hash": "5e8f16062ea3cd2c4a0d547876baa6f38cabf625"
+          }
+        },
+        {
+          "client_id": "606905922360-bg74dhh48eglmh35fm2aofhh9i6gi76e.apps.googleusercontent.com",
+          "client_type": 3
+        }
+      ],
+      "api_key": [
+        {
+          "current_key": "AIzaSyBfyjM5On50u7LUWaXdHlG6bBaeE9s8TTE"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": [
+            {
+              "client_id": "606905922360-bg74dhh48eglmh35fm2aofhh9i6gi76e.apps.googleusercontent.com",
+              "client_type": 3
+            }
+          ]
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}

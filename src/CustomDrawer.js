@@ -18,6 +18,7 @@ const CustomDrawer = props => {
     data.append('token', props.loginData.token);
     let params = {
       navigation: () => props.navigation.navigate('Login'),
+      type: props.loginData.type,
     };
     props.logoutRequest(data, params);
     // console.log(props.state);
@@ -214,6 +215,7 @@ const CustomDrawer = props => {
 const mapStateToProps = state => ({
   loginData: state.loginReducer.loginData,
   state: state,
+  userDetails: state.profileReducer?.userDetails,
 });
 
 const mapDispatchToProps = dispatch => ({

@@ -14,6 +14,7 @@ import {
   BackHandler,
   Pressable,
   Button,
+  Alert,
 } from 'react-native';
 import {Row, Column as Col, Grid} from 'react-native-responsive-grid';
 import {LinearGradient} from 'react-native-gradients';
@@ -32,6 +33,10 @@ import {
 } from '../modules/Home/actions';
 import {toPercent} from '../common/Functions/Func';
 import useTracking from '../utils/useTracking';
+import {
+  GoogleSignin,
+  statusCodes,
+} from '@react-native-google-signin/google-signin';
 import axios from 'axios';
 
 function TabOneScreen(props) {
@@ -98,6 +103,10 @@ function TabOneScreen(props) {
   }, [props.userDetails]);
 
   useEffect(() => {
+    GoogleSignin.configure();
+  }, []);
+
+  useEffect(() => {
     props.getHomeRequested(props.loginData.token);
     props.userDetailsRequest({token: props.loginData.token});
   }, []);
@@ -141,7 +150,28 @@ function TabOneScreen(props) {
                     </Text>
                     <TouchableOpacity
                       style={styles.startbtn}
-                      onPress={() => navigation.navigate('StartRunning')}>
+                      onPress={() => {
+                        if (
+                          props.userDetails.user.dob == null ||
+                          props.userDetails.user.current_weight == null
+                        ) {
+                          // alert('Please Provide your details');
+                          Alert.alert('Please Provide your details', ' ', [
+                            {
+                              text: 'Cancel',
+                              onPress: () => console.log('Cancel Pressed'),
+                              style: 'cancel',
+                            },
+                            {
+                              text: 'OK',
+                              onPress: () =>
+                                navigation.navigate('PersonalData'),
+                            },
+                          ]);
+                        } else {
+                          navigation.navigate('StartRunning');
+                        }
+                      }}>
                       <Text style={styles.btntext}>Start</Text>
                     </TouchableOpacity>
                   </View>
@@ -280,9 +310,27 @@ function TabOneScreen(props) {
                       styles.boxwhite,
                       {height: 140, alignItems: 'center'},
                     ]}
-                    onStartShouldSetResponder={() =>
-                      navigation.navigate('StartWalking')
-                    }>
+                    onStartShouldSetResponder={() => {
+                      if (
+                        props.userDetails.user.dob == null ||
+                        props.userDetails.user.current_weight == null
+                      ) {
+                        // alert('Please Provide your details');
+                        Alert.alert('Please Provide your details', ' ', [
+                          {
+                            text: 'Cancel',
+                            onPress: () => console.log('Cancel Pressed'),
+                            style: 'cancel',
+                          },
+                          {
+                            text: 'OK',
+                            onPress: () => navigation.navigate('PersonalData'),
+                          },
+                        ]);
+                      } else {
+                        navigation.navigate('StartWalking');
+                      }
+                    }}>
                     <View style={styles.relative}>
                       <CircularProgressBase
                         value={toPercent(
@@ -324,41 +372,6 @@ function TabOneScreen(props) {
                 )}
               </Col>
             </Row>
-            {/* <Button
-              title={'asd'}
-              onPress={() => {
-                var formdata = new FormData();
-                formdata.append('name', 'route.params.id');
-                formdata.append('phoneNo', 'route.params.id');
-                formdata.append('password', 'route.params.id');
-                formdata.append('email', 'route.parasdams.id');
-
-                var requestOptions = {
-                  method: 'POST',
-                  body: formdata,
-                  redirect: 'follow',
-                };
-                fetch(
-                  'https://dev.indiit.solutions/renting_reef/api/register',
-                  requestOptions,
-                )
-                  .then(res => res.json())
-                  .then(result => console.log(result))
-                  .catch(err => console.log(err));
-                // axios
-                //   .post(
-                //     'https://dev.indiit.solutions/renting_reef/api/register',
-                //     {
-                //       email: 'email',
-                //       password: 'password',
-                //     },
-                //   )
-                //   .then(response => {
-                //     console.log(response);
-                //   })
-                //   .catch(err => console.log(err));
-              }}
-            /> */}
 
             <View style={styles.boxgradient1}>
               <View style={styles.relative}>

@@ -377,16 +377,6 @@ const PaymentMethod = props => {
         <>
           <ScrollView style={styles.relative}>
             <View style={styles.container}>
-              {/* <Carousel
-                layout="default"
-                ref={ref}
-                data={props.cardList}
-                sliderWidth={400}
-                activeSlideAlignment="center"
-                itemWidth={320}
-                renderItem={renderItem}
-                onSnapToItem={index => setActiveIndex(index)}
-              /> */}
               {props.cardList.length > 1 && (
                 <View style={[styles.flexdir, {marginBottom: 7}]}>
                   <Text style={[styles.sText, {fontSize: 16}]}>

@@ -23,6 +23,8 @@ import {useEffect} from 'react';
 import Config from '../constants/Config';
 import {getCartRequest} from '../modules/Shop/actions';
 import {getHomeRequested} from '../modules/Home/actions';
+import {workoutListRequest} from '../modules/Workout/actions';
+import {showAlert} from '../utils/CommonFunctions';
 
 const Checkout = props => {
   const navigation = useNavigation();
@@ -55,7 +57,7 @@ const Checkout = props => {
     formdata.append('status', status == 'succeeded' ? 1 : 0); // '0' --> fail and '1' --> success
     formdata.append('payment_status', status == 'succeeded' ? 1 : 0); //'0' --> fail and '1' --> success
     formdata.append('type', pervScreen ? 2 : 1); // ('1 = Products, 2 = Workout')
-    formdata.append('shipping_tax', shipping);
+    formdata.append('shipping_tax', pervScreen ? 0 : shipping);
     formdata.append('additional_tax', tax);
     formdata.append('coins_used', parseInt(redeemedCoins));
     formdata.append(
@@ -69,6 +71,9 @@ const Checkout = props => {
     ); // last line in payment card ends with 0000
     formdata.append('transaction_id', id);
     formdata.append('address_id', addressDetails.id);
+    {
+      pervScreen && formdata.append('premium_price', 9.9);
+    }
     formdata.append('order_notes', '');
 
     // formdata.append('type', addressDetails.id);
@@ -127,7 +132,7 @@ const Checkout = props => {
       .then(response => response.json())
       .then(result => {
         if (result.error) {
-          alert('ADD transaction failed screen', result);
+          console.log('ADD transaction failed screen', result);
           navigation.navigate('OrderFail');
           setIsLoading(false);
         } else {
@@ -135,11 +140,20 @@ const Checkout = props => {
           onCheckout(result)
             .then(res => res.text())
             .then(res => {
-              console.log('result', res);
+              console.log('onCheckout ----- result', res);
               setIsLoading(false);
-              props.getCartRequest(props.loginData.token);
-              props.getHomeRequested(props.loginData.token);
-              navigation.navigate('OrderSuccess');
+
+              if (pervScreen) {
+                props.workoutListRequest({
+                  token: props.loginData.token,
+                  search: '',
+                });
+                navigation.navigate('TabTwo');
+              } else {
+                props.getCartRequest(props.loginData.token);
+                props.getHomeRequested(props.loginData.token);
+                navigation.navigate('OrderSuccess');
+              }
             })
             .catch(error => console.log('error', error));
         }
@@ -152,7 +166,7 @@ const Checkout = props => {
 
   useEffect(() => {
     if (pervScreen) {
-      setTotalAmount1((9.9 - parseInt(redeemedCoins) * 0.2).toFixed(2));
+      setTotalAmount1((9.9 + tax - parseInt(redeemedCoins) * 0.2).toFixed(2));
     } else {
       setTotalAmount1(
         (totalAmount + tax + shipping - parseInt(redeemedCoins) * 0.2).toFixed(
@@ -205,11 +219,17 @@ const Checkout = props => {
                 <Text style={styles.sText1}>Premium Workout</Text>
                 <Text style={styles.sPrice1}>$9.90</Text>
               </View>
+              {redeemedCoins != 0 && (
+                <View style={styles.flexdir}>
+                  <Text style={styles.sText1}>Wallet Discount</Text>
+                  <Text style={[styles.sPrice1, {color: '#3ABB25'}]}>
+                    -${(parseInt(redeemedCoins) * 0.2).toFixed(2)}
+                  </Text>
+                </View>
+              )}
               <View style={styles.flexdir}>
-                <Text style={styles.sText1}>Wallet Discount</Text>
-                <Text style={[styles.sPrice1, {color: '#3ABB25'}]}>
-                  -${(parseInt(redeemedCoins) * 0.2).toFixed(2)}
-                </Text>
+                <Text style={styles.sText1}>Taxes</Text>
+                <Text style={styles.sPrice1}>${tax.toFixed(2)}</Text>
               </View>
               <View style={[styles.flexdir, {marginBottom: 10}]}>
                 <Text style={styles.sGoal2}> Total</Text>
@@ -244,23 +264,21 @@ const Checkout = props => {
                 <Text style={styles.sPrice1}>${shipping.toFixed(2)}</Text>
               </View>
 
-              <View style={styles.flexdir}>
-                <Text style={styles.sText1}>Wallet Discount</Text>
-                <Text style={[styles.sPrice1, {color: '#3ABB25'}]}>
-                  -${(parseInt(redeemedCoins) * 0.2).toFixed(2)}
-                </Text>
-              </View>
-
+              {redeemedCoins != 0 && (
+                <View style={styles.flexdir}>
+                  <Text style={styles.sText1}>Wallet Discount</Text>
+                  <Text style={[styles.sPrice1, {color: '#3ABB25'}]}>
+                    -${(parseInt(redeemedCoins) * 0.2).toFixed(2)}
+                  </Text>
+                </View>
+              )}
               <View style={[styles.flexdir, {marginBottom: 10}]}>
                 <Text style={styles.sGoal2}>
                   {' '}
                   Total ( {props?.cartItemData?.length}{' '}
                   {props?.cartItemData?.length > 1 ? 'items' : 'item'} )
                 </Text>
-                <Text style={styles.sText2}>
-                  ${totalAmount1}
-                  {/* <Text style={{fontSize: 12}}>00</Text> */}
-                </Text>
+                <Text style={styles.sText2}>${totalAmount1}</Text>
               </View>
             </>
           )}
@@ -297,6 +315,7 @@ const mapDispatchToProps = dispatch => ({
   getAddressListRequest: data => dispatch(getAddressListRequest(data)),
   getCartRequest: data => dispatch(getCartRequest(data)),
   getHomeRequested: data => dispatch(getHomeRequested(data)),
+  workoutListRequest: data => dispatch(workoutListRequest(data)),
 });
 
 export default connect(mapStateToProps, mapDispatchToProps)(Checkout);

@@ -49,11 +49,12 @@ export default (state = INITIAL_STATE, action) => {
       return {
         ...state,
       };
+
     case GET_WATER_GLASS_SUCCESS:
       return {
         ...state,
-        waterGlassInfo: action.data,
-        saveGlass: action.saveGlass,
+        waterGlassInfo: action.data.res,
+        saveGlass: action.data.save,
       };
 
     case GET_WATER_GLASS_FAIL:

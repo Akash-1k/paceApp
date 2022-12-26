@@ -6,8 +6,8 @@ import {myProgressFail, myProgressSuccess} from './actions';
 import {MY_PROGRESS_REQUESTED} from './types';
 
 function* onMyProgress({data}) {
-  yield* showLoader(false);
   console.log(data.params);
+  yield* showLoader(false);
   try {
     let res = yield fetch(
       BASE_URL + Config.progress + data.params,
@@ -51,15 +51,30 @@ function* onMyProgress({data}) {
 const saveWeekProgress = week => {
   let outArr = [];
   var weekArr = ['S', 'M', 'T', 'W', 'T', 'F', 'S'];
+  var colorArr = {
+    calories: '#CFCFE3',
+    workout: '#CFCFE3',
+    steps: '#F7B857',
+    water: '#5D6AFC',
+    running: '#C068E5',
+  };
+
   for (let [key, value] of Object.entries(week)) {
     let inArr = [];
     let outObj = {};
     for (let [keyIn, valueIn] of Object.entries(value)) {
       let inObj = {};
-      // inObj['value'] = 10;
-      inObj['value'] = valueIn;
-      inObj['color'] = '#F00';
+      inObj['value'] = parseFloat(valueIn);
+      inObj['color'] = colorArr[keyIn];
       inObj['key'] = keyIn;
+      if (keyIn == 'running') {
+        inObj['borderBottomLeftRadius'] = 100;
+        inObj['borderBottomRightRadius'] = 100;
+      }
+      if (keyIn == 'calories') {
+        inObj['borderTopLeftRadius'] = 100;
+        inObj['borderTopRightRadius'] = 100;
+      }
       inArr.push(inObj);
     }
     outObj['stacks'] = inArr;

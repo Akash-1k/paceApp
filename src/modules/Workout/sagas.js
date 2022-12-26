@@ -4,6 +4,8 @@ import {
   hideLoader,
   showAlert,
   showLoader,
+  showTransparentLoader,
+  hideTransparentLoader,
   showLogoutAlert,
 } from '../../utils/CommonFunctions';
 import {
@@ -82,7 +84,7 @@ function* onWorkoutDetails({data}) {
     )
       .then(response => response.json())
       .then(result => {
-        // console.log(result);
+        console.log(result);
         return result;
       })
       .catch(error => console.log('error', error));
@@ -113,6 +115,9 @@ function* onWorkoutDetails({data}) {
 
 function* onStartWorkout({data}) {
   // yield* showLoader(false);
+  if (data.loader) {
+    yield* showTransparentLoader(false);
+  }
   try {
     var myHeaders = new Headers();
     myHeaders.append('Authorization', 'Bearer ' + data.token);
@@ -137,17 +142,17 @@ function* onStartWorkout({data}) {
 
     if (res.status == 'Token is Expired') {
       yield showLogoutAlert(data.logout);
-      // yield* hideLoader(false, '');
+      yield* hideTransparentLoader(false, '');
       return;
     }
 
     if (res.status == 1) {
       // console.log('SGAGAGAGAG :::::::::::::::::', res);
       yield put(startWorkoutSuccess(res));
-      // yield* hideLoader(false, '');
+      yield* hideTransparentLoader(false, '');
     } else {
       yield put(startWorkoutFail());
-      // yield* hideLoader(false, '');
+      yield* hideTransparentLoader(false, '');
       console.log(res);
       setTimeout(() => {
         alert(res.workout_excersices);
@@ -156,7 +161,7 @@ function* onStartWorkout({data}) {
   } catch (error) {
     // console.log(JSON.stringify(error));
     yield put(workoutDetailsFail());
-    // yield* hideLoader(false, '');
+    yield* hideTransparentLoader(false, '');
   }
 }
 

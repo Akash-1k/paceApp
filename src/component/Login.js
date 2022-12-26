@@ -9,12 +9,22 @@ import {
   TouchableOpacity,
   View,
 } from 'react-native';
+import {
+  GoogleSignin,
+  statusCodes,
+} from '@react-native-google-signin/google-signin';
+import {
+  LoginManager,
+  GraphRequest,
+  GraphRequestManager,
+} from 'react-native-fbsdk';
 import {LinearGradient} from 'react-native-gradients';
 import {TextInput} from 'react-native-paper';
 import Ionicons from 'react-native-vector-icons/Ionicons';
 import {connect} from 'react-redux';
 import Fonts from '../constants/Fonts';
 import {loginRequest} from '../modules/Login/actions';
+import {showAlertWithDelay} from '../utils/CommonFunctions';
 
 const Login = props => {
   const navigation = useNavigation();
@@ -38,47 +48,16 @@ const Login = props => {
   const [passwordMsg, setVerifiedPasswordMsg] = useState(false);
 
   useEffect(() => {
+    GoogleSignin.configure();
+  }, []);
+
+  useEffect(() => {
     const unsubscribe = navigation.addListener('focus', () => {
       setUserItd('');
       setPass('');
     });
     return unsubscribe;
   }, [navigation]);
-
-  // console.log('props.loginData Login.js :::', props.loginData);
-
-  const onPressLogin = () => {
-    if (userId == '' && pass == '') {
-      setEmailValidText('Govt ID or Email is required *');
-      setVerifiedPasswordMsg('Please Enter Password *');
-      setIsValidEmail(true);
-      setIsValidPass(true);
-    }
-    if (userId == '') {
-      setEmailValidText('Govt ID or Email is required *');
-      setIsValidEmail(true);
-      return;
-    }
-
-    if (pass == '') {
-      setVerifiedPasswordMsg('Please Enter Password *');
-      setIsValidEmail(false);
-      setIsValidPass(true);
-      return;
-    }
-
-    setIsValidEmail(false);
-    setIsValidPass(false);
-
-    let data = new FormData();
-    data.append('email', userId);
-    data.append('password', pass);
-    // console.log('data:::: ', data);
-    let params = {
-      navigation: () => navigation.navigate('Root', {screen: 'TabOne'}),
-    };
-    props.loginRequest(data, params);
-  };
 
   const passValidation = txt => {
     if (txt == '') {
@@ -108,6 +87,135 @@ const Login = props => {
       } else {
         setEmailValidText('');
         setIsValidEmail(false);
+      }
+    }
+  };
+
+  const onPressLogin = () => {
+    if (userId == '' && pass == '') {
+      setEmailValidText('Govt ID or Email is required *');
+      setVerifiedPasswordMsg('Please Enter Password *');
+      setIsValidEmail(true);
+      setIsValidPass(true);
+    }
+    if (userId == '') {
+      setEmailValidText('Govt ID or Email is required *');
+      setIsValidEmail(true);
+      return;
+    }
+
+    if (pass == '') {
+      setVerifiedPasswordMsg('Please Enter Password *');
+      setIsValidEmail(false);
+      setIsValidPass(true);
+      return;
+    }
+
+    setIsValidEmail(false);
+    setIsValidPass(false);
+
+    let data = new FormData();
+    data.append('email', userId);
+    data.append('password', pass);
+
+    let params = {
+      navigation: () => navigation.navigate('Root', {screen: 'TabOne'}),
+      loginType: 'appLogin',
+    };
+    props.loginRequest(data, params);
+  };
+
+  const fbLogin = async resCallback => {
+    LoginManager.logOut();
+    console.log('first');
+    return LoginManager.logInWithPermissions(['email', 'public_profile']).then(
+      result => {
+        console.log('Result FB ----> ', result);
+        if (
+          result.declinedPermissions &&
+          result.declinedPermissions.includes('email')
+        ) {
+          console.log('firstads');
+          resCallback({message: 'Email is required '});
+        }
+        if (result.isCancelled) {
+          console.log('User Cancelled');
+        } else {
+          const infoRequest = new GraphRequest(
+            '/me?fields=email,name,picture',
+            null,
+            resCallback,
+          );
+          new GraphRequestManager().addRequest(infoRequest).start();
+        }
+      },
+      function (error) {
+        console.log('Login fail with error: ' + error);
+      },
+    );
+  };
+
+  const onFbLogin = async () => {
+    try {
+      await fbLogin(_responseInfoCallback);
+    } catch (error) {
+      console.log('onFbLogin Err', error.message);
+    }
+  };
+
+  const _responseInfoCallback = async (error, result) => {
+    if (error) {
+      console.log('_responseInfoCallback err', error);
+      return;
+    } else {
+      const userData = result;
+      console.log('User data FB', userData);
+
+      let data = new FormData();
+      data.append('name', userData.name);
+      data.append('email', userData.email);
+      data.append('facebookId', userData.id);
+      // data.append('photo', userInfo.user.photo, 'file');
+
+      let params = {
+        navigation: () => navigation.navigate('Root', {screen: 'TabOne'}),
+        loginType: 'socialLogin',
+      };
+      props.loginRequest(data, params);
+    }
+  };
+
+  const googleSignIn = async () => {
+    try {
+      await GoogleSignin.hasPlayServices();
+      const userInfo = await GoogleSignin.signIn();
+      console.log('GOOGLE RES', userInfo);
+      console.log(userInfo.user.photo);
+
+      let data = new FormData();
+      data.append('name', userInfo.user.name);
+      data.append('email', userInfo.user.email);
+      data.append('googleId', userInfo.user.id);
+      // data.append('photo', userInfo.user.photo, 'file');
+
+      let params = {
+        navigation: () => navigation.navigate('Root', {screen: 'TabOne'}),
+        loginType: 'socialLogin',
+      };
+      props.loginRequest(data, params);
+    } catch (error) {
+      if (error.code === statusCodes.SIGN_IN_CANCELLED) {
+        // user cancelled the login flow
+        console.log(error);
+      } else if (error.code === statusCodes.IN_PROGRESS) {
+        // operation (e.g. sign in) is in progress already
+        console.log(error);
+      } else if (error.code === statusCodes.PLAY_SERVICES_NOT_AVAILABLE) {
+        // play services not available or outdated
+        console.log(error);
+      } else {
+        // some other error happened
+        console.log(error);
       }
     }
   };
@@ -257,12 +365,7 @@ const Login = props => {
             <Text style={styles.textfooter}>Or Login With</Text>
 
             <View style={styles.flex}>
-              <TouchableOpacity
-                onPress={() => {
-                  alert('Coming soon...');
-                  console.log(props.loginData);
-                }}
-                style={{marginRight: 15}}>
+              <TouchableOpacity onPress={onFbLogin} style={{marginRight: 15}}>
                 <Image
                   resizeMode="contain"
                   source={require('../../assets/images/facebook.png')}
@@ -273,7 +376,7 @@ const Login = props => {
                 />
               </TouchableOpacity>
 
-              <TouchableOpacity>
+              <TouchableOpacity onPress={googleSignIn}>
                 <Image
                   resizeMode="contain"
                   source={require('../../assets/images/google.png')}

@@ -174,8 +174,13 @@ const StartRunning = props => {
     myHeaders.append('Authorization', `Bearer ${props.loginData.token}`);
 
     var formdata = new FormData();
-    formdata.append('distance', String(distance));
-    formdata.append('distance_in', distanceUnit == 'Km' ? '1' : '0');
+    formdata.append(
+      'distance',
+      distanceUnit == 'Km'
+        ? String(distance)
+        : String((distance / 0.62).toFixed(1)),
+    );
+    formdata.append('distance_in', '1');
     formdata.append('steps', String(steps));
     formdata.append('time', time);
     formdata.append('type', 'running');
@@ -229,7 +234,10 @@ const StartRunning = props => {
           setIsLoading(false);
         }
       })
-      .catch(error => console.log('error', error));
+      .catch(error => {
+        setIsLoading(false);
+        console.log('error', error);
+      });
   };
 
   useEffect(() => {
@@ -329,7 +337,9 @@ const StartRunning = props => {
                                 fontSize: 22,
                                 textAlign: 'center',
                               }}>
-                              Start Running
+                              {userRunningData && userRunningData.in_progress
+                                ? 'Resume Running'
+                                : 'Start Running'}
                             </Text>
                           </View>
                         </TouchableOpacity>
@@ -806,8 +816,8 @@ const StartRunning = props => {
                   minutes={minutes}
                   hours={hours}
                   onTimeSelected={t => {
-                    console.log(`${t.getHours()}:${t.getMinutes()}:00`);
-                    setTime(`${t.getHours()}:${t.getMinutes()}:00`);
+                    // console.log(`${t.getHours()}:${t.getMinutes()}`);
+                    setTime(`00:${t.getHours()}:${t.getMinutes()}`);
                   }}
                 />
               </View>

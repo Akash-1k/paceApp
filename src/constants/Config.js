@@ -1,5 +1,7 @@
 import {Platform} from 'react-native';
 
+export const PLACEHOLDER_IMAGE_COMP = require('../../assets/images/LogoBlack.png');
+
 const Config = {
   // Strip_PK:
   //   'pk_test_51LMm3HIrDDSW9ldIUDvQk0QlcEsjLfojPBOTyfUP34Lkm5Au23GTUfKecCrf7uPlNo8gRC9dwFhXrTPe4DCG3qsq00jpxFNzPf',
@@ -76,12 +78,18 @@ const Config = {
   update_product_cart: '/update-product-cart',
   fetch_products: '/fetch-products',
   get_milestone: '/get-milestone',
+  start_milestone: '/start-milestone',
+  show_milestone: '/show-milestone',
   user_walking_status: '/user-walking-status',
   user_running_status: '/user-running-status',
   user_running: '/user-running',
   user_walking: '/user-walking',
   checkout: '/checkout',
   progress: '/progress',
+  social_login: '/social_login',
+  wallet: '/wallet',
+  order: '/order',
+  workout_status: '/workout-status',
   logout: '/logout',
 };
 

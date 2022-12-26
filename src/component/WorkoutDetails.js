@@ -25,6 +25,7 @@ import {
 } from '../modules/Workout/actions';
 import Config from '../constants/Config';
 import {toUpperCaseFirst} from '../common/Functions/Func';
+import {showAlert} from '../utils/CommonFunctions';
 
 const WorkoutDetails = props => {
   const navigation = useNavigation();
@@ -68,7 +69,6 @@ const WorkoutDetails = props => {
     return unsubscribe;
   }, [navigation]);
 
-  // console.log('props.workoutDetails::::::::::::::', props.workoutDetails);
   useEffect(() => {
     setData(props.workoutDetails);
     setWorkoutExcersices(props.workoutDetails?.workout_excersices);
@@ -87,19 +87,25 @@ const WorkoutDetails = props => {
   };
 
   const onStartWorkout = () => {
-    props.setExerciseID(workout_excersices[0].set_list[0]);
+    var currExersise = workout_excersices.find(ele => !ele.status);
+    console.log('-----', currExersise);
+    if (!currExersise) {
+      showAlert('You have completed this workout');
+      return;
+    }
+    props.setExerciseID(currExersise.set_list[0]);
     console.log(
-      workout_excersices[0].set_list[0].id,
-      workout_excersices[0].set_list[0].workout_id,
+      currExersise.set_list[0].id,
+      currExersise.set_list[0].workout_id,
     );
     const data = {
       token: props.loginData.token,
-      exersiseId: workout_excersices[0].set_list[0].id,
-      workout_id: workout_excersices[0].set_list[0].workout_id,
+      exersiseId: currExersise.set_list[0].id,
+      workout_id: currExersise.set_list[0].workout_id,
+      loader: true,
     };
     props.startWorkoutRequest(data);
-    navigation.navigate('BeReadyCountDown', {nextScreen: 'StartWorkout'});
-    // navigation.navigate('StartWorkout');
+    navigation.navigate('StartWorkout');
   };
 
   const onPressExersise = item => {
@@ -112,7 +118,9 @@ const WorkoutDetails = props => {
       workout_id: item.workout_id,
     };
     props.startWorkoutRequest(data);
-    navigation.navigate('BeReadyCountDown', {nextScreen: 'StartWorkout'});
+
+    navigation.navigate('StartWorkout');
+    // navigation.navigate('BeReadyCountDown', {nextScreen: 'StartWorkout'});
     // navigation.navigate('Rest', item);
   };
 
@@ -144,6 +152,7 @@ const WorkoutDetails = props => {
   const renderExcersicesSubList = data => {
     return (
       <List.Item
+        disabled
         onPress={() => {
           onPressExersise(data.item);
         }}

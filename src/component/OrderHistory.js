@@ -12,21 +12,25 @@ import {
 } from 'react-native';
 import {useNavigation} from '@react-navigation/native';
 import {OrderHistoryDetails} from '../staticData/History';
+import {connect} from 'react-redux';
+import Loader from '../common/Loader';
+import Config, {PLACEHOLDER_IMAGE_COMP} from '../constants/Config';
 
 const SingleProduct = ({item}) => {
   const navigation = useNavigation();
 
   const [status, setStatus] = useState('');
   const [statusColor, setStatusColor] = useState('');
+
   useEffect(() => {
-    if (item.status == 'Deliverd') {
-      setStatus(item.status);
+    if (item.status == 2) {
+      setStatus('Delivered');
       setStatusColor('#63C501');
-    } else if (item.status == 'Pending') {
-      setStatus(item.status);
+    } else if (item.status == 0) {
+      setStatus('Pending');
       setStatusColor('#F7B551');
-    } else if (item.status == 'Canceled') {
-      setStatus(item.status);
+    } else if (item.status == 3) {
+      setStatus('Canceled');
       setStatusColor('#FF0145');
     } else {
       setStatus(item.status);
@@ -41,7 +45,9 @@ const SingleProduct = ({item}) => {
           onPress={() => navigation.navigate('OrderDetails', {id: item.id})}>
           <Image
             resizeMode="cover"
-            source={item.url}
+            source={
+              item.image == null ? PLACEHOLDER_IMAGE_COMP : {uri: item.image}
+            }
             style={{
               width: 79,
               height: 79,
@@ -59,11 +65,22 @@ const SingleProduct = ({item}) => {
             <Text
               numberOfLines={1}
               style={styles.title}
-              onPress={() => navigation.navigate('OrderDetails')}>
-              {item.title}
+              onPress={() =>
+                navigation.navigate('OrderDetails', {id: item.id})
+              }>
+              {item.product_name == null ? 'Premium' : item.product_name}
             </Text>
           </View>
-          <Text style={styles.subtitle}>{item.options}</Text>
+          {item.product_name == null ? (
+            <Text></Text>
+          ) : (
+            <Text style={styles.subtitle}>
+              {item.size}
+              {item.color ? ` | ${item.color}` : ''} {'| x'}
+              {item.qty}{' '}
+            </Text>
+          )}
+
           <View
             style={{
               display: 'flex',
@@ -92,7 +109,7 @@ const SingleProduct = ({item}) => {
                 ]}>
                 Order ID :
               </Text>
-              {item.orderId}
+              {item.order_id.slice(1)}
             </Text>
             <Text
               style={{
@@ -104,14 +121,14 @@ const SingleProduct = ({item}) => {
               }}>
               <Text>
                 <Text style={{fontSize: 13}}>$</Text>
-                {item.price}
+                {parseFloat(item.price).toFixed(2)}
                 <Text
                   style={{
                     fontSize: 13,
                     fontWeight: '200',
                     fontFamily: Fonts.Poppins_Regular,
                   }}>
-                  .00
+                  {/* .00 */}
                 </Text>
               </Text>
             </Text>
@@ -145,24 +162,62 @@ const SingleProduct = ({item}) => {
   );
 };
 
-const OrderHistory = () => {
-  const navigation = useNavigation();
+const OrderHistory = props => {
+  const [data, setData] = useState();
+  const [isLoading, setIsLoading] = useState(false);
+
+  useEffect(() => {
+    getOrderHistory();
+  }, []);
+
+  const getOrderHistory = () => {
+    var myHeaders = new Headers();
+    myHeaders.append('Authorization', 'Bearer ' + props.loginData.token);
+
+    var requestOptions = {
+      method: 'GET',
+      headers: myHeaders,
+      redirect: 'follow',
+    };
+    setIsLoading(true);
+    fetch(Config.BASE_URL + Config.order, requestOptions)
+      .then(response => response.json())
+      .then(result => {
+        console.log('--------------', result);
+        setData(result.orders);
+        setIsLoading(false);
+      })
+      .catch(error => {
+        setIsLoading(false);
+        console.log('error', error);
+      });
+  };
+
   return (
     <SafeAreaView style={styles.relative}>
       <ScrollView style={styles.relative}>
         <View style={styles.container}>
           <FlatList
-            data={OrderHistoryDetails}
+            data={data}
+            inverted
             renderItem={({item}) => <SingleProduct item={item} />}
             keyExtractor={item => item.id}
           />
         </View>
       </ScrollView>
+      <Loader loading={isLoading} />
     </SafeAreaView>
   );
 };
 
-export default OrderHistory;
+const mapStateToProps = state => ({
+  loginData: state.loginReducer.loginData,
+  userDetails: state.profileReducer?.userDetails,
+});
+
+const mapDispatchToProps = dispatch => ({});
+
+export default connect(mapStateToProps, mapDispatchToProps)(OrderHistory);
 
 const styles = StyleSheet.create({
   container: {
@@ -195,6 +250,7 @@ const styles = StyleSheet.create({
     position: 'relative',
     flex: 1,
     paddingLeft: 15,
+    justifyContent: 'flex-start',
   },
   title: {
     color: '#3B2645',

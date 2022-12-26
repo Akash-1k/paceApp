@@ -56,7 +56,7 @@ export default (state = INITIAL_STATE, action) => {
       };
 
     case START_WORKOUT_SUCCESS:
-      console.log('START_WORKOUT_SUCCESS ::::::::::', action.data);
+      // console.log('START_WORKOUT_SUCCESS ::::::::::', action.data);
       return {
         ...state,
         startWorkoutDetails: action.data,

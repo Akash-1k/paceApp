@@ -174,6 +174,7 @@ const StartWorkout = props => {
       token: props.loginData.token,
       exersiseId: props.nextworkout?.id,
       workout_id: props.nextworkout?.workout_id,
+      loader: true,
     };
     props.startWorkoutRequest(data);
   };
@@ -262,15 +263,18 @@ const StartWorkout = props => {
                 <TouchableOpacity
                   style={{
                     position: 'absolute',
+                    zIndex: 3,
                     left: windowHeight / 5.2,
                     top: windowHeight / 2.5,
                   }}
                   onPress={() => {
                     setIsPlayVideo(true);
-                    // console.log('Play Button', data);
                     props.setPlayVideoDetails(props.workout_excersices);
                     props.setNextWorkoutDetails(props.nextworkout);
-                    navigation.navigate('VideoPlayer');
+                    // navigation.navigate('VideoPlayer');
+                    navigation.navigate('BeReadyCountDown', {
+                      nextScreen: 'VideoPlayer',
+                    });
                   }}>
                   <Ionicons name="play-circle" size={70} color="#fff" />
                 </TouchableOpacity>
@@ -351,6 +355,7 @@ const StartWorkout = props => {
                       {props.nextworkout && (
                         <View style={styles.workbody1}>
                           <TouchableOpacity
+                            disabled
                             onPress={() => {
                               onNexExercise();
                             }}>
@@ -429,7 +434,7 @@ const StartWorkout = props => {
                 {textShown ? 'Read less...' : 'Read more...'}
               </Text>
             ) : null}
-            {console.log(props.how_do_it)}
+
             {props?.how_do_it?.length > 0 && (
               <>
                 <View style={[styles.flexdir, {marginBottom: 15}]}>

@@ -24,6 +24,7 @@ import Config from '../constants/Config';
 import Loader from '../common/Loader';
 import MultiSlider from '@ptomasroos/react-native-multi-slider';
 import {LinearGradient} from 'react-native-gradients';
+import {ActivityIndicator} from 'react-native';
 
 const Shop = props => {
   const navigation = useNavigation();
@@ -61,6 +62,8 @@ const Shop = props => {
   const [colorList, setColorList] = useState([]);
   const [allProductData, setAllProductData] = useState({});
 
+  const [count, setCount] = useState();
+  const [noProduct, setNoProduct] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
 
   const [orderby, setOrderBy] = useState('desc');
@@ -74,11 +77,10 @@ const Shop = props => {
 
   useEffect(() => {
     props.shopCategoryListRequest(props.loginData);
-    getAllFilterProducts();
+    // getAllFilterProducts();
   }, []);
 
   useEffect(() => {
-    // setProductsList([]);
     getAllProducts();
   }, [cat_id]);
 
@@ -135,6 +137,10 @@ const Shop = props => {
   };
 
   const getAllProducts = () => {
+    if (count == productList.length && searchQuery == '') {
+      return;
+    }
+
     var myHeaders = new Headers();
     myHeaders.append('Authorization', 'Bearer ' + props.loginData.token);
 
@@ -147,8 +153,8 @@ const Shop = props => {
     if (cat_id != '') {
       formdata.append('cat_id', cat_id);
     }
-    // formdata.append('start', productList.length);
-    // formdata.append('recordsPerPage', 2);
+    formdata.append('start', productList.length);
+    formdata.append('recordsPerPage', 6);
 
     var requestOptions = {
       method: 'POST',
@@ -161,12 +167,15 @@ const Shop = props => {
     fetch(Config.BASE_URL + Config.fetch_products, requestOptions)
       .then(response => response.json())
       .then(result => {
-        console.log('getAllProducts Shop.js', result);
-        setAllProductData(result);
-        setProductsList(result.products);
-        // setColorList(result.variation.colors);
-        // setSizeList(result.variation.sizes);
-        setIsLoading(false);
+        console.log('getAllProducts Shop.js', result, `\n\n`);
+        if (result.products.length == 0) {
+          setIsLoading(false);
+          setNoProduct(true);
+        } else {
+          setCount(result.count);
+          setProductsList([...productList, ...result.products]);
+          setIsLoading(false);
+        }
       })
       .catch(error => {
         setIsLoading(false);
@@ -178,7 +187,10 @@ const Shop = props => {
     console.log('onSelectCategory Shop.js', item);
     setSelectedCategory(index);
     setCatId(item.id);
+    setProductsList([]);
+    setNoProduct(false);
   };
+
   const Item = ({item, onPress, backgroundColor, borderColor, textColor}) => (
     <TouchableOpacity
       onPress={onPress}
@@ -245,7 +257,6 @@ const Shop = props => {
   };
 
   const onProductDetails = item => {
-    // console.log(item);
     props.setProductDetailsToAddInCart(item);
     navigation.navigate('ProductDetails');
   };
@@ -333,16 +344,22 @@ const Shop = props => {
     );
   };
 
+  const renderFooter = () => (
+    <View>
+      {isLoading && <ActivityIndicator size={'large'} color={'#000'} />}
+    </View>
+  );
+
   return (
     <SafeAreaView style={styles.mainbg}>
-      {/* <ScrollView> */}
       <View style={styles.container}>
         <View style={styles.searchbar}>
           <Searchbar
             placeholder="Search Product"
-            // clearIcon={()=>(<Text>bbbb </Text>)}
             onChangeText={onChangeSearch}
             onSubmitEditing={t => {
+              setProductsList([]);
+              setNoProduct(false);
               getAllProducts();
             }}
             value={searchQuery}
@@ -408,36 +425,46 @@ const Shop = props => {
             })}
           </ScrollView>
         </View>
-        {Boolean(productList.length > 0) ? (
-          <View style={styles.itemsBox}>
-            <FlatList
-              data={productList}
-              renderItem={renderItemProducts}
-              numColumns={2}
-              // onEndReached={() => {
-              //   getAllProducts();
-              // }}
-              // onEndReachedThreshold={1}
-            />
-          </View>
-        ) : (
-          <View
-            style={{
-              height: 500,
-              justifyContent: 'center',
-              alignItems: 'center',
-            }}>
-            <Image
-              source={require('../../assets/images/empty.png')}
-              style={{width: 100, height: 100}}
-            />
-            <Text style={[styles.title1, {fontSize: 25, textAlign: 'center'}]}>
-              {'No Product Found'}
-            </Text>
-          </View>
-        )}
+        <ScrollView>
+          {Boolean(productList.length > 0) ? (
+            <View style={styles.itemsBox}>
+              <FlatList
+                data={productList}
+                renderItem={renderItemProducts}
+                numColumns={2}
+                onEndReached={getAllProducts}
+                ListFooterComponent={renderFooter}
+                onEndReachedThreshold={0.2}
+              />
+            </View>
+          ) : noProduct ? (
+            <View
+              style={{
+                height: 500,
+                justifyContent: 'center',
+                alignItems: 'center',
+              }}>
+              <Image
+                source={require('../../assets/images/empty.png')}
+                style={{width: 100, height: 100}}
+              />
+              <Text
+                style={[styles.title1, {fontSize: 25, textAlign: 'center'}]}>
+                {'No Product Found'}
+              </Text>
+            </View>
+          ) : (
+            <View
+              style={{
+                height: 500,
+                justifyContent: 'center',
+                alignItems: 'center',
+              }}>
+              <ActivityIndicator size={'large'} color={'#000'} />
+            </View>
+          )}
+        </ScrollView>
       </View>
-      {/* </ScrollView> */}
 
       <Modal
         isVisible={isModalVisible}
@@ -526,7 +553,7 @@ const Shop = props => {
           </TouchableOpacity>
         </View>
       </Modal>
-      <Loader loading={isLoading} />
+      {/* <Loader loading={isLoading} /> */}
     </SafeAreaView>
   );
 };

@@ -21,6 +21,15 @@ import Fonts from '../constants/Fonts';
 import {BASE_URL} from '../env';
 import {signupRequest, signupSuccess} from '../modules/Signup/actions';
 import {showAlert} from '../utils/CommonFunctions';
+import {
+  GoogleSignin,
+  statusCodes,
+} from '@react-native-google-signin/google-signin';
+import {
+  LoginManager,
+  GraphRequest,
+  GraphRequestManager,
+} from 'react-native-fbsdk';
 
 const SignUp = props => {
   const navigation = useNavigation();
@@ -238,6 +247,100 @@ const SignUp = props => {
     }
   };
 
+  const fbLogin = async resCallback => {
+    LoginManager.logOut();
+    console.log('first');
+    return LoginManager.logInWithPermissions(['email', 'public_profile']).then(
+      result => {
+        console.log('Result FB ----> ', result);
+        if (
+          result.declinedPermissions &&
+          result.declinedPermissions.includes('email')
+        ) {
+          console.log('firstads');
+          resCallback({message: 'Email is required '});
+        }
+        if (result.isCancelled) {
+          console.log('User Cancelled');
+        } else {
+          const infoRequest = new GraphRequest(
+            '/me?fields=email,name,picture',
+            null,
+            resCallback,
+          );
+          new GraphRequestManager().addRequest(infoRequest).start();
+        }
+      },
+      function (error) {
+        console.log('Login fail with error: ' + error);
+      },
+    );
+  };
+
+  const onFbLogin = async () => {
+    try {
+      await fbLogin(_responseInfoCallback);
+    } catch (error) {
+      console.log('onFbLogin Err', error.message);
+    }
+  };
+
+  const _responseInfoCallback = async (error, result) => {
+    if (error) {
+      console.log('_responseInfoCallback err', error);
+      return;
+    } else {
+      const userData = result;
+      console.log('User data FB', userData);
+
+      let data = new FormData();
+      data.append('name', userData.name);
+      data.append('email', userData.email);
+      data.append('facebookId', userData.id);
+      // data.append('photo', userInfo.user.photo, 'file');
+
+      let params = {
+        navigation: () => navigation.navigate('Root', {screen: 'TabOne'}),
+        loginType: 'socialLogin',
+      };
+      props.loginRequest(data, params);
+    }
+  };
+
+  const googleSignIn = async () => {
+    try {
+      await GoogleSignin.hasPlayServices();
+      const userInfo = await GoogleSignin.signIn();
+      console.log('GOOGLE RES', userInfo);
+      console.log(userInfo.user.photo);
+
+      let data = new FormData();
+      data.append('name', userInfo.user.name);
+      data.append('email', userInfo.user.email);
+      data.append('googleId', userInfo.user.id);
+      // data.append('photo', userInfo.user.photo, 'file');
+
+      let params = {
+        navigation: () => navigation.navigate('Root', {screen: 'TabOne'}),
+        loginType: 'socialLogin',
+      };
+      props.loginRequest(data, params);
+    } catch (error) {
+      if (error.code === statusCodes.SIGN_IN_CANCELLED) {
+        // user cancelled the login flow
+        console.log(error);
+      } else if (error.code === statusCodes.IN_PROGRESS) {
+        // operation (e.g. sign in) is in progress already
+        console.log(error);
+      } else if (error.code === statusCodes.PLAY_SERVICES_NOT_AVAILABLE) {
+        // play services not available or outdated
+        console.log(error);
+      } else {
+        // some other error happened
+        console.log(error);
+      }
+    }
+  };
   return (
     <SafeAreaView style={styles.mainbg}>
       <ScrollView keyboardShouldPersistTaps="handled">
@@ -457,7 +560,7 @@ const SignUp = props => {
             <Text style={styles.textfooter}>Or Signup With</Text>
 
             <View style={styles.flex}>
-              <TouchableOpacity style={{marginRight: 15}}>
+              <TouchableOpacity onPress={onFbLogin} style={{marginRight: 15}}>
                 <Image
                   resizeMode="contain"
                   source={require('../../assets/images/facebook.png')}
@@ -468,7 +571,7 @@ const SignUp = props => {
                 />
               </TouchableOpacity>
 
-              <TouchableOpacity>
+              <TouchableOpacity onPress={googleSignIn}>
                 <Image
                   resizeMode="contain"
                   source={require('../../assets/images/google.png')}

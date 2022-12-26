@@ -11,17 +11,18 @@ import {
   FlatList,
 } from 'react-native';
 import {CircularProgressBase} from 'react-native-circular-progress-indicator';
-import ProgressCircle from 'react-native-progress-circle';
 import {LinearGradient} from 'react-native-gradients';
 import {useNavigation} from '@react-navigation/native';
 import Fonts from '../constants/Fonts';
 import Config from '../constants/Config';
 import {connect} from 'react-redux';
 import Loader from '../common/Loader';
+import {toPercent} from '../common/Functions/Func';
 
 const DoubleYourCoins = props => {
-  const [data, setData] = useState();
+  const [data, setData] = useState([]);
   const [isLoading, setIsLoading] = useState(false);
+  const [disabledBtn, setDisabledBtn] = useState(false);
 
   const props1 = {
     radius: 35,
@@ -49,8 +50,30 @@ const DoubleYourCoins = props => {
     fetch(Config.BASE_URL + Config.get_milestone, requestOptions)
       .then(response => response.json())
       .then(result => {
-        // console.log(result);
-        setData(result.data);
+        var data1 = result.data;
+        data1.reverse();
+        setData(data1);
+        let check = null;
+        let completed = null;
+        data1.forEach((ele, idx) => {
+          if (ele.in_progress) {
+            check = ele;
+          }
+          if (ele.user_milestone_status == 2) {
+            completed = idx;
+            // navigation.navigate('Congratulations', {id: ele.id});
+          }
+        });
+
+        if (check) {
+          setDisabledBtn(check);
+        } else {
+          if (completed + 1 < data1.length) {
+            setDisabledBtn(data1[completed + 1]);
+          } else {
+            setDisabledBtn(null);
+          }
+        }
         setIsLoading(false);
       })
       .catch(error => {
@@ -58,6 +81,36 @@ const DoubleYourCoins = props => {
         setIsLoading(false);
       });
   };
+
+  const startMilestone = id => {
+    var myHeaders = new Headers();
+    myHeaders.append('Authorization', 'Bearer ' + props.loginData.token);
+
+    var formdata = new FormData();
+
+    formdata.append('milestone_id', id);
+    formdata.append('status', 1);
+    console.log(formdata);
+    var requestOptions = {
+      method: 'POST',
+      body: formdata,
+      headers: myHeaders,
+      redirect: 'follow',
+    };
+    // return;
+    // setIsLoading(true);
+    fetch(Config.BASE_URL + Config.start_milestone, requestOptions)
+      .then(response => response.json())
+      .then(result => {
+        console.log(result);
+        // setIsLoading(false);
+      })
+      .catch(error => {
+        console.log('error', error);
+        // setIsLoading(false);
+      });
+  };
+
   const navigation = useNavigation();
   const colorList1 = [
     {offset: '0%', color: '#C068E5', opacity: '1'},
@@ -65,7 +118,6 @@ const DoubleYourCoins = props => {
   ];
 
   const Milestone = ({item}) => {
-    console.log('aa', item);
     return (
       <View
         style={[
@@ -75,7 +127,9 @@ const DoubleYourCoins = props => {
             : {},
         ]}>
         <View style={styles.relative}>
-          <CircularProgressBase {...props1} value={50}>
+          <CircularProgressBase
+            {...props1}
+            value={toPercent(item.running, item.distance)}>
             <View style={styles.flexprog}>
               <Image
                 resizeMode="contain"
@@ -117,8 +171,9 @@ const DoubleYourCoins = props => {
             </Text>
           </Text>
         </View>
-        {item.running_status == 'completed' && (
-          <TouchableOpacity style={[styles.nbtn]}>
+        {/* user_milestone_status --> 0 (Not Started), 1 (in_progress), 2 (completed)*/}
+        {item.user_milestone_status == 2 && (
+          <View style={[styles.nbtn]}>
             <Image
               resizeMode="contain"
               source={require('../../assets/images/completed.png')}
@@ -136,25 +191,34 @@ const DoubleYourCoins = props => {
               }}>
               Completed
             </Text>
-          </TouchableOpacity>
+          </View>
         )}
-        {item.running_status == null && (
+        {item.user_milestone_status == 1 && (
           <View style={styles.nbtn1}>
             <TouchableOpacity
-              onPress={() => navigation.navigate('WalkingTimerMilestone')}
+              disabled={!item.in_progress}
+              onPress={() => {
+                navigation.navigate('WalkingTimerMilestone', {id: item.id});
+              }}
               style={styles.button}>
               <LinearGradient colorList={colorList1} angle={200} />
-              <Text style={styles.text}>Start Streak</Text>
+              <Text style={styles.text}>Streak Started</Text>
             </TouchableOpacity>
           </View>
         )}
-        {item.running_status == 'in-progress' && (
+        {(item.user_milestone_status == 0 ||
+          item.user_milestone_status == null) && (
           <View style={styles.nbtn1}>
             <TouchableOpacity
-              onPress={() => navigation.navigate('WalkingTimerMilestone')}
+              disabled={
+                disabledBtn == null ? true : !(disabledBtn.id == item.id)
+              }
+              onPress={() => {
+                startMilestone(item.id);
+              }}
               style={styles.button}>
               <LinearGradient colorList={colorList1} angle={200} />
-              <Text style={styles.text}>Resume Streak</Text>
+              <Text style={styles.text}>Start Streak</Text>
             </TouchableOpacity>
           </View>
         )}
@@ -276,68 +340,9 @@ const DoubleYourCoins = props => {
             </ImageBackground>
           </View>
           <View style={styles.container}>
-            <FlatList
-              data={data}
-              renderItem={({item, index}) => <Milestone item={item} />}
-              keyExtractor={item => item.id}
-            />
-            {/* <View style={[styles.boxbor, styles.boxbor1]}>
-              <View style={styles.relative}>
-                <ProgressCircle
-                  percent={100}
-                  radius={35}
-                  borderWidth={5}
-                  color="#C068E5"
-                  shadowColor="#F2F5F8"
-                  bgColor="#fff">
-                  <View style={styles.flexprog}>
-                    <Image
-                      resizeMode="contain"
-                      source={require('../../assets/images/run1.png')}
-                      style={{
-                        width: 20,
-                        height: 20,
-                      }}
-                    />
-                  </View>
-                </ProgressCircle>
-              </View>
-              <View style={{paddingLeft: 16}}>
-                <Text
-                  style={{
-                    fontFamily: Fonts.Poppins_Bold,
-                    fontSize: 20,
-                    lineHeight: 25,
-                    color: '#C068E5',
-                  }}>
-                  <Text>Milestone 2</Text>
-                </Text>
-                <Text
-                  style={{
-                    fontFamily: Fonts.Poppins_Regular,
-                    color: '#3B2645',
-                  }}>
-                  Total Distance :
-                  <Text
-                    style={{
-                      fontWeight: '600',
-                      color: '#3B2645',
-                      opacity: 0.8,
-                      fontFamily: Fonts.Poppins_Bold,
-                    }}>
-                    {''} 10 km
-                  </Text>
-                </Text>
-              </View>
-              <View style={styles.nbtn1}>
-                <TouchableOpacity
-                  onPress={() => navigation.navigate('WalkingTimerMilestone')}
-                  style={styles.button}>
-                  <LinearGradient colorList={colorList1} angle={200} />
-                  <Text style={styles.text}>Start Streak</Text>
-                </TouchableOpacity>
-              </View>
-            </View> */}
+            {data.map((item, index) => (
+              <Milestone key={item.id} item={item} />
+            ))}
           </View>
           <Text
             style={{

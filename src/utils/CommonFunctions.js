@@ -3,7 +3,12 @@ import {Alert, ToastAndroid} from 'react-native';
 import Config from '../constants/Config';
 
 import {getConfiguration, setConfiguration} from '../utils/configuration';
-import {hideLoading, showLoading} from '../common/CLoader/action';
+import {
+  hideLoading,
+  hideTransparentLoading,
+  showLoading,
+  showTransparentLoading,
+} from '../common/CLoader/action';
 
 export function* hideLoader(isError, errorMessage) {
   yield put(hideLoading(isError, errorMessage));
@@ -13,6 +18,16 @@ export function* showLoader(silentFetch) {
     yield put(showLoading());
   }
 }
+
+export function* hideTransparentLoader(isError, errorMessage) {
+  yield put(hideTransparentLoading(isError, errorMessage));
+}
+export function* showTransparentLoader(silentFetch) {
+  if (!silentFetch) {
+    yield put(showTransparentLoading());
+  }
+}
+
 export const calcDistance = (x1, y1, x2, y2) => {
   const dx = Math.abs(x1 - x2);
   const dy = Math.abs(y1 - y2);
@@ -55,8 +70,21 @@ export function* showAlertWithDelay(msg) {
   }, 600);
 }
 export const showAlert = msg => {
+  // {
+  //   type: "normal | success | warning | danger | custom",
+  //   placement: "top | bottom",
+  //   duration: 4000,
+  //   offset: 30,
+  //   animationType: "slide-in | zoom-in",
+  // }
   setTimeout(() => {
-    ToastAndroid.show(msg, ToastAndroid.SHORT);
+    toast.show(msg, {
+      type: 'normal',
+      placement: 'bottom',
+      duration: 3000,
+      offset: 30,
+      animationType: 'zoom-in',
+    });
   }, 100);
 };
 export function isEmpty(obj) {

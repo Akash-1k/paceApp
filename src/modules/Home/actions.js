@@ -35,10 +35,9 @@ export const getWaterGlassRequested = data => ({
   data,
 });
 
-export const getWaterGlassSuccess = (data, saveGlass) => ({
+export const getWaterGlassSuccess = data => ({
   type: GET_WATER_GLASS_SUCCESS,
   data,
-  saveGlass,
 });
 export const getWaterGlassFail = () => ({
   type: GET_WATER_GLASS_FAIL,

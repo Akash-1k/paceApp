@@ -2,6 +2,11 @@ import axios from 'axios';
 import {put, takeLatest} from 'redux-saga/effects';
 import Config, {SUCCESS} from '../../constants/Config';
 import {BASE_URL} from '../../env';
+import {
+  GoogleSignin,
+  statusCodes,
+} from '@react-native-google-signin/google-signin';
+import {LoginManager} from 'react-native-fbsdk';
 import {hideLoader, showLoader, showAlert} from '../../utils/CommonFunctions';
 import {
   contactSupportFail,
@@ -27,7 +32,7 @@ import {
 } from './types';
 
 function* onLoginRequest({data, navigation}) {
-  // console.log('sags:::: ', navigation);
+  console.log('sags:::: \n', data, '\nsdasdsd\n', navigation);
 
   yield* showLoader(false);
   try {
@@ -39,14 +44,30 @@ function* onLoginRequest({data, navigation}) {
       redirect: 'follow',
     };
 
-    let res = yield fetch(BASE_URL + Config.do_login, requestOptions)
+    console.log(
+      `${BASE_URL}${
+        navigation.loginType == 'appLogin'
+          ? Config.do_login
+          : Config.social_login
+      }`,
+    );
+
+    let res = yield fetch(
+      `${BASE_URL}${
+        navigation.loginType == 'appLogin'
+          ? Config.do_login
+          : Config.social_login
+      }`,
+      requestOptions,
+    )
       .then(response => response.json())
       .then(result => {
+        console.log('RESULT ::::::::::::::::', result);
         return result;
       })
       .catch(error => console.error('error', error));
 
-    if (res.status == 0) {
+    if (res.status == 0 || res.status == 2) {
       yield put(loginFail());
       yield* hideLoader(false, '');
       // console.log(res);
@@ -69,7 +90,7 @@ function* onLoginRequest({data, navigation}) {
       // }, 400);
     }
   } catch (error) {
-    // console.log(JSON.stringify(error));
+    console.log(JSON.stringify(error));
     yield put(loginFail());
     yield* hideLoader(false, '');
   }
@@ -98,6 +119,13 @@ function* onLogoutRequest({data, navigation}) {
 
     if (res.status == 1 || res.status == 400) {
       // console.log('logout res:: ', res);
+      if (navigation.type == 'google') {
+        signOut();
+      }
+      if (navigation.type == 'facebook') {
+        console.log('FaceBook LOgout');
+        LoginManager.logOut();
+      }
       yield put(logoutSuccess(res));
       yield* hideLoader(false, '');
       navigation.navigation();
@@ -260,6 +288,16 @@ function* onContactSuport({data, navigation}) {
     yield* hideLoader(false, '');
   }
 }
+
+const signOut = async () => {
+  try {
+    await GoogleSignin.signOut();
+    console.log('SIGN OUT WITH GOOGLE WORKING!!!!!!!!!!!!!');
+    // this.setState({user: null}); // Remember to remove the user from your app's state as well
+  } catch (error) {
+    console.error(error);
+  }
+};
 
 function* sagaMobile() {
   yield takeLatest(LOGIN_REQUESTED, onLoginRequest);

@@ -14,6 +14,7 @@ import {
   Image,
 } from 'react-native';
 import {LinearGradient} from 'react-native-gradients';
+import MaterialIcons from 'react-native-vector-icons/MaterialIcons';
 import Fonts from '../constants/Fonts';
 //Import React Native Video to play video
 import Video from 'react-native-video';
@@ -65,7 +66,11 @@ const VideoPlayer = props => {
   const [playerState, setPlayerState] = useState(PLAYER_STATES.PLAYING);
   const [screenType, setScreenType] = useState('contain');
 
-  let count = 3;
+  let count = 0;
+  // console.log(
+  //   ' props.nextWorkoutDetails ------------------ ',
+  //   props.nextWorkoutDetails,
+  // );
 
   const colorList1 = [
     {offset: '0%', color: '#C068E5', opacity: '1'},
@@ -80,7 +85,7 @@ const VideoPlayer = props => {
     return () => backHandler.remove();
   }, []);
 
-  console.log(' Video PLayer, props.playVideoDetails ', props.playVideoDetails);
+  // console.log(' Video PLayer, props.playVideoDetails ', props.playVideoDetails);
   useEffect(() => {
     // Orientation.lockToLandscape();
     props.setIsStatusBar(true);
@@ -176,20 +181,20 @@ const VideoPlayer = props => {
         });
 
       if (currTimeArray[0] > 0) {
-        console.log('currTimeArray[0]', hour, currTimeArray[0]);
+        // console.log('currTimeArray[0]', hour, currTimeArray[0]);
         if (hour > currTimeArray[0]) {
           hour += currTimeArray[0];
           // setHour(hour + currTimeArray[0]);
-          console.log('first222222', hour, currTimeArray[0]);
+          // console.log('first222222', hour, currTimeArray[0]);
         } else {
           // setHour(currTimeArray[0]);
           hour = currTimeArray[0];
-          console.log('first', hour, currTimeArray[0]);
+          // console.log('first', hour, currTimeArray[0]);
         }
       } else {
         hour += currTimeArray[0];
         // setHour(hour + currTimeArray[0]);
-        console.log('first1111', hour, currTimeArray[0]);
+        // console.log('first1111', hour, currTimeArray[0]);
       }
       setCurrentTime(secondsToHms(hour));
     }
@@ -259,8 +264,17 @@ const VideoPlayer = props => {
             top: 15,
             zIndex: 2,
           }}
-          onPress={() => props.navigation.goBack()}>
-          <Image
+          onPress={() => props.navigation.navigate('StartWorkout')}>
+          <MaterialIcons
+            name="cancel"
+            size={25}
+            color="#0007"
+            // style={{
+            //   position: 'relative',
+            //   bottom: 1.2,
+            // }}
+          />
+          {/* <Image
             resizeMode="contain"
             source={require('../../assets/images/whitecross.png')}
             style={{
@@ -268,7 +282,7 @@ const VideoPlayer = props => {
               height: 20,
               opacity: 0.5,
             }}
-          />
+          /> */}
         </TouchableOpacity>
         <Video
           onBuffer={onBuffer}
@@ -338,14 +352,17 @@ const VideoPlayer = props => {
           </View>
         ) : null}
       </View>
-      <View style={{alignItems: 'center'}}>
+      <View style={{alignItems: 'center', flex: 1}}>
         {props.playVideoDetails && (
           <>
             <Text style={styles.title}>{props.playVideoDetails.title}</Text>
 
-            {/* <Text style={styles.subtitle}>
-              {'x 18'} {currentTime}{' '}
-            </Text> */}
+            <Text style={styles.subtitle}>
+              {'Set'}{' '}
+              {props?.route?.params?.count
+                ? props?.route?.params?.count + 1
+                : count + 1}
+            </Text>
             {/* <CustomTimer /> */}
           </>
         )}
@@ -355,10 +372,14 @@ const VideoPlayer = props => {
           if (props?.route?.params?.count) {
             count = props?.route?.params?.count;
           }
-          count -= 1;
+          count += 1;
           console.log(count);
-          if (count == 0) {
-            props.navigation.navigate('Rest', {nav: '60'});
+          if (count == 3) {
+            if (props.nextWorkoutDetails == null) {
+              props.navigation.navigate('CongratulationsWorkout');
+            } else {
+              props.navigation.navigate('Rest', {nav: '60'});
+            }
           } else {
             props.navigation.navigate('Rest', {count, nav: '30'});
           }
@@ -409,8 +430,9 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
     alignItems: 'center',
     alignSelf: 'center',
-    marginTop: 25,
-    marginHorizontal: 15,
+    marginBottom: 25,
+    // marginTop: 25,
+    // marginHorizontal: 15,
   },
   text: {
     position: 'absolute',
@@ -424,7 +446,7 @@ const styles = StyleSheet.create({
     fontFamily: Fonts.Poppins_Regular,
     fontSize: 26,
     lineHeight: 32,
-    marginBottom: 180,
+    // marginBottom: 180,
   },
   subtitle: {
     color: '#7B6F72',

@@ -11,7 +11,7 @@ import {
   ScrollView,
   Button,
 } from 'react-native';
-import {useNavigation} from '@react-navigation/native';
+import {useNavigation, useIsFocused} from '@react-navigation/native';
 import Ionicons from 'react-native-vector-icons/Ionicons';
 import {Dropdown} from 'react-native-element-dropdown';
 import MaterialIcons from 'react-native-vector-icons/MaterialIcons';
@@ -148,17 +148,16 @@ const stackData = [
     label: 'S',
   },
 ];
+
 const ProgressThisWeek = props => {
   const navigation = useNavigation();
-  const [isOpened, setIsOpened] = useState(false);
-  const [item, setItem] = useState(2);
-  const [itemData, setItemData] = useState();
+  const isFocused = useIsFocused();
 
+  const [isOpened, setIsOpened] = useState(false);
   const [currMonth, setCurrMonth] = useState(new Date());
   const [sunday, setSunday] = useState(new Date());
   const [saturday, setSaturday] = useState(new Date());
   const [reload, setReload] = useState(0);
-  const [stackDataState, setStackDataState] = useState(stackData);
 
   function toggle() {
     setIsOpened(wasOpened => !wasOpened);
@@ -173,19 +172,30 @@ const ProgressThisWeek = props => {
   // console.log(firstday, lastday);
 
   const onAdd = () => {
-    var sat = new Date(
+    // if (new Date(props.userDetails.user.registered_date))
+    if (new Date() < currMonth) {
+      return;
+    }
+    var nextWeekDay = new Date(
       currMonth.getFullYear(),
       currMonth.getMonth(),
       6 - currMonth.getDay() + currMonth.getDate(),
     );
+
+    nextWeekDay.setDate(nextWeekDay.getDate() + 1);
+
+    var sat = new Date(
+      nextWeekDay.getFullYear(),
+      nextWeekDay.getMonth(),
+      6 - nextWeekDay.getDay() + nextWeekDay.getDate(),
+    );
     var sun = new Date(
-      currMonth.getFullYear(),
-      currMonth.getMonth(),
-      currMonth.getDate() - currMonth.getDay(),
+      nextWeekDay.getFullYear(),
+      nextWeekDay.getMonth(),
+      nextWeekDay.getDate() - nextWeekDay.getDay(),
     );
     console.log(sun.toDateString(), '\n     ', sat.toDateString());
-    var nextWeekDay = new Date(sat);
-    nextWeekDay.setDate(nextWeekDay.getDate() + 1);
+
     console.log('nextWeekDay', nextWeekDay.toDateString());
     setCurrMonth(new Date(nextWeekDay));
     setSaturday(new Date(sat));
@@ -194,62 +204,90 @@ const ProgressThisWeek = props => {
   };
 
   const onSub = () => {
-    var sat = new Date(
-      currMonth.getFullYear(),
-      currMonth.getMonth(),
-      6 - currMonth.getDay() + currMonth.getDate(),
-    );
-    var sun = new Date(
+    // var sat = new Date(
+    //   currMonth.getFullYear(),
+    //   currMonth.getMonth(),
+    //   6 - currMonth.getDay() + currMonth.getDate(),
+    // );
+    // var sun = new Date(
+    //   currMonth.getFullYear(),
+    //   currMonth.getMonth(),
+    //   currMonth.getDate() - currMonth.getDay(),
+    // );
+    // console.log(sun.toDateString(), '\n     ', sat.toDateString());
+    // var nextWeekDay = new Date(sun);
+    // nextWeekDay.setDate(nextWeekDay.getDate() - 1);
+    // console.log('pervWeek', nextWeekDay.toDateString());
+    // setCurrMonth(new Date(nextWeekDay));
+    // setSaturday(new Date(sat));
+    // setSunday(new Date(sun));
+    // setReload(reload + 1);
+
+    var nextWeekDay = new Date(
       currMonth.getFullYear(),
       currMonth.getMonth(),
       currMonth.getDate() - currMonth.getDay(),
     );
-    console.log(sun.toDateString(), '\n     ', sat.toDateString());
-    var nextWeekDay = new Date(sun);
     nextWeekDay.setDate(nextWeekDay.getDate() - 1);
-    console.log('nextWeekDay', nextWeekDay.toDateString());
+
+    var sat = new Date(
+      nextWeekDay.getFullYear(),
+      nextWeekDay.getMonth(),
+      6 - nextWeekDay.getDay() + nextWeekDay.getDate(),
+    );
+    var sun = new Date(
+      nextWeekDay.getFullYear(),
+      nextWeekDay.getMonth(),
+      nextWeekDay.getDate() - nextWeekDay.getDay(),
+    );
+
+    console.log(sun.toDateString(), '\n     ', sat.toDateString());
+
+    console.log('pervWeek', nextWeekDay.toDateString());
     setCurrMonth(new Date(nextWeekDay));
     setSaturday(new Date(sat));
     setSunday(new Date(sun));
     setReload(reload + 1);
   };
+  // console.log(currMonth, sunday, saturday, reload);
 
   useEffect(() => {
-    var firstFormattedDate = `${sunday.getFullYear()}-${
-      sunday.getMonth() + 1
-    }-${sunday.getDate()}`;
+    if (isFocused) {
+      var firstFormattedDate = `${sunday.getFullYear()}-${
+        sunday.getMonth() + 1
+      }-${sunday.getDate()}`;
 
-    var lastFormattedDate = `${saturday.getFullYear()}-${
-      saturday.getMonth() + 1
-    }-${saturday.getDate()}`;
+      var lastFormattedDate = `${saturday.getFullYear()}-${
+        saturday.getMonth() + 1
+      }-${saturday.getDate()}`;
 
-    console.log(
-      'firstFormattedDate, lastFormattedDate',
-      firstFormattedDate,
-      lastFormattedDate,
-    );
-    if (firstFormattedDate == lastFormattedDate) {
-      setReload(reload + 1);
-      return;
+      // console.log(
+      //   'firstFormattedDate, lastFormattedDate',
+      //   firstFormattedDate,
+      //   lastFormattedDate,
+      // );
+      if (firstFormattedDate == lastFormattedDate) {
+        setReload(reload + 1);
+        return;
+      }
+
+      var myHeaders = new Headers();
+      myHeaders.append('Authorization', 'Bearer ' + props.loginData.token);
+
+      var requestOptions = {
+        method: 'GET',
+        headers: myHeaders,
+        redirect: 'follow',
+      };
+
+      var data = {
+        requestOptions,
+        params: `?start_date=${firstFormattedDate}&end_date=${lastFormattedDate}`,
+      };
+
+      props.myProgressRequest(data);
     }
-
-    var myHeaders = new Headers();
-    myHeaders.append('Authorization', 'Bearer ' + props.loginData.token);
-
-    var requestOptions = {
-      method: 'GET',
-      headers: myHeaders,
-      redirect: 'follow',
-    };
-
-    var data = {
-      requestOptions,
-      params: `?start_date=${firstFormattedDate}&end_date=${lastFormattedDate}`,
-    };
-    // ?start_date=2022-11-26&end_date=2022-11-26
-
-    props.myProgressRequest(data);
-  }, [reload]);
+  }, [reload, isFocused]);
 
   useEffect(() => {
     setSaturday(
@@ -267,26 +305,7 @@ const ProgressThisWeek = props => {
       ),
     );
   }, []);
-
-  useEffect(() => {
-    data1.forEach(ele => {
-      if (ele.id == item) {
-        // console.log(ele);
-        setItemData(ele);
-      }
-    });
-  }, []);
-
-  useEffect(() => {
-    data1.forEach(ele => {
-      if (ele.id == item) {
-        // console.log(ele);
-        setItemData(ele);
-      }
-    });
-  }, [item]);
-
-  console.log('sadadsk', props.weekProgressData);
+  // console.log(props.myProgressData);
   return (
     <SafeAreaView style={styles.relative}>
       <ScrollView style={styles.relative}>
@@ -346,74 +365,43 @@ const ProgressThisWeek = props => {
               </View>
             )}
           </View>
-          {/* <Image
-            resizeMode="cover"
-            source={require('../../assets/images/chartbg.png')}
-            style={{
-              width: '100%',
-              height: 350,
-            }}
-          /> */}
+
           <View
             style={{
               backgroundColor: '#F2F2FE',
               height: 320,
               justifyContent: 'flex-end',
             }}>
-            {/* {props.weekProgressData != null && ( */}
             <BarChart
               hideAxesAndRules={true}
               hideYAxisText={true}
-              // xAxisThickness={0}
-              // yAxisThickness={0}
-              // hideRules={true}
-              width={350}
               height={250}
               barWidth={15}
               spacing={30}
-              backgroundColor={'#A00'}
-              stackData={stackDataState}
-              // stackData={props.weekProgressData}
+              backgroundColor={'#F2F2FE'}
+              stackData={props.weekProgressData}
             />
-            {/* )} */}
           </View>
-          <Button
-            title="AVD"
-            onPress={() => {
-              setStackDataState([
-                {
-                  stacks: [
-                    {color: '#F00', key: 'running', value: 5},
-                    {color: '#F00', key: 'water', value: 10},
-                    {color: '#F00', key: 'steps', value: 20},
-                    {color: '#F00', key: 'workout', value: 30},
-                    {color: '#F00', key: 'calories', value: 37},
-                  ],
-                  label: 'T',
-                },
-              ]);
-            }}
-          />
+
           <View style={styles.box}>
             <View style={styles.icondate}>
               <TouchableOpacity
                 onPress={() => {
                   onSub();
-                  setItem(item - 1);
                 }}>
                 <MaterialIcons name="keyboard-arrow-left" size={20} />
               </TouchableOpacity>
               <Text style={styles.date}>
-                {`${sunday.getDate()} ${
-                  monthNames[sunday.getMonth()]
-                } - ${saturday.getDate()} ${
-                  monthNames[saturday.getMonth()]
-                } ${saturday.getFullYear()}`}
+                {`${sunday.getDate()} ${monthNames[sunday.getMonth()].slice(
+                  0,
+                  3,
+                )} - ${saturday.getDate()} ${monthNames[
+                  saturday.getMonth()
+                ].slice(0, 3)} ${saturday.getFullYear()}`}
               </Text>
               <TouchableOpacity
                 onPress={() => {
                   onAdd();
-                  setItem(item + 1);
                 }}>
                 <MaterialIcons name="keyboard-arrow-right" size={20} />
               </TouchableOpacity>
