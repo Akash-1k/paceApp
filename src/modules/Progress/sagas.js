@@ -21,7 +21,7 @@ function* onMyProgress({data}) {
       .catch(error => {
         console.log('error myProgress SAGAS onMyProgress', error);
       });
-
+    console.log('res.week', res);
     if (res.status) {
       var save = null;
       var data1 = {};

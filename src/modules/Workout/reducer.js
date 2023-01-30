@@ -26,7 +26,9 @@ const INITIAL_STATE = {
   playVideoDetails: {},
   nextWorkoutDetails: {},
   isStatusBar: false,
-  startWorkoutDetails: [],
+  startWorkoutDetails: {},
+  progress: {},
+  workout_excersices: [],
   premium: null,
 };
 

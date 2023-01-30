@@ -26,7 +26,8 @@ import {
   setNextWorkoutDetails,
   startWorkoutRequest,
 } from '../modules/Workout/actions';
-import {toUpperCaseFirst, inMilsec} from '../common/Functions/Func';
+import {toUpperCaseFirst, inMilsec, toPercent} from '../common/Functions/Func';
+import {CircularProgressBase} from 'react-native-circular-progress-indicator';
 
 const StartWorkout = props => {
   const navigation = useNavigation();
@@ -61,6 +62,14 @@ const StartWorkout = props => {
     },
   };
 
+  const props1 = {
+    radius: 55,
+    activeStrokeWidth: 15,
+    inActiveStrokeWidth: 15,
+    inActiveStrokeColor: '#F2F5F8',
+    activeStrokeColor: '#5D6AFC',
+    activeStrokeSecondaryColor: '#C068E5',
+  };
   // Read more & Read less... (START)
   const [textShown, setTextShown] = useState(false);
   const [lengthMore, setLengthMore] = useState(false); //to show the "Read more & Less Line"
@@ -75,14 +84,14 @@ const StartWorkout = props => {
   }, []);
   // Read more & Read less... (END)
 
-  useEffect(() => {
-    setTimerDuration(0);
-    if (route?.params?.screen) {
-      hitApi(props.nextWorkoutDetails.id, props.nextWorkoutDetails.workout_id);
-    } else {
-      hitApi(props.exersiseId.id, props.exersiseId.workout_id);
-    }
-  }, [route.params?.currentTime, route.params]);
+  // useEffect(() => {
+  //   setTimerDuration(0);
+  //   if (route?.params?.screen) {
+  //     hitApi(props.nextWorkoutDetails.id, props.nextWorkoutDetails.workout_id);
+  //   } else {
+  //     hitApi(props.exersiseId.id, props.exersiseId.workout_id);
+  //   }
+  // }, [route.params?.currentTime, route.params]);
 
   // console.log('timerDuration,', timerDuration);
   const hitApi = (exersiseId, workout_id) => {
@@ -187,142 +196,160 @@ const StartWorkout = props => {
   return (
     <SafeAreaView style={styles.relative}>
       <ScrollView style={styles.relative}>
-        <View style={styles.container}>
-          <View
-            style={{
-              width: '100%',
-              height: windowHeight,
-              flex: 1,
-              borderBottomStartRadius: 20,
-              borderBottomEndRadius: 20,
-              overflow: 'hidden',
-            }}>
-            <ImageBackground
-              resizeMode="cover"
-              source={
-                props.workout_excersices.thumb_image
-                  ? {
-                      uri: `${Config.IMAGE_BASE_URL}workouts/${props.workout_excersices.thumb_image}`,
-                    }
-                  : require('../../assets/images/exercise_img.png')
-              }
+        {!(JSON.stringify(props.startWorkoutDetails) === '{}') && (
+          <View style={styles.container}>
+            <View
               style={{
                 width: '100%',
                 height: windowHeight,
                 flex: 1,
+                borderBottomStartRadius: 20,
+                borderBottomEndRadius: 20,
+                overflow: 'hidden',
               }}>
-              <View style={styles.workcenter}>
-                <TouchableOpacity
-                  style={{
-                    position: 'absolute',
-                    top: 0,
-                    right: 20,
-                    top: 15,
-                    zIndex: 2,
-                  }}
-                  onPress={() => navigation.navigate('WorkoutDetails')}>
-                  <Image
-                    resizeMode="contain"
-                    source={require('../../assets/images/whitecross.png')}
+              <ImageBackground
+                resizeMode="cover"
+                source={
+                  props.workout_excersices &&
+                  props.workout_excersices[0].thumb_image
+                    ? {
+                        uri: `${Config.IMAGE_BASE_URL}workouts/${props.workout_excersices[0].thumb_image}`,
+                      }
+                    : require('../../assets/images/exercise_img.png')
+                }
+                style={{
+                  width: '100%',
+                  height: windowHeight,
+                  flex: 1,
+                }}>
+                <View style={styles.workcenter}>
+                  <TouchableOpacity
                     style={{
-                      width: 20,
-                      height: 20,
-                      opacity: 0.5,
+                      position: 'absolute',
+                      top: 0,
+                      right: 20,
+                      top: 15,
+                      zIndex: 2,
                     }}
-                  />
-                </TouchableOpacity>
-                <View style={styles.innercontainer}>
-                  <View style={styles.workitem}>
+                    onPress={() => navigation.navigate('WorkoutDetails')}>
                     <Image
                       resizeMode="contain"
-                      source={require('../../assets/images/knees.png')}
+                      source={require('../../assets/images/whitecross.png')}
                       style={{
-                        width: 17,
-                        height: 31,
+                        width: 20,
+                        height: 20,
+                        opacity: 0.5,
                       }}
                     />
-                    <View style={styles.workbody}>
-                      <Text style={styles.subtitle}>Exercise</Text>
-                      <Text style={styles.title1}>
-                        {props.workout_excersices.title &&
-                          toUpperCaseFirst(props.workout_excersices.title)}
-                      </Text>
+                  </TouchableOpacity>
+                  <View style={styles.innercontainer}>
+                    <View style={styles.workitem}>
+                      <Image
+                        resizeMode="contain"
+                        source={require('../../assets/images/knees.png')}
+                        style={{
+                          width: 17,
+                          height: 31,
+                        }}
+                      />
+                      <View style={styles.workbody}>
+                        <Text style={styles.subtitle}>Exercise</Text>
+                        <Text style={styles.title1}>
+                          {props.workout_excersices &&
+                            toUpperCaseFirst(props.workout_excersices[0].title)}
+                        </Text>
+                      </View>
                     </View>
+                    <Text
+                      style={[
+                        styles.subtitle,
+                        {paddingLeft: 27, paddingTop: 6},
+                      ]}>
+                      {props.workout_excersices &&
+                        toUpperCaseFirst(
+                          props.workout_excersices[0].difficulity_level,
+                        )}{' '}
+                      {props.workout_excersices &&
+                        `| ${props.workout_excersices[0].calories} Calories Burn`}
+                    </Text>
                   </View>
-                  <Text
-                    style={[styles.subtitle, {paddingLeft: 27, paddingTop: 6}]}>
-                    {props.workout_excersices.difficulity_level &&
-                      toUpperCaseFirst(
-                        props.workout_excersices.difficulity_level,
-                      )}{' '}
-                    {props.workout_excersices.calories &&
-                      `| ${props.workout_excersices.calories} Calories Burn`}
-                  </Text>
-                </View>
-
-                <TouchableOpacity
-                  style={{
-                    position: 'absolute',
-                    zIndex: 3,
-                    left: windowHeight / 5.2,
-                    top: windowHeight / 2.5,
-                  }}
-                  onPress={() => {
-                    setIsPlayVideo(true);
-                    props.setPlayVideoDetails(props.workout_excersices);
-                    props.setNextWorkoutDetails(props.nextworkout);
-                    // navigation.navigate('VideoPlayer');
-                    navigation.navigate('BeReadyCountDown', {
-                      nextScreen: 'VideoPlayer',
-                    });
-                  }}>
-                  <Ionicons name="play-circle" size={70} color="#fff" />
-                </TouchableOpacity>
-                <View
-                  style={{
-                    top: 85,
-                    right: 70,
-                    flex: 1,
-                    justifyContent: 'flex-end',
-                  }}>
-                  <ProgressCircle
+                  <TouchableOpacity
+                    style={{
+                      position: 'absolute',
+                      zIndex: 3,
+                      left: windowHeight / 5.2,
+                      top: windowHeight / 2.5,
+                    }}
+                    onPress={() => {
+                      setIsPlayVideo(true);
+                      props.setPlayVideoDetails(props.workout_excersices[0]);
+                      props.setNextWorkoutDetails(props.nextworkout);
+                      navigation.navigate('BeReadyCountDown', {
+                        nextScreen: 'VideoPlayer',
+                      });
+                    }}>
+                    <Ionicons name="play-circle" size={70} color="#fff" />
+                  </TouchableOpacity>
+                  <View
+                    style={{
+                      top: 85,
+                      right: 70,
+                      flex: 1,
+                      justifyContent: 'flex-end',
+                    }}>
+                    {props.startWorkoutDetails && (
+                      <CircularProgressBase
+                        {...props1}
+                        value={
+                          toPercent(
+                            props.progress.completed,
+                            props.progress.total,
+                          ) / 2
+                        }></CircularProgressBase>
+                    )}
+                    {/* <ProgressCircle
                     percent={timePercent * 0.4 + 5}
                     radius={55}
                     borderWidth={15}
                     color="#C068E5"
                     shadowColor="#F2F5F8"
                     bgColor="rgb(125,125,125)"
-                  />
-                </View>
-                <View style={[styles.innercontainer, styles.innercontainer1]}>
-                  <View style={styles.timeflex}>
-                    <View style={styles.workitem1}>
-                      <View style={styles.workbody1}>
-                        {/* <Text
-                          style={[
-                            styles.title1,
-                            {
-                              lineHeight: 22,
-                            },
-                          ]}>
-                          {data.duration}
-                        </Text> */}
-                        {Boolean(timerDuration) && (
-                          <Timer
-                            totalDuration={timerDuration}
-                            // Time Duration
-                            start={isTimerStart}
-                            // To start
-                            reset={resetTimer}
-                            // To reset
-                            options={options}
-                            // Options for the styling
-                            handleFinish={() => {
-                              alert('Custom Completion Function');
-                            }}
-                          />
-                        )}
-                        {/* <TouchableHighlight
+                  /> */}
+                  </View>
+
+                  <View style={[styles.innercontainer, styles.innercontainer1]}>
+                    <View style={styles.timeflex}>
+                      <View style={styles.workitem1}>
+                        <View style={styles.workbody1}>
+                          <Text
+                            style={[
+                              styles.title1,
+                              {
+                                lineHeight: 22,
+                              },
+                            ]}>
+                            {toPercent(
+                              props.progress.completed,
+                              props.progress.total,
+                            )}
+                            %
+                          </Text>
+                          {Boolean(timerDuration) && (
+                            <Timer
+                              totalDuration={timerDuration}
+                              // Time Duration
+                              start={isTimerStart}
+                              // To start
+                              reset={resetTimer}
+                              // To reset
+                              options={options}
+                              // Options for the styling
+                              handleFinish={() => {
+                                alert('Custom Completion Function');
+                              }}
+                            />
+                          )}
+                          {/* <TouchableHighlight
                           onPress={() => {
                             setIsTimerStart(!isTimerStart);
                             setResetTimer(false);
@@ -339,7 +366,7 @@ const StartWorkout = props => {
                           <Text style={styles.buttonText}>RESET</Text>
                         </TouchableHighlight> */}
 
-                        <Text
+                          {/* <Text
                           style={[
                             styles.title1,
                             {
@@ -347,64 +374,64 @@ const StartWorkout = props => {
                             },
                           ]}>
                           minutes left
-                        </Text>
+                        </Text> */}
+                        </View>
                       </View>
-                    </View>
 
-                    <View style={styles.workitem1}>
-                      {props.nextworkout && (
-                        <View style={styles.workbody1}>
-                          <TouchableOpacity
-                            disabled
-                            onPress={() => {
-                              onNexExercise();
-                            }}>
+                      <View style={styles.workitem1}>
+                        {props.nextworkout && (
+                          <View style={styles.workbody1}>
+                            <TouchableOpacity
+                              disabled
+                              onPress={() => {
+                                onNexExercise();
+                              }}>
+                              <Text
+                                style={[
+                                  styles.title1,
+                                  {
+                                    lineHeight: 22,
+                                    fontSize: 10,
+                                    textAlign: 'right',
+                                    fontFamily: Fonts.Poppins_Regular,
+                                  },
+                                ]}>
+                                Next Exercise {'>>'}
+                              </Text>
+                            </TouchableOpacity>
                             <Text
                               style={[
                                 styles.title1,
                                 {
-                                  lineHeight: 22,
-                                  fontSize: 10,
-                                  textAlign: 'right',
-                                  fontFamily: Fonts.Poppins_Regular,
+                                  fontSize: 12,
                                 },
                               ]}>
-                              Next Exercise {'>>'}
+                              {props.nextworkout?.title &&
+                                toUpperCaseFirst(props.nextworkout?.title)}
                             </Text>
-                          </TouchableOpacity>
-                          <Text
-                            style={[
-                              styles.title1,
-                              {
-                                fontSize: 12,
-                              },
-                            ]}>
-                            {props.nextworkout?.title &&
-                              toUpperCaseFirst(props.nextworkout?.title)}
-                          </Text>
-                        </View>
-                      )}
+                          </View>
+                        )}
+                      </View>
                     </View>
                   </View>
-                </View>
 
-                <TouchableOpacity
-                  style={{
-                    position: 'absolute',
-                    left: windowHeight / 8,
-                    bottom: -10,
-                  }}>
-                  <Image
-                    resizeMode="contain"
-                    source={require('../../assets/images/tapbtn.png')}
+                  <TouchableOpacity
                     style={{
-                      width: 198,
-                      height: 41,
-                    }}
-                  />
-                </TouchableOpacity>
+                      position: 'absolute',
+                      left: windowHeight / 8,
+                      bottom: -10,
+                    }}>
+                    <Image
+                      resizeMode="contain"
+                      source={require('../../assets/images/tapbtn.png')}
+                      style={{
+                        width: 198,
+                        height: 41,
+                      }}
+                    />
+                  </TouchableOpacity>
 
-                {/* <Image
+                  {/* <Image
                   resizeMode="contain"
                   source={require('../../assets/images/startgrad.png')}
                   style={{
@@ -415,65 +442,71 @@ const StartWorkout = props => {
                     bottom: 20,
                   }}
                 /> */}
-              </View>
-            </ImageBackground>
-          </View>
-
-          <View style={styles.box}>
-            <Text style={[styles.title2, {marginBottom: 8}]}>Descriptions</Text>
-            <Text
-              onTextLayout={onTextLayout}
-              numberOfLines={textShown ? undefined : 3}
-              style={[styles.subtitle, {color: '#7B6F72'}]}>
-              {props.workout_excersices.description}{' '}
-            </Text>
-            {lengthMore ? (
-              <Text
-                onPress={toggleNumberOfLines}
-                style={[styles.subtitle, {color: '#C068E5'}]}>
-                {textShown ? 'Read less...' : 'Read more...'}
-              </Text>
-            ) : null}
-
-            {props?.how_do_it?.length > 0 && (
-              <>
-                <View style={[styles.flexdir, {marginBottom: 15}]}>
-                  <Text style={[styles.sText, {fontSize: 16}]}>
-                    How To Do It
-                  </Text>
-                  <TouchableOpacity>
-                    <Text
-                      style={[styles.sGoal, {fontSize: 12, color: '#B4B4B4'}]}>
-                      {props.how_do_it?.length} Steps
-                    </Text>
-                  </TouchableOpacity>
                 </View>
+              </ImageBackground>
+            </View>
 
-                <Timeline
-                  timeContainerStyle={{
-                    minWidth: 18,
-                    padding: 0,
-                  }}
-                  style={{
-                    padding: 0,
-                    margin: 0,
-                    left: -30,
-                  }}
-                  innerCircle={'dot'}
-                  data={props.how_do_it}
-                  separatorStyle={{borderColor: 'red'}}
-                  circleColor="#fff"
-                  lineColor="#C068E5"
-                  timeStyle={styles.timestyle}
-                  titleStyle={styles.titlestyle}
-                  descriptionStyle={styles.descstyle}
-                />
-              </>
-            )}
+            <View style={styles.box}>
+              <Text style={[styles.title2, {marginBottom: 8}]}>
+                Descriptions
+              </Text>
+              <Text
+                onTextLayout={onTextLayout}
+                numberOfLines={textShown ? undefined : 3}
+                style={[styles.subtitle, {color: '#7B6F72'}]}>
+                {props.workout_excersices &&
+                  props.workout_excersices[0].description}{' '}
+              </Text>
+              {lengthMore ? (
+                <Text
+                  onPress={toggleNumberOfLines}
+                  style={[styles.subtitle, {color: '#C068E5'}]}>
+                  {textShown ? 'Read less...' : 'Read more...'}
+                </Text>
+              ) : null}
+
+              {props?.how_do_it?.length > 0 && (
+                <>
+                  <View style={[styles.flexdir, {marginBottom: 15}]}>
+                    <Text style={[styles.sText, {fontSize: 16}]}>
+                      How To Do It
+                    </Text>
+                    <TouchableOpacity>
+                      <Text
+                        style={[
+                          styles.sGoal,
+                          {fontSize: 12, color: '#B4B4B4'},
+                        ]}>
+                        {props.how_do_it?.length} Steps
+                      </Text>
+                    </TouchableOpacity>
+                  </View>
+
+                  <Timeline
+                    timeContainerStyle={{
+                      minWidth: 18,
+                      padding: 0,
+                    }}
+                    style={{
+                      padding: 0,
+                      margin: 0,
+                      left: -30,
+                    }}
+                    innerCircle={'dot'}
+                    data={props.how_do_it}
+                    separatorStyle={{borderColor: 'red'}}
+                    circleColor="#fff"
+                    lineColor="#C068E5"
+                    timeStyle={styles.timestyle}
+                    titleStyle={styles.titlestyle}
+                    descriptionStyle={styles.descstyle}
+                  />
+                </>
+              )}
+            </View>
           </View>
-        </View>
+        )}
       </ScrollView>
-
       <Loader loading={isLoading} />
     </SafeAreaView>
   );
@@ -483,9 +516,11 @@ const mapStateToProps = state => ({
   loginData: state.loginReducer.loginData,
   userDetails: state.profileReducer.userDetails,
   nextWorkoutDetails: state.workoutReducer.nextWorkoutDetails,
+  progress: state.workoutReducer.startWorkoutDetails.progress,
   startWorkoutDetails: state.workoutReducer.startWorkoutDetails,
   workout_excersices:
-    state.workoutReducer.startWorkoutDetails.workout_excersices[0],
+    state.workoutReducer.startWorkoutDetails.workout_excersices,
+
   how_do_it: state.workoutReducer.startWorkoutDetails.how_do_it,
   nextworkout: state.workoutReducer.startWorkoutDetails.nextworkout,
   exersiseId: state.workoutReducer.exersiseId,

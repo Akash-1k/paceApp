@@ -128,7 +128,11 @@ const Login = props => {
   const fbLogin = async resCallback => {
     LoginManager.logOut();
     console.log('first');
-    return LoginManager.logInWithPermissions(['email', 'public_profile']).then(
+    return LoginManager.logInWithPermissions([
+      'email',
+      'public_profile',
+      'user_friends',
+    ]).then(
       result => {
         console.log('Result FB ----> ', result);
         if (

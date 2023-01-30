@@ -30,6 +30,7 @@ import {
   GraphRequest,
   GraphRequestManager,
 } from 'react-native-fbsdk';
+import {loginRequest} from '../modules/Login/actions';
 
 const SignUp = props => {
   const navigation = useNavigation();
@@ -670,6 +671,7 @@ const mapDispatchToProps = dispatch => ({
   signupRequest: (data, navigation) =>
     dispatch(signupRequest(data, navigation)),
   signupSuccess: data => dispatch(signupSuccess(data)),
+  loginRequest: (data, navigation) => dispatch(loginRequest(data, navigation)),
 });
 
 export default connect(mapStateToProps, mapDispatchToProps)(SignUp);

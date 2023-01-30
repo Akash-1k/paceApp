@@ -17,6 +17,9 @@ import {
   RESET_PASSWORD_FAIL,
   RESET_PASSWORD_REQUESTED,
   RESET_PASSWORD_SUCCESS,
+  DEVICE_TOKEN_FAIL,
+  DEVICE_TOKEN_REQUESTED,
+  DEVICE_TOKEN_SUCCESS,
 } from './types';
 
 const INITIAL_STATE = {
@@ -25,6 +28,7 @@ const INITIAL_STATE = {
   otpVerificationData: [],
   resetPassData: null,
   contactSupportData: null,
+  deviceToken: null,
 };
 
 export default (state = INITIAL_STATE, action) => {
@@ -130,6 +134,22 @@ export default (state = INITIAL_STATE, action) => {
         ...state,
       };
 
+    // Device Token
+    case DEVICE_TOKEN_REQUESTED:
+      return {
+        ...state,
+      };
+
+    case DEVICE_TOKEN_SUCCESS:
+      return {
+        ...state,
+        deviceToken: action.data,
+      };
+
+    case DEVICE_TOKEN_FAIL:
+      return {
+        ...state,
+      };
     default:
       return state;
   }

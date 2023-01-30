@@ -15,23 +15,51 @@ import {TextInput} from 'react-native-paper';
 import {connect} from 'react-redux';
 import Config from '../constants/Config';
 import {BASE_URL} from '../env';
+import {showAlert} from '../utils/CommonFunctions';
+import {userDetailsRequest} from '../modules/Profile/actions';
 
 const MyGovtId = props => {
   const [govtid, setGovtid] = useState('');
   const [organization, setOrganization] = useState('');
   const [updatemsg, setUpdateMsg] = useState('');
 
-  const [isLoading, setLoader] = useState(false);
   const [isUpdating, setUpdatingLoader] = useState(false);
   const [isVerified, setIsVerified] = useState(false);
+
+  const [isVerifying, setIsVerifying] = useState(false);
+  const [isVerifyingLoader, setIsVerifyingLoader] = useState(false);
+  const [isLoading, setIsLoading] = useState(false);
+
+  const [govtIdVerified, setGovtIdVerified] = useState({});
+
+  const [isNameValid, setIsNameValid] = useState(false);
+  const [isGovtId, setIsValidGovtId] = useState(false);
+  const [govtIdMsg, setVerifiedMsg] = useState(false);
+  const [govt_id, setGovtId] = useState('');
 
   // useEffect(() => {
   //   onVerifyID();
   // }, []);
+  const getUserDetails = () => {
+    let data = {
+      logout: () => onTokenExpire(),
+      token: props.loginData.token,
+    };
+    props.userDetailsRequest(data);
+  };
 
-  const onVerifyID = () => {
+  const onTokenExpire = () => {
+    props.navigation.navigate('Login');
+  };
+
+  const onVerify = () => {
+    if (govt_id == '') {
+      setVerifiedMsg('Please Enter Govt ID *');
+      setIsValidGovtId(true);
+      return;
+    }
     var formdata = new FormData();
-    formdata.append('govt_id', 355999323253);
+    formdata.append('govt_id', govt_id);
 
     var requestOptions = {
       method: 'POST',
@@ -39,35 +67,50 @@ const MyGovtId = props => {
       redirect: 'follow',
     };
 
-    setLoader(true);
+    setIsVerifyingLoader(true);
+    // return
     fetch(BASE_URL + Config.verify_id, requestOptions)
       .then(response => response.json())
       .then(result => {
-        console.log('first', result);
         if (result.status == 1) {
-          setOrganization(result.msg);
-          setLoader(false);
-          setIsVerified(true);
+          onUpdateID();
+          setGovtIdVerified(result);
+          setIsVerifying(true);
+          setIsValidGovtId(false);
+          setIsVerifyingLoader(false);
+          showAlert(result.msg);
+        } else if (result.status == 2) {
+          setVerifiedMsg(result.msg);
+          setIsValidGovtId(true);
+          setIsVerifying(false);
+          setIsLoading(false);
+          setIsVerifyingLoader(false);
+          showAlert(result.msg);
         } else {
-          setLoader(false);
+          setIsVerifying(false);
+          setIsVerifyingLoader(false);
+          showAlert(result.msg);
         }
       })
       .catch(error => {
-        setLoader(false);
+        setIsVerifyingLoader(false);
         console.log('error', error);
       });
   };
 
   const onUpdateID = () => {
-    if (isVerified == false) {
-      setUpdateMsg({msg: 'Please verify Govt. ID'});
-      return;
-    }
+    // console.log('first');
+    // if (isVerified == false) {
+    //   setUpdateMsg({msg: 'Please verify Govt. ID'});
+    //   console.log('first w');
+    //   return;
+    // }
+
     var myHeaders = new Headers();
     myHeaders.append('Authorization', 'Bearer ' + props.loginData.token);
 
     var formdata = new FormData();
-    formdata.append('govt_id', govtid);
+    formdata.append('govt_id', govt_id);
 
     var requestOptions = {
       method: 'POST',
@@ -86,6 +129,7 @@ const MyGovtId = props => {
           setEmpty();
         }
         if (result.status == 1) {
+          getUserDetails();
           setUpdateMsg(result);
           setEmpty();
         }
@@ -106,102 +150,185 @@ const MyGovtId = props => {
   return (
     <SafeAreaView style={styles.relative}>
       <ScrollView style={styles.relative}>
-        <View style={styles.container}>
-          {/* {updatemsg.status == undefined ? (
-            <Text
-              style={{
-                fontFamily: Fonts.Poppins_Medium,
-                fontSize: 14,
-                color: updatemsg.status == 1 ? '#6759FF' : '#C068E5',
-              }}>
-              {updatemsg.msg}
-            </Text>
-          ) : null} */}
+        {props.userDetails.user.govt_id ? (
+          <View style={styles.container}>
+            {/* {updatemsg.status == undefined ? (
+          <Text
+            style={{
+              fontFamily: Fonts.Poppins_Medium,
+              fontSize: 14,
+              color: updatemsg.status == 1 ? '#6759FF' : '#C068E5',
+            }}>
+            {updatemsg.msg}
+          </Text>
+        ) : null} */}
 
-          <View style={styles.inputconatiner}>
-            <TextInput
-              style={[styles.input, {paddingRight: 80}]}
-              underlineColor={'transparent'}
-              disabled
-              placeholder="Enter Govt. ID"
-              selectionColor="#3B2645"
-              value={props.userDetails.user.govt_id}
-              onChangeText={setGovtid}
-              theme={{
-                colors: {
-                  primary: '#F7F8F8',
-                  text: '#3B2645',
-                },
-                fonts: {
-                  regular: {
-                    fontFamily: Fonts.Poppins_Regular,
+            <View style={styles.inputconatiner}>
+              <TextInput
+                style={[styles.input, {paddingRight: 80}]}
+                underlineColor={'transparent'}
+                disabled
+                placeholder="Enter Govt. ID"
+                selectionColor="#3B2645"
+                value={props.userDetails.user.govt_id}
+                onChangeText={setGovtid}
+                theme={{
+                  colors: {
+                    primary: '#F7F8F8',
+                    text: '#3B2645',
                   },
-                },
-              }}
-            />
-
-            <View
-              style={{
-                position: 'absolute',
-                right: 15,
-                top: 17,
-                display: 'flex',
-                flexDirection: 'row',
-              }}>
-              {/* {isLoading ? (
-                <ActivityIndicator size={'small'} color="#C068E5" />
-              ) : null} */}
-
-              <Image
-                resizeMode="contain"
-                source={require('../../assets/images/verfied.png')}
-                style={{
-                  width: 14,
-                  height: 14,
-                  position: 'relative',
-                  top: 4,
-                  marginRight: 4,
+                  fonts: {
+                    regular: {
+                      fontFamily: Fonts.Poppins_Regular,
+                    },
+                  },
                 }}
               />
 
-              <Text
+              <View
                 style={{
-                  fontFamily: Fonts.Poppins_Medium,
-                  fontSize: 14,
-                  color: '#C068E5',
+                  position: 'absolute',
+                  right: 15,
+                  top: 17,
+                  display: 'flex',
+                  flexDirection: 'row',
                 }}>
-                {' Verifed'}
-              </Text>
+                {/* {isLoading ? (
+              <ActivityIndicator size={'small'} color="#C068E5" />
+            ) : null} */}
+
+                <Image
+                  resizeMode="contain"
+                  source={require('../../assets/images/verfied.png')}
+                  style={{
+                    width: 14,
+                    height: 14,
+                    position: 'relative',
+                    top: 4,
+                    marginRight: 4,
+                  }}
+                />
+
+                <Text
+                  style={{
+                    fontFamily: Fonts.Poppins_Medium,
+                    fontSize: 14,
+                    color: '#C068E5',
+                  }}>
+                  {' Verifed'}
+                </Text>
+              </View>
+
+              <Image
+                resizeMode="contain"
+                source={require('../../assets/images/email.png')}
+                style={styles.icon}
+              />
             </View>
 
-            <Image
-              resizeMode="contain"
-              source={require('../../assets/images/email.png')}
-              style={styles.icon}
-            />
+            {/* {updatemsg.status != undefined ? (
+          <Text
+            style={{
+              fontFamily: Fonts.Poppins_Medium,
+              fontSize: 14,
+              color: updatemsg.status == 1 ? '#6759FF' : '#C068E5',
+            }}>
+            {updatemsg.msg}
+          </Text>
+        ) : null} */}
+
+            <TouchableOpacity disabled style={styles.button}>
+              {!props.userDetails.user.organization ? (
+                <ActivityIndicator size={30} color="#C068E5" />
+              ) : (
+                <Text style={styles.text}>
+                  {props.userDetails.user.organization}
+                </Text>
+              )}
+            </TouchableOpacity>
           </View>
+        ) : (
+          <>
+            <View style={[styles.inputconatiner, {marginHorizontal: 15}]}>
+              <TextInput
+                onChangeText={txt => {
+                  setGovtId(txt);
+                  if (txt == '') {
+                    setVerifiedMsg('Please Enter Govt ID *');
+                    setIsValidGovtId(true);
+                  } else {
+                    setVerifiedMsg('');
+                    setIsValidGovtId(false);
+                  }
+                }}
+                keyboardType={'number-pad'}
+                editable={!isVerifying}
+                style={[styles.input, {paddingRight: 10}]}
+                underlineColor={'transparent'}
+                selectionColor="#3B2645"
+                placeholder="Govt ID"
+                theme={{
+                  colors: {
+                    primary: '#F7F8F8',
+                    text: '#3B2645',
+                  },
+                  fonts: {
+                    regular: {
+                      fontFamily: Fonts.Poppins_Regular,
+                    },
+                  },
+                }}
+              />
 
-          {/* {updatemsg.status != undefined ? (
-            <Text
-              style={{
-                fontFamily: Fonts.Poppins_Medium,
-                fontSize: 14,
-                color: updatemsg.status == 1 ? '#6759FF' : '#C068E5',
-              }}>
-              {updatemsg.msg}
-            </Text>
-          ) : null} */}
+              <TouchableOpacity
+                onPress={onVerify}
+                style={{
+                  position: 'absolute',
+                  right: 15,
+                  top: 17,
+                }}>
+                <Text
+                  style={{
+                    fontFamily: Fonts.Poppins_Medium,
+                    fontSize: 14,
+                    color: '#C068E5',
+                  }}>
+                  {isVerifying ? (
+                    <Text>
+                      <Image
+                        style={{height: 15, width: 15, resizeMode: 'contain'}}
+                        source={require('../../assets/images/Verifed.png')}
+                      />
+                      {' | Verifed'}
+                    </Text>
+                  ) : isVerifyingLoader ? (
+                    <ActivityIndicator size={'small'} color="#C068E5" />
+                  ) : (
+                    <Text>| Verify</Text>
+                  )}
+                </Text>
+              </TouchableOpacity>
 
-          <TouchableOpacity onPress={() => onUpdateID()} style={styles.button}>
-            {!props.userDetails.user.organization ? (
-              <ActivityIndicator size={30} color="#C068E5" />
-            ) : (
-              <Text style={styles.text}>
-                {props.userDetails.user.organization}
-              </Text>
+              <Image
+                resizeMode="contain"
+                source={require('../../assets/images/email.png')}
+                style={styles.icon}
+              />
+              {isGovtId ? (
+                <Text style={[styles.subtitle, {color: 'red'}]}>
+                  {govtIdMsg}
+                </Text>
+              ) : null}
+            </View>
+            {props.userDetails.user.organization && (
+              <TouchableOpacity disabled style={styles.button}>
+                <Text style={styles.text}>
+                  {props.userDetails.user.organization}
+                </Text>
+              </TouchableOpacity>
             )}
-          </TouchableOpacity>
-        </View>
+          </>
+        )}
       </ScrollView>
     </SafeAreaView>
   );
@@ -214,7 +341,7 @@ const mapStateToProps = state => ({
 });
 
 const mapDispatchToProps = dispatch => ({
-  // userDetailsRequest: (data) => dispatch(userDetailsRequest(data)),
+  userDetailsRequest: data => dispatch(userDetailsRequest(data)),
 });
 
 export default connect(mapStateToProps, mapDispatchToProps)(MyGovtId);

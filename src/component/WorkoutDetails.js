@@ -29,7 +29,6 @@ import {showAlert} from '../utils/CommonFunctions';
 
 const WorkoutDetails = props => {
   const navigation = useNavigation();
-
   useEffect(() => {
     const backHandler = BackHandler.addEventListener(
       'hardwareBackPress',
@@ -87,17 +86,15 @@ const WorkoutDetails = props => {
   };
 
   const onStartWorkout = () => {
+    console.log(props.workoutDetails?.workout_excersices);
     var currExersise = workout_excersices.find(ele => !ele.status);
-    console.log('-----', currExersise);
+    console.log('==============================', currExersise);
     if (!currExersise) {
       showAlert('You have completed this workout');
       return;
     }
     props.setExerciseID(currExersise.set_list[0]);
-    console.log(
-      currExersise.set_list[0].id,
-      currExersise.set_list[0].workout_id,
-    );
+
     const data = {
       token: props.loginData.token,
       exersiseId: currExersise.set_list[0].id,

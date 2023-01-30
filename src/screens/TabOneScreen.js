@@ -1,6 +1,7 @@
 import React, {useEffect, useState} from 'react';
 import {
   createNavigationContainerRef,
+  useIsFocused,
   useNavigation,
 } from '@react-navigation/native';
 import {
@@ -15,6 +16,7 @@ import {
   Pressable,
   Button,
   Alert,
+  Dimensions,
 } from 'react-native';
 import {Row, Column as Col, Grid} from 'react-native-responsive-grid';
 import {LinearGradient} from 'react-native-gradients';
@@ -38,9 +40,17 @@ import {
   statusCodes,
 } from '@react-native-google-signin/google-signin';
 import axios from 'axios';
+import AsyncStorage from '@react-native-async-storage/async-storage';
+import {BASE_URL} from '../env';
+import ThreeOptionAlert from '../common/ThreeOptionAlert';
+
+const {width, height} = Dimensions.get('window');
 
 function TabOneScreen(props) {
   const navigation = useNavigation();
+  const isFocused = useIsFocused();
+  const [modalVisible, setModalVisible] = useState(false);
+
   const colorList = [
     {offset: '0%', color: '#5D6AFC', opacity: '1'},
     {offset: '100%', color: '#C068E5', opacity: '1'},
@@ -106,10 +116,47 @@ function TabOneScreen(props) {
     GoogleSignin.configure();
   }, []);
 
+  console.log(props.loginData.token);
+  const check = async () => {
+    try {
+      const deviceToken = await AsyncStorage.getItem('fcmToken');
+      console.log(deviceToken);
+      await updateDeviceToken(deviceToken);
+    } catch (e) {
+      // navigation.navigate('PleaseSelectOne');
+      console.error(e);
+    }
+  };
+
+  const updateDeviceToken = async token => {
+    var myHeaders = new Headers();
+    myHeaders.append('Authorization', 'Bearer ' + props.loginData.token);
+
+    var data = new FormData();
+    data.append('device_token', token);
+
+    var requestOptions = {
+      method: 'POST',
+      body: data,
+      headers: myHeaders,
+      redirect: 'follow',
+    };
+
+    fetch(BASE_URL + Config.device_token, requestOptions)
+      .then(response => response.json())
+      .then(result => {
+        console.log('Update Token', result);
+      })
+      .catch(error => console.log('error', error));
+  };
+
   useEffect(() => {
-    props.getHomeRequested(props.loginData.token);
-    props.userDetailsRequest({token: props.loginData.token});
-  }, []);
+    if (isFocused) {
+      check();
+      props.getHomeRequested(props.loginData.token);
+      props.userDetailsRequest({token: props.loginData.token});
+    }
+  }, [isFocused]);
 
   useEffect(() => {
     const backHandler = BackHandler.addEventListener(
@@ -155,19 +202,7 @@ function TabOneScreen(props) {
                           props.userDetails.user.dob == null ||
                           props.userDetails.user.current_weight == null
                         ) {
-                          // alert('Please Provide your details');
-                          Alert.alert('Please Provide your details', ' ', [
-                            {
-                              text: 'Cancel',
-                              onPress: () => console.log('Cancel Pressed'),
-                              style: 'cancel',
-                            },
-                            {
-                              text: 'OK',
-                              onPress: () =>
-                                navigation.navigate('PersonalData'),
-                            },
-                          ]);
+                          setModalVisible(true);
                         } else {
                           navigation.navigate('StartRunning');
                         }
@@ -315,18 +350,7 @@ function TabOneScreen(props) {
                         props.userDetails.user.dob == null ||
                         props.userDetails.user.current_weight == null
                       ) {
-                        // alert('Please Provide your details');
-                        Alert.alert('Please Provide your details', ' ', [
-                          {
-                            text: 'Cancel',
-                            onPress: () => console.log('Cancel Pressed'),
-                            style: 'cancel',
-                          },
-                          {
-                            text: 'OK',
-                            onPress: () => navigation.navigate('PersonalData'),
-                          },
-                        ]);
+                        setModalVisible(true);
                       } else {
                         navigation.navigate('StartWalking');
                       }
@@ -407,7 +431,16 @@ function TabOneScreen(props) {
                 </View>
 
                 <TouchableOpacity
-                  onPress={() => navigation.navigate('DoubleYourCoins')}
+                  onPress={() => {
+                    if (
+                      props.userDetails.user.dob == null ||
+                      props.userDetails.user.current_weight == null
+                    ) {
+                      setModalVisible(true);
+                    } else {
+                      navigation.navigate('DoubleYourCoins');
+                    }
+                  }}
                   style={[styles.startbtn, {width: 120}]}>
                   <Text style={styles.btntext}>Join the streak</Text>
                 </TouchableOpacity>
@@ -451,11 +484,44 @@ function TabOneScreen(props) {
           </View>
         )}
       </ScrollView>
+      {modalVisible ? (
+        <View
+          style={{
+            position: 'absolute',
+            backgroundColor: 'white',
+            height: 250,
+            width: width - 20,
+            borderRadius: 10,
+            top: width / 2,
+            elevation: 5,
+            zIndex: 55,
+            alignSelf: 'center',
+          }}>
+          <ThreeOptionAlert
+            title="Update"
+            msg="Please Provide your details!"
+            // firstTitle=""
+            secondTitle="OK"
+            thirdTitle="Cancel"
+            // onPressFirst={() => {
+            //   setModalVisible(false);
+            // }}
+            onPressSecond={() => {
+              navigation.navigate('PersonalData');
+              setModalVisible(false);
+            }}
+            onPressThird={() => {
+              setModalVisible(false);
+            }}
+          />
+        </View>
+      ) : null}
     </SafeAreaView>
   );
 }
 
 const mapStateToProps = state => ({
+  state: state,
   loginData: state.loginReducer?.loginData,
   userDetails: state.profileReducer?.userDetails,
   sendStepsSuccess: state.homeReducer?.sendStepsSuccess,

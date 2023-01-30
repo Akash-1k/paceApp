@@ -75,6 +75,7 @@ const Checkout = props => {
       pervScreen && formdata.append('premium_price', 9.9);
     }
     formdata.append('order_notes', '');
+    formdata.append('link', 'Workout');
 
     // formdata.append('type', addressDetails.id);
 
@@ -88,6 +89,7 @@ const Checkout = props => {
     };
 
     const res = await fetch(Config.BASE_URL + Config.checkout, requestOptions);
+    // console.log('res ====>', res.json());
     return res;
   };
 
@@ -101,7 +103,7 @@ const Checkout = props => {
 
     var details = {
       // amount: parseInt(totalAmount1).toFixed(0) * 100,
-      amount: parseFloat(totalAmount1) * 100,
+      amount: parseInt((totalAmount1 * 100).toFixed(0)),
       currency: 'usd',
       // payment_method_types: ['card'],
       customer: props.userDetails.user.customerid,
@@ -138,21 +140,26 @@ const Checkout = props => {
         } else {
           console.log(result);
           onCheckout(result)
-            .then(res => res.text())
+            .then(res => res.json())
             .then(res => {
               console.log('onCheckout ----- result', res);
               setIsLoading(false);
-
-              if (pervScreen) {
-                props.workoutListRequest({
-                  token: props.loginData.token,
-                  search: '',
-                });
-                navigation.navigate('TabTwo');
+              if (res.status) {
+                if (pervScreen) {
+                  props.workoutListRequest({
+                    token: props.loginData.token,
+                    search: '',
+                  });
+                  navigation.navigate('TabTwo');
+                } else {
+                  props.getCartRequest(props.loginData.token);
+                  props.getHomeRequested(props.loginData.token);
+                  navigation.navigate('OrderSuccess');
+                }
               } else {
-                props.getCartRequest(props.loginData.token);
-                props.getHomeRequested(props.loginData.token);
-                navigation.navigate('OrderSuccess');
+                console.log('ADD transaction failed screen', result);
+                navigation.navigate('OrderFail');
+                // setIsLoading(false);
               }
             })
             .catch(error => console.log('error', error));
@@ -166,12 +173,19 @@ const Checkout = props => {
 
   useEffect(() => {
     if (pervScreen) {
-      setTotalAmount1((9.9 + tax - parseInt(redeemedCoins) * 0.2).toFixed(2));
-    } else {
       setTotalAmount1(
-        (totalAmount + tax + shipping - parseInt(redeemedCoins) * 0.2).toFixed(
+        (9.9 + tax - parseInt(redeemedCoins ? redeemedCoins : 0) * 0.2).toFixed(
           2,
         ),
+      );
+    } else {
+      setTotalAmount1(
+        (
+          totalAmount +
+          tax +
+          shipping -
+          parseInt(redeemedCoins ? redeemedCoins : 0) * 0.2
+        ).toFixed(2),
       );
     }
   }, []);

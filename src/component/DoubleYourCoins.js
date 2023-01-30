@@ -22,7 +22,7 @@ import {toPercent} from '../common/Functions/Func';
 const DoubleYourCoins = props => {
   const [data, setData] = useState([]);
   const [isLoading, setIsLoading] = useState(false);
-  const [disabledBtn, setDisabledBtn] = useState(false);
+  const [enableBtn, setEnableBtn] = useState(false);
 
   const props1 = {
     radius: 35,
@@ -51,29 +51,53 @@ const DoubleYourCoins = props => {
       .then(response => response.json())
       .then(result => {
         var data1 = result.data;
-        data1.reverse();
-        setData(data1);
-        let check = null;
-        let completed = null;
-        data1.forEach((ele, idx) => {
-          if (ele.in_progress) {
-            check = ele;
-          }
-          if (ele.user_milestone_status == 2) {
-            completed = idx;
-            // navigation.navigate('Congratulations', {id: ele.id});
-          }
-        });
+        if (result.status) {
+          // var a = data1.find((ele, index) => {
+          //   if (
+          //     ele.user_milestone_status == null ||
+          //     ele.user_milestone_status == '1'
+          //   ) {
+          //     return ele;
+          //   }
+          // });
 
-        if (check) {
-          setDisabledBtn(check);
-        } else {
-          if (completed + 1 < data1.length) {
-            setDisabledBtn(data1[completed + 1]);
-          } else {
-            setDisabledBtn(null);
+          var a = data1.find(
+            (ele, index) =>
+              ele.user_milestone_status == null ||
+              ele.user_milestone_status == '1',
+          );
+
+          setData(data1);
+          if (a) {
+            setEnableBtn(a.id);
           }
         }
+        // data1.forEach(ele => {
+        //   if (ele.user_milestone_status == 2) {
+        //     navigation.navigate('Congratulations', {id: ele.id});
+        //   }
+        // });
+        // console.log('_____&&&^&^', a);
+
+        // // data1.reverse();
+        // let check = null;
+        // let completed = null;
+        // data1.forEach((ele, idx) => {
+        //   if (ele.in_progress) {
+        //     check = ele;
+        //   }
+        //
+        // });
+
+        // if (check) {
+        //   setDisabledBtn(check);
+        // } else {
+        //   if (completed + 1 < data1.length) {
+        //     setDisabledBtn(data1[completed + 1]);
+        //   } else {
+        //     setDisabledBtn(null);
+        //   }
+        // }
         setIsLoading(false);
       })
       .catch(error => {
@@ -104,6 +128,7 @@ const DoubleYourCoins = props => {
       .then(result => {
         console.log(result);
         // setIsLoading(false);
+        getMilestone();
       })
       .catch(error => {
         console.log('error', error);
@@ -115,6 +140,10 @@ const DoubleYourCoins = props => {
   const colorList1 = [
     {offset: '0%', color: '#C068E5', opacity: '1'},
     {offset: '100%', color: '#5D6AFC', opacity: '1'},
+  ];
+  const colorList2 = [
+    {offset: '0%', color: '#5D6AFC', opacity: '1'},
+    {offset: '100%', color: '#C068E5', opacity: '1'},
   ];
 
   const Milestone = ({item}) => {
@@ -129,7 +158,11 @@ const DoubleYourCoins = props => {
         <View style={styles.relative}>
           <CircularProgressBase
             {...props1}
-            value={toPercent(item.running, item.distance)}>
+            value={
+              toPercent(item.running, item.distance) > 100
+                ? 100
+                : toPercent(item.running, item.distance)
+            }>
             <View style={styles.flexprog}>
               <Image
                 resizeMode="contain"
@@ -201,8 +234,8 @@ const DoubleYourCoins = props => {
                 navigation.navigate('WalkingTimerMilestone', {id: item.id});
               }}
               style={styles.button}>
-              <LinearGradient colorList={colorList1} angle={200} />
-              <Text style={styles.text}>Streak Started</Text>
+              <LinearGradient colorList={colorList2} angle={200} />
+              <Text style={styles.text}>In Progress</Text>
             </TouchableOpacity>
           </View>
         )}
@@ -210,10 +243,9 @@ const DoubleYourCoins = props => {
           item.user_milestone_status == null) && (
           <View style={styles.nbtn1}>
             <TouchableOpacity
-              disabled={
-                disabledBtn == null ? true : !(disabledBtn.id == item.id)
-              }
+              disabled={!(enableBtn == item.id)}
               onPress={() => {
+                // alert('Enabled');
                 startMilestone(item.id);
               }}
               style={styles.button}>
@@ -228,25 +260,17 @@ const DoubleYourCoins = props => {
 
   return (
     <SafeAreaView style={styles.mainbg}>
-      <ScrollView>
-        <View style={styles.detailbox}>
-          <View style={styles.radius}>
-            <ImageBackground
-              source={require('../../assets/images/coinsbg.png')}
-              style={styles.walletbg}>
-              <View
-                style={{
-                  width: 270,
-                  height: 270,
-                  backgroundColor: 'rgba(255,255,255,0.1)',
-                  borderRadius: 500,
-                  justifyContent: 'center',
-                  alignItems: 'center',
-                }}>
+      {!(data.length == 0) ? (
+        <ScrollView>
+          <View style={styles.detailbox}>
+            <View style={styles.radius}>
+              <ImageBackground
+                source={require('../../assets/images/coinsbg.png')}
+                style={styles.walletbg}>
                 <View
                   style={{
-                    width: 210,
-                    height: 210,
+                    width: 270,
+                    height: 270,
                     backgroundColor: 'rgba(255,255,255,0.1)',
                     borderRadius: 500,
                     justifyContent: 'center',
@@ -254,109 +278,135 @@ const DoubleYourCoins = props => {
                   }}>
                   <View
                     style={{
-                      width: 140,
-                      height: 140,
+                      width: 210,
+                      height: 210,
                       backgroundColor: 'rgba(255,255,255,0.1)',
                       borderRadius: 500,
                       justifyContent: 'center',
                       alignItems: 'center',
                     }}>
-                    <Image
-                      resizeMode="contain"
-                      source={require('../../assets/images/runner.png')}
+                    <View
                       style={{
-                        width: 180,
-                        height: 180,
-                      }}
-                    />
+                        width: 140,
+                        height: 140,
+                        backgroundColor: 'rgba(255,255,255,0.1)',
+                        borderRadius: 500,
+                        justifyContent: 'center',
+                        alignItems: 'center',
+                      }}>
+                      <Image
+                        resizeMode="contain"
+                        source={require('../../assets/images/runner.png')}
+                        style={{
+                          width: 180,
+                          height: 180,
+                        }}
+                      />
+                    </View>
                   </View>
                 </View>
-              </View>
 
-              <View style={{marginTop: 15}}>
-                <View
-                  style={{
-                    display: 'flex',
-                    flexDirection: 'row',
-                    alignItems: 'center',
-                    justifyContent: 'center',
-                    marginBottom: 0,
-                  }}>
+                <View style={{marginTop: 15}}>
+                  <View
+                    style={{
+                      display: 'flex',
+                      flexDirection: 'row',
+                      alignItems: 'center',
+                      justifyContent: 'center',
+                      marginBottom: 0,
+                    }}>
+                    <Text
+                      style={[
+                        styles.titlemins,
+                        {
+                          color: '#fff',
+                          fontSize: 21,
+                          fontFamily: Fonts.Poppins_Bold,
+
+                          textAlign: 'center',
+                        },
+                      ]}>
+                      How this works
+                    </Text>
+                  </View>
+
                   <Text
                     style={[
                       styles.titlemins,
                       {
                         color: '#fff',
-                        fontSize: 21,
-                        fontFamily: Fonts.Poppins_Bold,
-
+                        fontSize: 14,
+                        fontFamily: Fonts.Poppins_Regular,
                         textAlign: 'center',
                       },
                     ]}>
-                    How this works
+                    Running <Text style={{fontWeight: '600'}}>3 times</Text> in
+                    a week
+                  </Text>
+                  <Text
+                    style={[
+                      styles.titlemins,
+                      {
+                        color: '#fff',
+                        fontSize: 14,
+                        fontFamily: Fonts.Poppins_Regular,
+                        textAlign: 'center',
+                      },
+                    ]}>
+                    Continue for{' '}
+                    <Text style={{fontWeight: '600'}}>3 times</Text> in a row
+                  </Text>
+                  <Text
+                    style={[
+                      styles.titlemins,
+                      {
+                        color: '#fff',
+                        fontSize: 14,
+                        fontFamily: Fonts.Poppins_Regular,
+                        textAlign: 'center',
+                      },
+                    ]}>
+                    Run atleast <Text style={{fontWeight: '600'}}>1 time</Text>{' '}
+                    in a week
                   </Text>
                 </View>
-
-                <Text
-                  style={[
-                    styles.titlemins,
-                    {
-                      color: '#fff',
-                      fontSize: 14,
-                      fontFamily: Fonts.Poppins_Regular,
-                      textAlign: 'center',
-                    },
-                  ]}>
-                  Running <Text style={{fontWeight: '600'}}>3 times</Text> in a
-                  week
-                </Text>
-                <Text
-                  style={[
-                    styles.titlemins,
-                    {
-                      color: '#fff',
-                      fontSize: 14,
-                      fontFamily: Fonts.Poppins_Regular,
-                      textAlign: 'center',
-                    },
-                  ]}>
-                  Continue for <Text style={{fontWeight: '600'}}>3 times</Text>{' '}
-                  in a row
-                </Text>
-                <Text
-                  style={[
-                    styles.titlemins,
-                    {
-                      color: '#fff',
-                      fontSize: 14,
-                      fontFamily: Fonts.Poppins_Regular,
-                      textAlign: 'center',
-                    },
-                  ]}>
-                  Run atleast <Text style={{fontWeight: '600'}}>1 time</Text> in
-                  a week
-                </Text>
-              </View>
-            </ImageBackground>
+              </ImageBackground>
+            </View>
+            <View style={styles.container}>
+              {data.map((item, index) => (
+                <Milestone key={item.id} item={item} />
+              ))}
+            </View>
+            <Text
+              style={{
+                fontFamily: Fonts.Poppins_Regular,
+                textAlign: 'center',
+                fontSize: 12,
+                color: '#62516A',
+                opacity: 0.7,
+                marginTop: 20,
+              }}>
+              Completing this streak will earn you double.
+            </Text>
           </View>
-          <View style={styles.container}>
-            {data.map((item, index) => (
-              <Milestone key={item.id} item={item} />
-            ))}
-          </View>
-          <Text
-            style={{
-              fontFamily: Fonts.Poppins_Regular,
-              textAlign: 'center',
-              fontSize: 12,
-              color: '#62516A',
-              opacity: 0.7,
-              marginTop: 20,
-            }}>
-            Completing this streak will earn you double.
+        </ScrollView>
+      ) : (
+        <View
+          style={{
+            // height: 500,
+            flex: 1,
+            justifyContent: 'center',
+            alignItems: 'center',
+          }}>
+          <Image
+            source={require('../../assets/images/empty.png')}
+            style={{width: 100, height: 100}}
+          />
+          <Text style={[styles.title1, {fontSize: 25, textAlign: 'center'}]}>
+            {'No milestones found!'}
           </Text>
         </View>
-      </ScrollView>
+      )}
       <Loader loading={isLoading} transparent={false} />
     </SafeAreaView>
   );

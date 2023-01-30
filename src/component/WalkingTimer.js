@@ -206,6 +206,10 @@ const WalkingTimer = props => {
     formdata.append('id', lastData == null ? '' : lastData.id);
     formdata.append('steps', endStatus ? targetData.steps : currentStep);
     formdata.append('status', endStatus ? 'completed' : 'in-progress');
+    {
+      targetData.type == 'running' &&
+        formdata.append('link', 'Congratulations');
+    }
 
     // if (lastData == null) {
     // } else {

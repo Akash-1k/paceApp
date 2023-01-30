@@ -37,8 +37,8 @@ const Rest = props => {
 
   const workoutStatus = () => {
     var formdata = new FormData();
-    formdata.append('workout_id', props.nextWorkoutDetails.workout_id);
-    formdata.append('excersice_id', props.nextWorkoutDetails.id);
+    formdata.append('workout_id', props.playVideoDetails.workout_id);
+    formdata.append('excersice_id', props.playVideoDetails.id);
 
     var myHeaders = new Headers();
     myHeaders.append('Authorization', 'Bearer ' + props.loginData.token);
@@ -53,7 +53,7 @@ const Rest = props => {
     fetch(Config.BASE_URL + Config.workout_status, requestOptions)
       .then(response => response.json())
       .then(result => {
-        console.log(result);
+        console.log('Config.workout_status ==>', result);
       })
       .catch(error => {
         console.log('error', error);
@@ -65,6 +65,7 @@ const Rest = props => {
       setTimeLeft(3);
     } else if (route.params.nav == '60') {
       workoutStatus();
+
       if (props.nextWorkoutDetails != null) {
         setTimeLeft(6);
         const data = {
@@ -113,6 +114,7 @@ const Rest = props => {
         });
       } else if (route.params.nav == '60') {
         if (props.nextWorkoutDetails == null) {
+          workoutStatus();
           hitApiAfterVideoEnd();
         } else {
           props.navigation.navigate('StartWorkout', {screen: 'Rest60'});

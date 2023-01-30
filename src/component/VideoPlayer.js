@@ -103,6 +103,31 @@ const VideoPlayer = props => {
     return hDisplay + mDisplay + sDisplay;
   }
 
+  const workoutStatus = () => {
+    var formdata = new FormData();
+    formdata.append('workout_id', props.playVideoDetails.workout_id);
+    formdata.append('excersice_id', props.playVideoDetails.id);
+
+    var myHeaders = new Headers();
+    myHeaders.append('Authorization', 'Bearer ' + props.loginData.token);
+
+    var requestOptions = {
+      method: 'POST',
+      body: formdata,
+      headers: myHeaders,
+      redirect: 'follow',
+    };
+
+    fetch(Config.BASE_URL + Config.workout_status, requestOptions)
+      .then(response => response.json())
+      .then(result => {
+        console.log('Config.workout_status ==>', result);
+      })
+      .catch(error => {
+        console.log('error', error);
+      });
+  };
+
   function handleBackButtonClick(curTime) {
     Orientation.lockToPortrait();
     props.setIsStatusBar(false);
@@ -376,6 +401,7 @@ const VideoPlayer = props => {
           console.log(count);
           if (count == 3) {
             if (props.nextWorkoutDetails == null) {
+              workoutStatus();
               props.navigation.navigate('CongratulationsWorkout');
             } else {
               props.navigation.navigate('Rest', {nav: '60'});

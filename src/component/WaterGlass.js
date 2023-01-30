@@ -39,15 +39,18 @@ const WaterGlass = props => {
       headers: myHeaders,
       redirect: 'follow',
     };
-
+    setIsLoading(true);
     fetch(Config.BASE_URL + Config.add_water_glass, requestOptions)
       .then(response => response.json())
       .then(result => {
         props.getWaterGlassRequested(props.loginData.token);
         props.getHomeRequested(props.loginData.token);
-        // setIsLoading(false);
+        setIsLoading(false);
       })
-      .catch(error => console.log('error add glass', error));
+      .catch(error => {
+        setIsLoading(false);
+        console.log('error add glass', error);
+      });
   };
 
   const removeGlass = () => {
@@ -67,7 +70,7 @@ const WaterGlass = props => {
       headers: myHeaders,
       redirect: 'follow',
     };
-    // setIsLoading(true);
+    setIsLoading(true);
 
     fetch(Config.BASE_URL + Config.remove_water_glass, requestOptions)
       .then(response => response.json())
@@ -75,9 +78,12 @@ const WaterGlass = props => {
         // console.log('remove_api_response', result);
         props.getWaterGlassRequested(props.loginData.token);
         props.getHomeRequested(props.loginData.token);
-        // setIsLoading(false);
+        setIsLoading(false);
       })
-      .catch(error => console.log('error', error));
+      .catch(error => {
+        setIsLoading(false);
+        console.log('error', error);
+      });
   };
 
   const fillWaterGlass = () => {

@@ -11,8 +11,36 @@ import React from 'react';
 
 import {logoutRequest} from './modules/Login/actions';
 import Fonts from './constants/Fonts';
+import {BASE_URL} from './env';
+import Config from './constants/Config';
+import AsyncStorage from '@react-native-async-storage/async-storage';
 
 const CustomDrawer = props => {
+  const updateDeviceToken = async token => {
+    var myHeaders = new Headers();
+    myHeaders.append('Authorization', 'Bearer ' + props.loginData.token);
+
+    var data = new FormData();
+    data.append('device_token', '');
+
+    var requestOptions = {
+      method: 'POST',
+      body: data,
+      headers: myHeaders,
+      redirect: 'follow',
+    };
+
+    fetch(BASE_URL + Config.device_token, requestOptions)
+      .then(response => response.json())
+      .then(result => {
+        console.log('Token removed ', result);
+      })
+      .catch(error => console.log('error', error));
+  };
+  const clearAsyncStorage = async () => {
+    AsyncStorage.clear();
+  };
+
   const onPressLogout = () => {
     let data = new FormData();
     data.append('token', props.loginData.token);
@@ -21,7 +49,8 @@ const CustomDrawer = props => {
       type: props.loginData.type,
     };
     props.logoutRequest(data, params);
-    // console.log(props.state);
+    clearAsyncStorage();
+    updateDeviceToken('');
   };
 
   // console.warn('CustomDrawer ::::::', props);
@@ -68,7 +97,10 @@ const CustomDrawer = props => {
         }}>
         <TouchableOpacity
           style={styles.inbtn}
-          onPress={() => props.navigation.navigate('ProgressDaily')}>
+          onPress={() => {
+            drawerNavigation?.closeDrawer();
+            props.navigation.navigate('ProgressDaily');
+          }}>
           <View
             style={{
               display: 'flex',
@@ -97,7 +129,10 @@ const CustomDrawer = props => {
 
         <TouchableOpacity
           style={styles.inbtn}
-          onPress={() => props.navigation.navigate('OrderHistory')}>
+          onPress={() => {
+            drawerNavigation?.closeDrawer();
+            props.navigation.navigate('OrderHistory');
+          }}>
           <View
             style={{
               display: 'flex',
@@ -126,7 +161,10 @@ const CustomDrawer = props => {
 
         <TouchableOpacity
           style={[styles.inbtn, styles.activebtn]}
-          onPress={() => props.navigation.navigate('Notification')}>
+          onPress={() => {
+            drawerNavigation?.closeDrawer();
+            props.navigation.navigate('Notification');
+          }}>
           <View
             style={{
               display: 'flex',
@@ -157,7 +195,10 @@ const CustomDrawer = props => {
 
         <TouchableOpacity
           style={styles.inbtn}
-          onPress={() => props.navigation.navigate('ContactSupportForm')}>
+          onPress={() => {
+            drawerNavigation?.closeDrawer();
+            props.navigation.navigate('ContactSupportForm');
+          }}>
           <View
             style={{
               display: 'flex',

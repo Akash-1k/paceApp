@@ -100,10 +100,10 @@ const Faqs = props => {
     setLoader(true);
     setModalVisible(false);
     fetch(Config.BASE_URL + Config.faqs_questions, requestOptions)
-      .then(response => response.text())
+      .then(response => response.json())
       .then(result => {
         console.log(result);
-        // showAlert(result.data);
+        showAlert(result.data);
         setLoader(false);
       })
       .catch(error => {

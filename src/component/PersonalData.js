@@ -65,29 +65,29 @@ const PersonalData = props => {
     if (props.userDetails?.user?.dob) {
       dobA = props.userDetails?.user?.dob.split('-');
       setDob(
-        props.userDetails?.user?.dob == 'null'
+        props.userDetails?.user?.dob == null
           ? ''
           : `${dobA[2]} ${monthArray[parseInt(dobA[1])]} ${dobA[0]}`,
       );
     }
     setCweight(
-      props.userDetails?.user?.current_weight == 'null'
+      props.userDetails?.user?.current_weight == null
         ? ''
         : props.userDetails?.user?.current_weight,
     );
     setGweight(
-      props.userDetails?.user?.goal_weight == 'null'
+      props.userDetails?.user?.goal_weight == null
         ? ''
         : props.userDetails?.user?.goal_weight,
     );
     setYweight(
-      props.userDetails?.user?.height == 'null'
+      props.userDetails?.user?.height == null
         ? ''
         : props.userDetails?.user?.height,
     );
     setHours(
-      props.userDetails?.user?.sleep_per_night_hours == 'null'
-        ? ''
+      props.userDetails?.user?.sleep_per_night_hours == null
+        ? 1
         : props.userDetails?.user?.sleep_per_night_hours,
     );
   }, []);
@@ -146,9 +146,10 @@ const PersonalData = props => {
     var formdata = new FormData();
 
     const dobArr = dob.split(' ');
+
     formdata.append(
       'dob',
-      `${dobArr[2]}-${monthArray.indexOf(dobArr[1])}-${dobArr[0]}`,
+      `${dobArr[2]}-${monthArray.indexOf(dobArr[1]) + 1}-${dobArr[0]}`,
     );
     formdata.append('current_weight', cweight);
     formdata.append('goal_weight', gweight);
@@ -181,18 +182,6 @@ const PersonalData = props => {
       .catch(error => console.log('error', error));
   };
 
-  // const showAlert = msg => {
-  //   Alert.alert('Update data', msg, [
-  //     {
-  //       text: 'OK',
-  //       onPress: () => {
-  //         props.personalDataRequest(props.loginData.token);
-  //         // props.getAddressListRequest(props.loginData.token);
-  //         props.navigation.navigate('TabFour');
-  //       },
-  //     },
-  //   ]);
-  // };
   const onTokenExpire = () => {
     props.navigation.navigate('Login');
   };
@@ -363,6 +352,7 @@ const PersonalData = props => {
           angle={200}></LinearGradient>
         <Text style={styles.text}>Save</Text>
       </TouchableOpacity>
+
       <Modal
         isVisible={isModalVisible}
         onBackdropPress={() => {
@@ -372,6 +362,8 @@ const PersonalData = props => {
         animationInTiming={700}>
         <View style={styles.modalview}>
           <CalendarPicker
+            // initialDate={'1998-01-18'}
+            // selectedStartDate={'1998-01-18'}
             initialDate={
               props.userDetails?.user?.dob
                 ? new Date(props.userDetails?.user?.dob)

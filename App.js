@@ -1,5 +1,5 @@
 import React, {Component} from 'react';
-import {Provider} from 'react-redux';
+import {Provider} from 'react-redux'; // Done
 import {PersistGate} from 'redux-persist/integration/react';
 import LoadingView from './src/common/CLoader';
 import Toast from 'react-native-toast-notifications';

@@ -2,19 +2,55 @@ import {useNavigation} from '@react-navigation/native';
 import React, {useEffect} from 'react';
 import {Image, View} from 'react-native';
 import {connect} from 'react-redux';
+import Config from '../constants/Config';
 import Fonts from '../constants/Fonts';
+import {BASE_URL} from '../env';
+import {
+  notificationListner,
+  requestUserPermission,
+} from '../utils/notificationService';
+import AsyncStorage from '@react-native-async-storage/async-storage';
 
 function Splash(props) {
   const navigation = useNavigation();
 
+  const check = async () => {
+    try {
+      const deviceToken = await AsyncStorage.getItem('fcmToken');
+      await updateDeviceToken(deviceToken);
+    } catch (e) {
+      // navigation.navigate('PleaseSelectOne');
+      console.error(e);
+    }
+  };
+  const updateDeviceToken = async token => {
+    var myHeaders = new Headers();
+    myHeaders.append('Authorization', 'Bearer ' + props.loginData.token);
+
+    var data = new FormData();
+    data.append('device_token', token);
+
+    var requestOptions = {
+      method: 'POST',
+      body: data,
+      headers: myHeaders,
+      redirect: 'follow',
+    };
+
+    fetch(BASE_URL + Config.device_token, requestOptions)
+      .then(response => response.json())
+      .then(result => {
+        console.log('Update Token', result);
+      })
+      .catch(error => console.log('error', error));
+  };
+
   useEffect(() => {
-    console.log('loginData:::::', props);
-
+    requestUserPermission();
+    notificationListner(navigation);
     setTimeout(() => {
-      // console.log('props.loginData::', props.loginData);
-      // navigation.navigate("Login")
-
       if (props.loginData.success == true) {
+        // check();
         navigation.navigate('Root', {screen: 'TabOne'});
         return;
       }

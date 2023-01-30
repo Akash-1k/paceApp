@@ -155,7 +155,6 @@ function* onHome({data}) {
     //   // yield* hideLoader(false, '');
     //   return;
     // }
-
     if (res.status == 0) {
       console.log('Token SAGA2 Home onHome', data);
       yield put(getHomeFail());

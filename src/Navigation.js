@@ -356,7 +356,7 @@ function MainDrawerNavigation() {
               <Ionicons
                 name="chevron-back"
                 size={18}
-                color="#fff"
+                color="#555"
                 style={{
                   paddingRight: 6,
                   position: 'relative',

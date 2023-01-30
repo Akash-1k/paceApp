@@ -17,6 +17,9 @@ import {
   RESET_PASSWORD_FAIL,
   RESET_PASSWORD_REQUESTED,
   RESET_PASSWORD_SUCCESS,
+  DEVICE_TOKEN_FAIL,
+  DEVICE_TOKEN_REQUESTED,
+  DEVICE_TOKEN_SUCCESS,
 } from './types';
 
 export const loginRequest = (data, navigation) => ({
@@ -113,4 +116,20 @@ export const contactSupportSuccess = data => ({
 
 export const contactSupportFail = () => ({
   type: CONTACT_SUPPORT_FAIL,
+});
+
+// DEVICE_TOKEN
+export const deviceTokenRequest = (data, navigation) => ({
+  type: DEVICE_TOKEN_REQUESTED,
+  data,
+  navigation,
+});
+
+export const deviceTokenSuccess = data => ({
+  type: DEVICE_TOKEN_SUCCESS,
+  data,
+});
+
+export const deviceTokenFail = () => ({
+  type: DEVICE_TOKEN_FAIL,
 });

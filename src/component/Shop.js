@@ -25,24 +25,26 @@ import Loader from '../common/Loader';
 import MultiSlider from '@ptomasroos/react-native-multi-slider';
 import {LinearGradient} from 'react-native-gradients';
 import {ActivityIndicator} from 'react-native';
+import {Pressable} from 'react-native';
 
 const Shop = props => {
   const navigation = useNavigation();
+  // popular, newest, price_low_to_heigh, price_high_to_low
   const DATA1 = [
     {
-      id: '1',
+      id: 'popular',
       title: 'Popular',
     },
     {
-      id: '2',
+      id: 'newest',
       title: 'Newest',
     },
     {
-      id: '3',
+      id: 'price_low_to_heigh',
       title: 'Price: Low to high',
     },
     {
-      id: '4',
+      id: 'price_high_to_low',
       title: 'Price: High to low',
     },
   ];
@@ -52,10 +54,11 @@ const Shop = props => {
     {offset: '100%', color: '#5D6AFC', opacity: '1'},
   ];
 
-  const [searchQuery, setSearchQuery] = React.useState('');
+  const [searchQuery, setSearchQuery] = useState('');
   const onChangeSearch = query => setSearchQuery(query);
   const [isModalVisible, setModalVisible] = useState(false);
   const [selectedCategory, setSelectedCategory] = useState(0);
+  const [category, setCategory] = useState([]);
 
   const [productList, setProductsList] = useState([]);
   const [sizeList, setSizeList] = useState([]);
@@ -66,122 +69,178 @@ const Shop = props => {
   const [noProduct, setNoProduct] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
 
-  const [orderby, setOrderBy] = useState('desc');
-  const [min_price, setMinPrice] = useState(0);
-  const [max_price, setMaxPrice] = useState(0);
+  // size id
+  const [selectedId, setSelectedId] = useState('');
+  // sort
+  const [selectedId1, setSelectedId1] = useState('');
+
+  const [selectedColor, setSelectedColor] = useState('');
+
+  const [orderby, setOrderBy] = useState('');
+  const [min_price, setMinPrice] = useState('');
+  const [max_price, setMaxPrice] = useState('');
   const [cat_id, setCatId] = useState('');
+  const [size, setSize] = useState('');
+  const [nextPage, setNextPage] = useState('');
 
   const toggleModal = () => {
     setModalVisible(!isModalVisible);
   };
 
   useEffect(() => {
-    props.shopCategoryListRequest(props.loginData);
-    // getAllFilterProducts();
+    //   props.shopCategoryListRequest(props.loginData);
+    getAllFilterProducts();
   }, []);
 
   useEffect(() => {
-    getAllProducts();
+    // getAllProducts();
+    getAllFilterProducts();
   }, [cat_id]);
+
+  // console.log(min_price, max_price);
 
   const getAllFilterProducts = () => {
     var myHeaders = new Headers();
     myHeaders.append('Authorization', 'Bearer ' + props.loginData.token);
 
-    var formdata = new FormData();
+    // var formdata = new FormData();
 
-    if (orderby != '') {
-      formdata.append('orderby', orderby);
-    }
+    // if (orderby != '') {
+    //   formdata.append('orderby', orderby);
+    // }
 
-    if (min_price != '') {
-      formdata.append('min_price', min_price);
-    }
+    // if (min_price != '') {
+    //   formdata.append('minPrice', min_price);
+    // }
 
-    if (max_price != '') {
-      formdata.append('max_price', max_price);
-    }
+    // if (max_price != '') {
+    //   formdata.append('maxPrice', max_price);
+    // }
 
-    if (cat_id != '') {
-      formdata.append('cat_id', cat_id);
-    }
-
+    // if (cat_id != '') {
+    //   formdata.append('categoryId', cat_id);
+    // }
+    // if (searchQuery != '') {
+    //   formdata.append('search', searchQuery);
+    // }
+    setProductsList([]);
+    setNoProduct(false);
     var requestOptions = {
-      method: 'POST',
+      method: 'GET',
       headers: myHeaders,
-      body: formdata._parts.length > 0 ? formdata : '',
+      // body: formdata._parts.length > 0 ? formdata : '',
       redirect: 'follow',
     };
-
+    // ?minPrice=&maxPrice&categoryId&search=Pro&sortBy&size
     // setIsLoading(true)
-    fetch(Config.BASE_URL + Config.getAllProducts, requestOptions)
+    console.log(
+      `${Config.BASE_URL}${Config.getAllProducts}?minPrice=${min_price}&maxPrice=${max_price}&categoryId=${cat_id}&search=${searchQuery}&sortBy=${selectedId1}&size=${selectedId}&color=${selectedColor}`,
+    );
+    fetch(
+      `${Config.BASE_URL}${Config.getAllProducts}?minPrice=${min_price}&maxPrice=${max_price}&categoryId=${cat_id}&search=${searchQuery}&sortBy=${selectedId1}&size=${selectedId}&color=${selectedColor}`,
+      requestOptions,
+    )
       .then(response => response.json())
       .then(result => {
-        console.log('getAllFilterProducts', result);
-        if (result.products == 'No product found') {
-          setProductsList([]);
+        console.log('getAllFilterProducts function', result);
+        if (result.products.data.length == 0) {
+          setIsLoading(false);
+          setNoProduct(true);
         } else {
+          setCategory(result.categories);
           setAllProductData(result);
-          setProductsList(result.products);
-          setColorList(result.variation.colors);
-          setSizeList(result.variation.sizes);
+          setProductsList(result.products.data);
+          setColorList(result.variation.Color);
+          setSizeList(result.variation.Size);
+          setNextPage(result.products.next_page_url);
+          setMinPrice(result.min_price);
+          setMaxPrice(result.max_price);
         }
-        // setMaxPrice(result.price.max-range);
-        // toggleModal();
-        // setIsLoading(false)
       })
       .catch(error => {
         // setIsLoading(false)
-        console.log('error', error);
+        console.log('error 1', error);
       });
   };
 
-  const getAllProducts = () => {
-    if (count == productList.length && searchQuery == '') {
+  const getAllFilterProductsNext = () => {
+    if (nextPage == null) {
       return;
     }
+    console.log(
+      `${nextPage}&minPrice=${min_price}&maxPrice=${max_price}&categoryId=${cat_id}&search=${searchQuery}&sortBy=${selectedId1}&size=${selectedId}&color=${selectedColor}`,
+    );
 
     var myHeaders = new Headers();
     myHeaders.append('Authorization', 'Bearer ' + props.loginData.token);
 
-    var formdata = new FormData();
-
-    if (searchQuery != '') {
-      formdata.append('search', searchQuery);
-    }
-
-    if (cat_id != '') {
-      formdata.append('cat_id', cat_id);
-    }
-    formdata.append('start', productList.length);
-    formdata.append('recordsPerPage', 6);
-
     var requestOptions = {
-      method: 'POST',
+      method: 'GET',
       headers: myHeaders,
-      body: formdata._parts.length > 0 ? formdata : '',
       redirect: 'follow',
     };
 
-    setIsLoading(true);
-    fetch(Config.BASE_URL + Config.fetch_products, requestOptions)
+    fetch(
+      `${nextPage}&minPrice=${min_price}&maxPrice=${max_price}&categoryId=${cat_id}&search=${searchQuery}&sortBy=${selectedId1}&size=${selectedId}&color=${selectedColor}`,
+      requestOptions,
+    )
       .then(response => response.json())
       .then(result => {
-        console.log('getAllProducts Shop.js', result, `\n\n`);
-        if (result.products.length == 0) {
-          setIsLoading(false);
-          setNoProduct(true);
-        } else {
-          setCount(result.count);
-          setProductsList([...productList, ...result.products]);
-          setIsLoading(false);
-        }
+        console.log('getAllFilterProductsNEXT ------------', result);
+        setProductsList([...productList, ...result.products.data]);
+        setNextPage(result.products.next_page_url);
       })
       .catch(error => {
-        setIsLoading(false);
-        console.log('error', error);
+        console.log('error 1', error);
       });
   };
+
+  // const getAllProducts = () => {
+  //   if (count == productList.length && searchQuery == '') {
+  //     return;
+  //   }
+
+  //   var myHeaders = new Headers();
+  //   myHeaders.append('Authorization', 'Bearer ' + props.loginData.token);
+
+  //   var formdata = new FormData();
+
+  //   if (searchQuery != '') {
+  //     formdata.append('search', searchQuery);
+  //   }
+
+  //   if (cat_id != '') {
+  //     formdata.append('cat_id', cat_id);
+  //   }
+  //   formdata.append('start', productList.length);
+  //   formdata.append('recordsPerPage', 6);
+
+  //   var requestOptions = {
+  //     method: 'POST',
+  //     headers: myHeaders,
+  //     body: formdata._parts.length > 0 ? formdata : '',
+  //     redirect: 'follow',
+  //   };
+
+  //   setIsLoading(true);
+  //   fetch(Config.BASE_URL + Config.fetch_products, requestOptions)
+  //     .then(response => response.json())
+  //     .then(result => {
+  //       console.log('getAllProducts Shop.js', result, `\n\n`);
+  //       if (result.products.length == 0) {
+  //         setIsLoading(false);
+  //         setNoProduct(true);
+  //       } else {
+  //         setCount(result.count);
+  //         setProductsList([...productList, ...result.products]);
+  //         setIsLoading(false);
+  //       }
+  //     })
+  //     .catch(error => {
+  //       setIsLoading(false);
+  //       console.log('error', error);
+  //     });
+  // };
 
   const onSelectCategory = (item, index) => {
     console.log('onSelectCategory Shop.js', item);
@@ -199,8 +258,6 @@ const Shop = props => {
     </TouchableOpacity>
   );
 
-  const [selectedId, setSelectedId] = useState(null);
-
   const renderItem = ({item}) => {
     const backgroundColor = item.id === selectedId ? '#F9F6FE' : '#F9F6FE';
     const borderColor = item.id === selectedId ? '#B668E7' : '#EAE1FC';
@@ -214,7 +271,33 @@ const Shop = props => {
       />
     );
   };
+  const ItemColor = ({
+    item,
+    onPress,
+    backgroundColor,
+    borderColor,
+    textColor,
+  }) => (
+    <TouchableOpacity
+      onPress={onPress}
+      style={[styles.item, backgroundColor, borderColor]}>
+      <Text style={[styles.title, textColor]}>{item.name}</Text>
+    </TouchableOpacity>
+  );
 
+  const renderItemColor = ({item}) => {
+    const backgroundColor = item.id === selectedColor ? '#F9F6FE' : '#F9F6FE';
+    const borderColor = item.id === selectedColor ? '#B668E7' : '#EAE1FC';
+
+    return (
+      <ItemColor
+        item={item}
+        onPress={() => setSelectedColor(item.id)}
+        backgroundColor={{backgroundColor}}
+        borderColor={{borderColor}}
+      />
+    );
+  };
   const Item1 = ({item, onPress, backgroundColor, borderColor, textColor}) => (
     <TouchableOpacity
       onPress={onPress}
@@ -240,11 +323,9 @@ const Shop = props => {
     </TouchableOpacity>
   );
 
-  const [selectedId1, setSelectedId1] = useState(null);
-
   const renderItem1 = ({item}) => {
-    const backgroundColor = item.id === selectedId1 ? '#F9F6FE' : '#fff';
-    const borderColor = item.id === selectedId1 ? '#EAE1FC' : '#fff';
+    const backgroundColor = item.id === selectedId1 ? '#F9F6FE' : '#F9F6FE';
+    const borderColor = item.id === selectedId1 ? '#B668E7' : '#EAE1FC';
 
     return (
       <Item1
@@ -270,7 +351,7 @@ const Shop = props => {
               resizeMode="cover"
               source={{
                 uri: data.item.main_image
-                  ? `${Config.IMAGE_BASE_URL}products/${data.item.main_image}`
+                  ? `${data.item.main_image}`
                   : Config.PLACEHOLDER_IMAGE,
               }}
               style={{
@@ -324,7 +405,7 @@ const Shop = props => {
 
   const CustomSliderMarkerLeft = () => {
     return (
-      <View style={{height: 30, width: 30}}>
+      <View style={{height: 30, top: 3, width: 30}}>
         <Image
           style={{height: 30, width: 30, resizeMode: 'contain'}}
           source={require('../../assets/images/filter_circle.png')}
@@ -335,7 +416,7 @@ const Shop = props => {
 
   const CustomSliderMarkerRight = () => {
     return (
-      <View style={{height: 30, width: 30}}>
+      <View style={{height: 30, top: 3, width: 30}}>
         <Image
           style={{height: 30, width: 30, resizeMode: 'contain'}}
           source={require('../../assets/images/filter_circle.png')}
@@ -360,7 +441,7 @@ const Shop = props => {
             onSubmitEditing={t => {
               setProductsList([]);
               setNoProduct(false);
-              getAllProducts();
+              getAllFilterProducts();
             }}
             value={searchQuery}
             placeholderTextColor="#B5B3B3"
@@ -408,7 +489,7 @@ const Shop = props => {
 
         <View style={{paddingLeft: 15, marginVertical: 15}}>
           <ScrollView horizontal={true} showsHorizontalScrollIndicator={false}>
-            {props.shopCategoryList.map((item, index) => {
+            {category.map((item, index) => {
               return (
                 <TouchableOpacity
                   key={index}
@@ -432,9 +513,9 @@ const Shop = props => {
                 data={productList}
                 renderItem={renderItemProducts}
                 numColumns={2}
-                onEndReached={getAllProducts}
+                onEndReached={getAllFilterProductsNext}
                 ListFooterComponent={renderFooter}
-                onEndReachedThreshold={0.2}
+                onEndReachedThreshold={5}
               />
             </View>
           ) : noProduct ? (
@@ -465,7 +546,6 @@ const Shop = props => {
           )}
         </ScrollView>
       </View>
-
       <Modal
         isVisible={isModalVisible}
         onBackdropPress={() => {
@@ -481,7 +561,33 @@ const Shop = props => {
           justifyContent: 'flex-end',
         }}>
         <View style={styles.modalview}>
-          <Text style={styles.modalheading}>Filters</Text>
+          <View
+            style={{
+              flexDirection: 'row',
+              width: '100%',
+              justifyContent: 'space-between',
+            }}>
+            <View>
+              <Text>{'                      '}</Text>
+            </View>
+            <Text style={[styles.modalheading]}>Filters</Text>
+            <TouchableOpacity
+              onPress={() => {
+                setSelectedId('');
+                setSelectedId1('');
+                setSelectedColor('');
+              }}
+              style={{
+                justifyContent: 'center',
+                alignItems: 'center',
+                padding: 1,
+                paddingHorizontal: 8,
+                borderWidth: 0.2,
+                borderRadius: 5,
+              }}>
+              <Text style={[styles.modaltitle, {fontSize: 13}]}>Clear</Text>
+            </TouchableOpacity>
+          </View>
           <Text style={styles.modaltitle}>Price Range</Text>
 
           <View
@@ -490,18 +596,23 @@ const Shop = props => {
               justifyContent: 'space-between',
               alignItems: 'center',
             }}>
-            <Text style={[{fontFamily: Fonts.Poppins_Medium, width: 30}]}>
+            <Text style={[{fontFamily: Fonts.Poppins_Medium, width: 35}]}>
               {'$'}
-              {min_price}{' '}
+              {parseInt(min_price)}{' '}
             </Text>
 
             <MultiSlider
               sliderLength={width - 150}
               containerStyle={{marginHorizontal: 10}}
+              selectedStyle={{backgroundColor: '#5D6AFC'}}
+              unselectedStyle={{backgroundColor: '#5D6AFC11'}}
+              trackStyle={{
+                height: 8,
+              }}
               isMarkersSeparated={true}
-              max={100}
-              min={0}
-              values={[min_price, max_price]}
+              max={parseInt(max_price)}
+              min={parseInt(min_price)}
+              values={[parseInt(min_price), parseInt(max_price)]}
               customMarkerLeft={e => {
                 return <CustomSliderMarkerLeft currentValue={e.currentValue} />;
               }}
@@ -515,18 +626,34 @@ const Shop = props => {
                 setMaxPrice(value[1]);
               }}
             />
-            <Text style={[{fontFamily: Fonts.Poppins_Medium, width: 30}]}>
+            <Text
+              style={[
+                {fontFamily: Fonts.Poppins_Medium, marginLeft: 4, width: 35},
+              ]}>
               {'$'}
-              {max_price}{' '}
+              {parseInt(max_price)}{' '}
             </Text>
           </View>
 
           <Text style={[styles.modaltitle, {marginTop: 12, marginBottom: 8}]}>
             Sizes
           </Text>
+
           <FlatList
             data={sizeList}
             renderItem={renderItem}
+            keyExtractor={item => item.id}
+            extraData={selectedId}
+            horizontal
+          />
+          {/* colorList */}
+          <Text style={[styles.modaltitle, {marginTop: 12, marginBottom: 8}]}>
+            Colors
+          </Text>
+
+          <FlatList
+            data={colorList}
+            renderItem={renderItemColor}
             keyExtractor={item => item.id}
             extraData={selectedId}
             horizontal
@@ -590,7 +717,7 @@ const styles = StyleSheet.create({
     display: 'flex',
     justifyContent: 'center',
     alignItems: 'center',
-    marginBottom: 5,
+    marginTop: 8,
     marginHorizontal: 15,
   },
   text: {
@@ -665,7 +792,7 @@ const styles = StyleSheet.create({
   },
   modalview: {
     backgroundColor: '#fff',
-    padding: 26,
+    padding: 18,
     marginBottom: 0,
     paddingHorizontal: 25,
     position: 'relative',

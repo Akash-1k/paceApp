@@ -21,7 +21,6 @@ const SingleProduct = ({item}) => {
 
   const [status, setStatus] = useState('');
   const [statusColor, setStatusColor] = useState('');
-
   useEffect(() => {
     if (item.status == 2) {
       setStatus('Delivered');
@@ -163,7 +162,7 @@ const SingleProduct = ({item}) => {
 };
 
 const OrderHistory = props => {
-  const [data, setData] = useState();
+  const [data, setData] = useState([]);
   const [isLoading, setIsLoading] = useState(false);
 
   useEffect(() => {
@@ -184,7 +183,11 @@ const OrderHistory = props => {
       .then(response => response.json())
       .then(result => {
         console.log('--------------', result);
-        setData(result.orders);
+        if (result.orders) {
+          const orders = result.orders;
+          orders.reverse();
+          setData(orders);
+        }
         setIsLoading(false);
       })
       .catch(error => {
@@ -195,16 +198,32 @@ const OrderHistory = props => {
 
   return (
     <SafeAreaView style={styles.relative}>
-      <ScrollView style={styles.relative}>
-        <View style={styles.container}>
+      <View style={styles.container}>
+        {!(data.length == 0 && !isLoading) ? (
           <FlatList
             data={data}
-            inverted
             renderItem={({item}) => <SingleProduct item={item} />}
             keyExtractor={item => item.id}
           />
-        </View>
-      </ScrollView>
+        ) : (
+          <View
+            style={{
+              height: 500,
+              // flex: 1,
+              justifyContent: 'center',
+              alignItems: 'center',
+            }}>
+            <Image
+              source={require('../../assets/images/empty.png')}
+              style={{width: 100, height: 100}}
+            />
+            <Text style={[styles.title1, {fontSize: 25, textAlign: 'center'}]}>
+              {'No Notification'}
+            </Text>
+          </View>
+        )}
+      </View>
+
       <Loader loading={isLoading} />
     </SafeAreaView>
   );

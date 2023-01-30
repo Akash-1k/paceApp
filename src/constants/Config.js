@@ -90,6 +90,8 @@ const Config = {
   wallet: '/wallet',
   order: '/order',
   workout_status: '/workout-status',
+  device_token: '/device-token',
+  notifications: '/notifications',
   logout: '/logout',
 };
 
